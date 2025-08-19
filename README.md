@@ -1,0 +1,1 @@
+We make the better software for medicine. Making world the better place!

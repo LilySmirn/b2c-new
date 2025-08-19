@@ -1,0 +1,339 @@
+.mainLogin,
+.mainReg,
+.mainProfile {
+    margin: 85px auto 0 auto;
+    height: auto;
+    padding: 50px 20px 0 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 1400px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.breadCrumbs {
+    align-self: flex-start;
+    text-align: left;
+}
+
+.btnToMainPage {
+    font-size: 20px;
+    font-weight: normal;
+    color: #000000;
+}
+
+.btnToMainPage:visited {
+    color: black;
+}
+
+.btnToMainPage:hover {
+    color: #0085FF;
+}
+
+.loginForm h2,
+.regForm h2,
+.profileTitle h2 {
+    text-align: center;
+    font-size: 40px;
+    font-weight: normal;
+}
+
+.loginForm,
+.regForm,
+.profile {
+    padding: 36px 0 110px 0;
+}
+
+.loginFormGroup,
+.regFormGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+}
+
+.loginFormInput,
+.regFormInput {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 17px;
+}
+
+.inputWrapper input {
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #0085FF;
+    width: 700px;
+    height: 55px;
+    background-color: #F0F8FF;
+    color: #6B6B6B;
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.inputWrapper input:focus {
+    border-color: #004788;
+    outline: none;
+}
+
+.inputGroup {
+    position: relative;
+}
+
+.togglePassword .icon {
+    transition: all 0.3s ease;
+}
+
+.togglePassword.visible .icon {
+    position: relative;
+}
+
+.togglePassword.visible .icon::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    width: 18px;
+    height: 2px;
+    background: gray;
+    transform: rotate(-45deg);
+    transform-origin: center;
+}
+
+.togglePassword {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+.togglePassword:hover {
+    opacity: 1;
+}
+
+.togglePassword svg {
+    fill: #888;
+    width: 24px;
+    height: 24px;
+}
+
+.rememberContainer {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.checkboxRememberBlock {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkboxRemember {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 700px;
+    margin: 38px 0;
+}
+
+.checkboxRememberReg {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.checkboxWrapper input[type="checkbox"] {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    border: 1px solid #0085FF;
+    border-radius: 5px;
+}
+
+.checkboxWrapper input[type="checkbox"]:focus {
+    outline: none;
+    border: none;
+    background-color: #0085FF;
+}
+
+.checkboxContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkboxContainer label {
+    font-size: 18px;
+    font-weight: normal;
+}
+
+.forgotPassword {
+    text-decoration: underline;
+    color: #0085FF;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.forgotPassword:visited {
+    color: #0085FF;
+}
+
+.btnLoginPage {
+    width: 700px;
+    height: 66px;
+    background: #0085FF;
+    color: #fff;
+    font-size: 23px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+.signupText {
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 130%;
+    margin-top: 47px;
+}
+
+.btnCreate {
+    color: #0085FF;
+    text-decoration: underline;
+}
+
+.btnCreate:visited {
+    color: #0085FF;
+}
+
+.modalContent {
+    background: #fff;
+    padding: 50px;
+    border-radius: 10px;
+    width: auto;
+    margin: 100px auto;
+    position: relative;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.modalContent p {
+    font-family: "Segoe UI", sans-serif;
+    font-weight: normal;
+    font-size: 20px;
+    text-align: center;
+}
+
+.modalContent input {
+    width: 300px;
+    margin-top: 30px;
+}
+
+.closeButton {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+
+.sendRecoveryWrapper #sendRecovery {
+    width: 250px;
+    margin-top: 30px;
+    height: 66px;
+    background: #0085FF;
+    color: #fff;
+    font-size: 23px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+.successReg {
+    background: #0085FF;
+    color: #fff;
+    font-size: 23px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 12px 50px;
+}
+
+.successRegTitle {
+    margin-bottom: 50px;
+}
+
+.mainReg {
+    margin-bottom: 100px;
+}
+
+.regFormSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+
+@media (max-width: 768px) {
+    .inputWrapper input {
+        width: 300px;
+    }
+
+    .checkboxRemember {
+        flex-direction: column;
+        align-items: center;
+        width: 300px;
+        text-align: left;
+        margin: 30px auto;
+    }
+
+    .checkboxContainer label {
+        font-size: 14px;
+    }
+
+    .forgotPassword {
+        margin-top: 15px;
+    }
+
+    .btnLoginPage {
+        width: 300px;
+    }
+
+    .signupText {
+        margin-top: 30px;
+    }
+
+    .loginForm,
+    .regForm,
+    .profile {
+        padding: 36px 0 50px;
+    }
+}

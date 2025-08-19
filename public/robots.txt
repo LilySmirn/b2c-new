@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /login/
+Disallow: /scripts/
+Disallow: /assets/
+Disallow: /private/
+
+Allow: /
+
+Sitemap: https://klinicheskie-rekomendatsii.ru/sitemap.xml
