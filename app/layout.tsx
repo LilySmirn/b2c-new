@@ -23,7 +23,7 @@ export default async function RootLayout({
                 <header id="header" className="header-section">
                     <div className="header-container">
                         <Link href="/" className="footer-logo-link">
-                            <Image src="/images/logo.png"
+                            <Image src="/images/logo-white.png"
                                    alt="Клинические рекомендации Минздрава — логотип" width="101" height="43"
                                    loading="eager" />
                         </Link>
@@ -89,7 +89,7 @@ export default async function RootLayout({
 
                             <div className="footer-buttons">
                                 <AuthButtons variant="footer" />
-                                <Link href="/login" className="btn btn-demo">Демо</Link>
+                                <Link href="/login" className="btn btn-demo footer-btn-demo">Демо</Link>
                             </div>
                         </section>
 

@@ -123,7 +123,7 @@ export default function Home() {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "Профи",
+              name: "Премиум",
               description: "Подписка на 12 месяцев",
             },
             price: "1800",
@@ -371,7 +371,7 @@ export default function Home() {
               </div>
               <div className="pricing-item bg-blue">
                 <p className="pricing-item-title">
-                  Профи
+                  Премиум
                 </p>
                 <div className="pricing-conditions">
                   <div className="duration">
@@ -447,7 +447,7 @@ export default function Home() {
                 </td>
               </tr>
               <tr className="table-bg">
-                <td>Профи</td>
+                <td>Премиум</td>
                 <td>12 месяцев</td>
                 <td>1 800 ₽</td>
                 <td>–1 800 ₽</td>

@@ -70,13 +70,13 @@ header {
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  background-color: #fff;
   box-shadow: none;
   transition: box-shadow 0.3s ease;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 85px;
+  background-color: #0085FF;
 }
 
 .hero-section {
@@ -130,7 +130,7 @@ header.scrolled {
 
 .main-menu a {
   text-decoration: none;
-  color: #000000;
+  color: white;
   font-weight: 400;
   position: relative;
   transition: color 0.2s ease;
@@ -150,7 +150,7 @@ header.scrolled {
   bottom: -3px;
   width: 0;
   height: 2px;
-  background-color: #0085FF;
+  background-color: white;
   transition: width 0.3s ease;
 }
 
@@ -178,8 +178,8 @@ header.scrolled {
 .btn-demo {
   font-family: sans-serif, "Segoe UI Semibold";
   font-size: 20px;
-  color: #ffffff;
-  background-color: #0085FF;
+  color: #0085FF;
+  background-color: white;
   width: 152px;
   height: 50px;
   padding: 15px 0;
@@ -191,9 +191,13 @@ header.scrolled {
   font-family: sans-serif, "Segoe UI Semibold";
   font-size: 20px;
   border: none;
-  color: #000000;
-  background-color: #ffffff;
+  color: white;
+  background-color: #0085FF;
   margin-right: 15px;
+}
+
+.btn-auth:hover {
+  color: #D8EDFF;
 }
 
 .footer-btn-login {
@@ -212,7 +216,7 @@ header.scrolled {
 
 .btn-demo:hover {
   text-decoration: none;
-  background-color: #0065C2;
+  background-color: #D8EDFF;
 }
 
 .hero-section {
@@ -967,6 +971,10 @@ html, body {
   color: white;
 }
 
+.footer-contact-list li a:hover {
+  color: #99CEFF;
+}
+
 .footer-contacts {
   position: relative;
 }
@@ -987,6 +995,10 @@ html, body {
 .legal-link a {
   text-decoration: none;
   color: white;
+}
+
+.legal-link a:hover {
+  color: #D8EDFF;
 }
 
 .legal-link {
@@ -1145,7 +1157,18 @@ body.noscroll {
 }
 
 .open-footer:hover {
-  color: #99CEFF;
+  color: #D8EDFF;
+}
+
+.footer-btn-demo {
+  background-color: #0085FF;
+  color: white;
+  padding: 15px;
+}
+
+.footer-btn-demo:hover {
+  color: #D8EDFF;
+  background-color: #0085FF;
 }
 
 

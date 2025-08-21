@@ -49,7 +49,7 @@ export default function Page() {
                                 type="email"
                                 id="email"
                                 name="email"
-                                placeholder="Введите емейл*"
+                                placeholder="Введите mail*"
                                 required
                                 autoComplete="username"
                                 onChange={(e) => setEmail(e.target.value)}

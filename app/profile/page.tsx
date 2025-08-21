@@ -82,7 +82,7 @@ export default async function AccountPage() {
                                                 </div>
                                                 <div className={styles.infoBoxChange}>
                                                     <button className={styles.infoBoxChangeBtn} data-modal="login">
-                                                        Изменить почту
+                                                        Изменить email
                                                     </button>
                                                 </div>
                                             </div>

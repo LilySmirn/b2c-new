@@ -90,7 +90,7 @@ export default function Register() {
                                         type="email"
                                         id="email"
                                         name="email"
-                                        placeholder="Введите емейл*"
+                                        placeholder="Введите email*"
                                         required
                                         autoComplete="username"
                                         onChange={(e) => setEmail(e.target.value)}
