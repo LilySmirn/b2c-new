@@ -464,6 +464,27 @@ input:checked + .slider::before {
     padding: 12px 60px;
 }
 
+.warnings {
+    max-width: 890px;
+    margin-bottom: 40px;
+}
+
+.warningsTitle {
+    font-size: 23px;
+    font-weight: bold;
+}
+
+.warningsText {
+    font-size: 20px;
+    margin-top: 19px;
+    max-width: 680px;
+}
+
+.warningsLink {
+    text-decoration: none;
+    color: #0085FF;
+}
+
 @media (max-width: 768px) {
     .profile {
         display: flex;
