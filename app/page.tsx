@@ -64,7 +64,7 @@ export default function Home() {
             availableLanguage: ["Russian", "English"],
           },
         ],
-        sameAs: ["https://t.me/easymedCallbot"],
+        sameAs: ["https://t.me/easymed_admin"],
       },
       {
         "@type": "OfferCatalog",
@@ -547,10 +547,10 @@ export default function Home() {
                       <ul>
                         <li><strong>Email: </strong><Link href="mailto:info@easymed.pro">info@easymed.pro</Link></li>
                         <li><strong>Telegram: </strong><Link
-                            href="https://t.me/easymedCallbot"
+                            href="https://t.me/easymed_admin"
                             target="_blank"
                             rel="noopener noreferrer"
-                        >@easymedCallbot</Link></li>
+                        >@easymed_admin</Link></li>
                       </ul>
                     </>
                   }
