@@ -64,7 +64,7 @@ export default function Home() {
             availableLanguage: ["Russian", "English"],
           },
         ],
-        sameAs: ["https://t.me/easymed_support"],
+        sameAs: ["https://t.me/easymedCallbot"],
       },
       {
         "@type": "OfferCatalog",
@@ -198,7 +198,7 @@ export default function Home() {
               Всё, что нужно врачу, в одном <span className="highlight">справочнике</span>
             </h2>
             <p className="description">
-              <span className="highlight bold">560+</span> актуальных клинических рекомендаций в удобном формате.
+              <span className="highlight bold">600+</span> актуальных клинических рекомендаций в удобном формате.
             </p>
             <p className="description">
               Мы собрали, сократили, отфильтровали — чтобы вы могли сразу работать.
@@ -547,10 +547,10 @@ export default function Home() {
                       <ul>
                         <li><strong>Email: </strong><Link href="mailto:info@easymed.pro">info@easymed.pro</Link></li>
                         <li><strong>Telegram: </strong><Link
-                            href="https://t.me/easymed_support"
+                            href="https://t.me/easymedCallbot"
                             target="_blank"
                             rel="noopener noreferrer"
-                        >@easymed_support</Link></li>
+                        >@easymedCallbot</Link></li>
                       </ul>
                     </>
                   }

@@ -97,7 +97,7 @@ export default async function RootLayout({
                             <h2 id="footer-contacts-heading" className="visually-hidden">Контакты</h2>
                             <ul className="footer-contact-list">
                                 <li><strong>Email: </strong><Link href="mailto:info@easymed.pro">info@easymed.pro</Link></li>
-                                <li><strong>Telegram: </strong><Link href="https://t.me/easymed_support" target="_blank" rel="noopener noreferrer">@easymed_support</Link></li>
+                                <li><strong>Telegram: </strong><Link href="https://t.me/easymedCallbot" target="_blank" rel="noopener noreferrer">@easymedCallbot</Link></li>
                             </ul>
                             <hr />
                         </section>
