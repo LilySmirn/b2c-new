@@ -12,23 +12,23 @@ import TariffModal from "./TariffModal";
 export default async function AccountPage() {
     const session = await getServerSession(authOptions);
 
-    // if (!session?.user) {
-    //     redirect("/login");
-    // }
+    if (!session?.user) {
+        redirect("/login");
+    }
 
     const refreshPage: any = () : void =>{
         redirect("/profile");
     }
 
     const database = new db();
-    // const subscriptions = await database.getUserSubscriptions(session.user.id);
-    // const user = await database.getCurrentUser(session.user.id);
-    //
-    // const lastSubscription = subscriptions?.reduce((latest, current) => {
-    //     return new Date(current.expiration_date) > new Date(latest.expiration_date)
-    //         ? current
-    //         : latest;
-    // }, subscriptions[0]);
+    const subscriptions = await database.getUserSubscriptions(session.user.id);
+    const user = await database.getCurrentUser(session.user.id);
+
+    const lastSubscription = subscriptions?.reduce((latest, current) => {
+        return new Date(current.expiration_date) > new Date(latest.expiration_date)
+            ? current
+            : latest;
+    }, subscriptions[0]);
 
     return (
         <div className={styles.pageWrapper}>
@@ -50,7 +50,7 @@ export default async function AccountPage() {
 
                         <div className={styles.profileTable}>
                             <div className={styles.profileTableTitle} data-profile-name>
-                                {/*{user?.name}*/}
+                                {user?.name}
                             </div>
 
                             <div className={styles.profileTableData}>
@@ -64,7 +64,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxTitle}>Имя:</div>
                                             <div className={styles.infoBoxValue}>
                                                 <div className={styles.infoBoxText} data-profile-name>
-                                                    {/*{user?.name}*/}
+                                                    {user?.name}
                                                 </div>
                                                 <div className={styles.infoBoxChange}>
                                                     <button className={styles.infoBoxChangeBtn} data-modal="name">
@@ -78,7 +78,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxTitle}>Логин:</div>
                                             <div className={styles.infoBoxValue}>
                                                 <div className={styles.infoBoxText} data-profile-login>
-                                                    {/*{user?.login}*/}
+                                                    {user?.login}
                                                 </div>
                                                 <div className={styles.infoBoxChange}>
                                                     <button className={styles.infoBoxChangeBtn} data-modal="login">
@@ -110,7 +110,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxValue}>
                                                 <div
                                                     className={styles.infoBoxText}>
-                                                    {/*{subscriptions?.map(s => s.title).join(', ')}*/}
+                                                    {subscriptions?.map(s => s.title).join(', ')}
                                                 </div>
                                             </div>
                                         </div>
@@ -119,7 +119,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxTitle}>Срок действия:</div>
                                             <div className={styles.infoBoxValue}>
                                                 <div className={styles.infoBoxText}>
-                                                    {/*{lastSubscription?.expiration_date}*/}
+                                                    {lastSubscription?.expiration_date}
                                                 </div>
                                             </div>
                                         </div>
@@ -129,14 +129,14 @@ export default async function AccountPage() {
                                                 className={`${styles.infoBoxTitle} ${styles.infoBoxTitleAuto}`}>Автопродление:
                                             </div>
                                             <div className={styles.infoBoxSwitch}>
-                                                {/*<AutoRenewToggle userId={session.user.id}*/}
-                                                {/*                 tariffId={lastSubscription?.tariff_id ?? null}*/}
-                                                {/*                 subscriptionRenewalStatus={lastSubscription?.is_auto_renewal ?? false}/>*/}
+                                                <AutoRenewToggle userId={session.user.id}
+                                                                 tariffId={lastSubscription?.tariff_id ?? null}
+                                                                 subscriptionRenewalStatus={lastSubscription?.is_auto_renewal ?? false}/>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/*<Link href="/" className={styles.tariffLink}>Продлить тариф</Link>*/}
+                                    <Link href="/" className={styles.tariffLink}>Продлить тариф</Link>
                                     <TariffModal />
                                 </div>
                             </div>
@@ -146,7 +146,7 @@ export default async function AccountPage() {
                                     <em>Внимание! Без подписки доступно 5 запросов в день.</em>
                                 </div>
                                 <div className={styles.warningsText}>
-                                    Для отмены ограничений <Link href="#" className={styles.warningsLink}>купите подписку</Link> или вступите в наше <Link href="#" className={styles.warningsLink}>телеграм-сообщество</Link> для доступа без ограничений на месяц
+                                    Для отмены ограничений купите подписку или вступите в наше <Link href="#" className={styles.warningsLink}>телеграм-сообщество</Link> для доступа без ограничений на месяц
                                 </div>
                             </div>
 
@@ -170,7 +170,7 @@ export default async function AccountPage() {
                 </section>
             </div>
 
-            {/*<ProfileClientWrapper initialUser={{name: user?.name, login: user?.login}}/>*/}
+            <ProfileClientWrapper initialUser={{name: user?.name, login: user?.login}}/>
         </div>
     );
 }
