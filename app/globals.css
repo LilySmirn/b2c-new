@@ -224,9 +224,14 @@ header.scrolled {
   min-height: 830px;
   background-color: #F0F8FF;
   margin-top: 85px;
+  padding-left: 60px;
+  padding-right: 60px;
+  display: flex;
+  justify-content: center;
 }
 
 .hero-container {
+  gap: 30px;
   width: 100%;
   max-width: 1400px;
   height: 100%;
@@ -236,6 +241,8 @@ header.scrolled {
   justify-content: space-between;
   align-items: center;
 }
+
+
 
 .hero-img {
   min-width: 50%;
