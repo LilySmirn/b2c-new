@@ -1,8 +1,9 @@
 import db from "../../lib/db";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import {User} from "@/app/types/User";
-import {v4 as uuidv4} from "uuid";
+import { User } from "@/app/types/User";
+import { v4 as uuidv4 } from "uuid";
+import { sendMail } from "@/app/lib/mailer"; // обязательно {} если не default export
 
 export async function POST(req: Request) {
     const { email, password, name } = await req.json();
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
         );
     }
 
+    // Хешируем пароль
     const hashed = await bcrypt.hash(password, 10);
 
     const newUser: User = {
@@ -24,7 +26,30 @@ export async function POST(req: Request) {
         password_hash: hashed,
     };
 
+    // Создаём пользователя в базе
     await new db().createUser(newUser);
+
+    // Ссылки для письма
+    const profileUrl = "http://localhost:3000/profile";
+    const demoUrl = "http://localhost:3000/demo";
+
+    const html = `
+    <h2>Добро пожаловать в EasyMed, ${name}!</h2>
+    <p>Ваш логин: <b>${email}</b></p>
+    <p>Ваш пароль: <b>${password}</b></p>
+    <p>
+      <a href="${profileUrl}">Перейти в личный кабинет</a><br>
+      <a href="${demoUrl}">Попробовать демо-справочник</a>
+    </p>
+  `;
+
+    // Отправка письма
+    try {
+        await sendMail(email, "Добро пожаловать в EasyMed!", html);
+        console.log("Письмо успешно отправлено на", email);
+    } catch (error) {
+        console.error("Ошибка отправки письма:", error);
+    }
 
     return NextResponse.json({ ok: true });
 }
