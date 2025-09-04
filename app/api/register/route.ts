@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { User } from "@/app/types/User";
 import { v4 as uuidv4 } from "uuid";
-import { sendMail } from "@/app/lib/mailer"; // обязательно {} если не default export
+import { sendMail } from "@/app/lib/mailer";
 
 export async function POST(req: Request) {
     const { email, password, name } = await req.json();
@@ -16,7 +16,6 @@ export async function POST(req: Request) {
         );
     }
 
-    // Хешируем пароль
     const hashed = await bcrypt.hash(password, 10);
 
     const newUser: User = {
@@ -26,10 +25,8 @@ export async function POST(req: Request) {
         password_hash: hashed,
     };
 
-    // Создаём пользователя в базе
     await new db().createUser(newUser);
 
-    // Ссылки для письма
     const profileUrl = "http://localhost:3000/profile";
     const demoUrl = "http://localhost:3000/demo";
 
@@ -43,7 +40,6 @@ export async function POST(req: Request) {
     </p>
   `;
 
-    // Отправка письма
     try {
         await sendMail(email, "Добро пожаловать в EasyMed!", html);
         console.log("Письмо успешно отправлено на", email);

@@ -14,7 +14,6 @@ export async function sendMail(to: string, subject: string, html: string) {
         },
     });
 
-    // Проверка соединения (вывод в консоль)
     try {
         await transporter.verify();
         console.log("SMTP подключение успешно");
@@ -23,7 +22,6 @@ export async function sendMail(to: string, subject: string, html: string) {
         throw err;
     }
 
-    // Отправка письма
     await transporter.sendMail({
         from: process.env.SMTP_FROM,
         to,
