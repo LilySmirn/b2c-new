@@ -94,6 +94,15 @@ export default class db {
         ]);
     }
 
+    public async getTariffById(tariffId: string): Promise<{ duration: number } | null> {
+        const [rows] = await connection.query(
+            'SELECT duration FROM tariffs WHERE tariff_id = ?',
+            [tariffId]
+        );
+        const tariffs = rows as { duration: number }[];
+        return tariffs[0] ?? null;
+    }
+
     public async addOrUpdateSubscription(
         userId: string,
         tariffId: string,
