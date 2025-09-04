@@ -93,5 +93,23 @@ export default class db {
             tariff_id,
         ]);
     }
+
+    public async addOrUpdateSubscription(
+        userId: string,
+        tariffId: string,
+        expirationDate: Date,
+        isAutoRenewal: boolean
+    ): Promise<void> {
+        const now = new Date();
+
+        await connection.query(
+            `INSERT INTO subscriptions (user_id, tariff_id, start_date, expiration_date, is_auto_renewal)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE 
+             expiration_date = VALUES(expiration_date),
+             is_auto_renewal = VALUES(is_auto_renewal)`,
+            [userId, tariffId, now, expirationDate, isAutoRenewal ? 1 : 0]
+        );
+    }
 }
 
