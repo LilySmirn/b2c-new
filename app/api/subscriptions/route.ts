@@ -12,8 +12,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const { state, userId, tariffId } = await req.json();
-        await new db().updateAutoRenewal(userId, tariffId, state);
+        const { state, id } = await req.json();
+        await new db().updateAutoRenewal(id, state);
     } catch (error) {
         NextResponse.json({error: error});
     }

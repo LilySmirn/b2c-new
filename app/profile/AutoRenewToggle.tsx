@@ -6,11 +6,11 @@ import { Subscription } from "@/app/types/Subscription";
 
 export default function AutoRenewToggle({
         userId,
-        tariffId,
+        subscriptionId,
         subscriptionRenewalStatus,
     }: {
         userId: string;
-        tariffId: string | null;
+        subscriptionId: string | null;
         subscriptionRenewalStatus: boolean;
     }) {
     const [subscriptionStatus, setStatus] = useState<boolean>(subscriptionRenewalStatus);
@@ -31,7 +31,7 @@ export default function AutoRenewToggle({
     const handleChange = async () => {
         await fetch('/api/subscriptions', {
             method: 'POST',
-            body: JSON.stringify({ state: !subscriptionStatus, userId, tariffId }),
+            body: JSON.stringify({ state: !subscriptionStatus, id: subscriptionId }),
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -45,7 +45,7 @@ export default function AutoRenewToggle({
             <input
                 className={styles.switchInput}
                 type="checkbox"
-                disabled={tariffId === null}
+                disabled={subscriptionId === null}
                 checked={subscriptionStatus}
                 onChange={handleChange}
             />

@@ -1,6 +1,7 @@
 import mysql from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
+import {v4 as uuidv4} from "uuid";
 
 const connection = mysql.createPool({
     host: process.env.DB_HOST,
@@ -8,6 +9,8 @@ const connection = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
 });
+
+export { connection };
 
 export default class db {
     public async getCurrentUser(id: string): Promise<User | null> {
@@ -63,7 +66,7 @@ export default class db {
     }
 
     public async getUserSubscriptions(userId: string): Promise<Subscription[] | null> {
-        const [rows] = await connection.query(`SELECT s.tariff_id, s.user_id, t.title, s.expiration_date, s.is_auto_renewal FROM subscriptions s JOIN tariffs t ON s.tariff_id = t.tariff_id WHERE s.user_id = ? ORDER BY s.expiration_date`, [userId]);
+        const [rows] = await connection.query(`SELECT id, s.user_id, t.title, s.expiration_date, s.is_auto_renewal FROM subscriptions s JOIN tariffs t ON s.last_paid_tariff_id = t.tariff_id WHERE s.user_id = ?`, [userId]);
 
         if (!Array.isArray(rows) || rows.length === 0) {
             return null;
@@ -73,8 +76,8 @@ export default class db {
         rows.forEach(row => {
             const raw = row as any;
             subscriptions.push({
+                id: raw.id.toString(),
                 user_id: raw.user_id.toString(),
-                tariff_id: raw.tariff_id.toString(),
                 title: raw.title,
                 expiration_date: raw.expiration_date instanceof Date
                     ? raw.expiration_date.toISOString()
@@ -86,11 +89,10 @@ export default class db {
         return subscriptions;
     }
 
-    public async updateAutoRenewal(userId: string, tariff_id: string, isEnabled: boolean): Promise<void> {
-        await connection.query('UPDATE subscriptions SET is_auto_renewal = ? WHERE user_id = ? AND tariff_id = ?', [
+    public async updateAutoRenewal(id: string, isEnabled: boolean): Promise<void> {
+        await connection.query('UPDATE subscriptions SET is_auto_renewal = ? WHERE id = ?', [
             isEnabled ? 1 : 0,
-            userId,
-            tariff_id,
+            id,
         ]);
     }
 
@@ -103,22 +105,48 @@ export default class db {
         return tariffs[0] ?? null;
     }
 
-    public async addOrUpdateSubscription(
+    public async getSubscription(userId: string): Promise<Subscription | null> {
+        const [rows] = await connection.query(
+            'SELECT * FROM subscriptions WHERE user_id = ? AND expiration_date > CURRENT_DATE()',
+            [userId]
+        );
+        const subs = rows as Subscription[];
+        return subs[0] ?? null;
+    }
+
+    public async getTariffDuration(tariffId: string): Promise<number | null> {
+        const [rows] = await connection.query(
+            'SELECT duration FROM tariffs WHERE tariff_id = ?',
+            [tariffId]
+        );
+        if ((rows as any[]).length === 0) return null;
+        return (rows as any[])[0].duration as number;
+    }
+
+    public async addSubscription(
         userId: string,
         tariffId: string,
-        expirationDate: Date,
-        isAutoRenewal: boolean
-    ): Promise<void> {
-        const now = new Date();
+        startDate: Date,
+        newExpirationDate: Date
+    ) : Promise<void> {
+        const id = uuidv4();
 
         await connection.query(
-            `INSERT INTO subscriptions (user_id, tariff_id, start_date, expiration_date, is_auto_renewal)
-         VALUES (?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE 
-             expiration_date = VALUES(expiration_date),
-             is_auto_renewal = VALUES(is_auto_renewal)`,
-            [userId, tariffId, now, expirationDate, isAutoRenewal ? 1 : 0]
+            `INSERT INTO subscriptions (id, user_id, last_paid_tariff_id, start_date, expiration_date, is_auto_renewal)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [id, userId, tariffId, startDate, newExpirationDate, 0]
+        );
+    }
+
+    public async updateSubscription(
+        id: string,
+        newExpirationDate: Date
+    ) : Promise<void> {
+        await connection.query(
+            `UPDATE subscriptions SET expiration_date = ? WHERE id = ?`,
+            [newExpirationDate, id]
         );
     }
 }
+
 

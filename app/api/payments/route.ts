@@ -18,18 +18,27 @@ export async function POST(req: NextRequest) {
 
     const database = new db();
 
-    // ⬇️ Получаем duration тарифа
-    const tariff = await database.getTariffById(tariffId);
-    if (!tariff) {
+    const durationInMonths = await database.getTariffDuration(tariffId);
+    if (!durationInMonths) {
         return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
     }
 
-    // ⬇️ Считаем дату окончания по duration
-    const expirationDate = new Date();
-    expirationDate.setMonth(expirationDate.getMonth() + tariff.duration);
+    const currentSubscription = await database.getSubscription(userId);
 
-    // ⬇️ Сохраняем подписку
-    await database.addOrUpdateSubscription(userId, tariffId, expirationDate, true);
+    const currentDate = new Date();
+
+    if (currentSubscription) {
+        const currentExpirationDate= new Date(currentSubscription.expiration_date);
+        const expirationDate = new Date(currentExpirationDate);
+        expirationDate.setMonth(expirationDate.getMonth() + durationInMonths);
+
+        await database.updateSubscription(currentSubscription.id, expirationDate);
+    } else {
+        const expirationDate = new Date(currentDate);
+        expirationDate.setMonth(expirationDate.getMonth() + durationInMonths);
+
+        await database.addSubscription(userId, tariffId, currentDate, expirationDate);
+    }
 
     return NextResponse.json({ message: 'Subscription saved' }, { status: 200 });
 }

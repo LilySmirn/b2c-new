@@ -110,7 +110,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxValue}>
                                                 <div
                                                     className={styles.infoBoxText}>
-                                                    {subscriptions?.map(s => s.title).join(', ')}
+                                                    {lastSubscription?.title}
                                                 </div>
                                             </div>
                                         </div>
@@ -130,13 +130,13 @@ export default async function AccountPage() {
                                             </div>
                                             <div className={styles.infoBoxSwitch}>
                                                 <AutoRenewToggle userId={session.user.id}
-                                                                 tariffId={lastSubscription?.tariff_id ?? null}
+                                                                 subscriptionId={lastSubscription?.id ?? null}
                                                                  subscriptionRenewalStatus={lastSubscription?.is_auto_renewal ?? false}/>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <Link href="/" className={styles.tariffLink}>Продлить тариф</Link>
+                                    {/*<Link href="/" className={styles.tariffLink}>Продлить тариф</Link>*/}
                                     <TariffModal />
                                 </div>
                             </div>
