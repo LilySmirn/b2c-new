@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/app/lib/db';
+import { sendMail } from '@/app/lib/mailer';
+
+function pluralizeMonths(n: number): string {
+    if (n === 1) return 'месяц';
+    if (n >= 2 && n <= 4) return 'месяца';
+    return 'месяцев';
+}
 
 export async function POST(req: NextRequest) {
     const body = await req.json();
@@ -23,12 +30,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
     }
 
-    const currentSubscription = await database.getSubscription(userId);
+    const tariffName = await database.getTariffName(tariffId);
+    if (!tariffName) {
+        return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
+    }
 
+    const user = await database.getCurrentUser(userId);
+    if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 400 });
+    }
+
+    const currentSubscription = await database.getSubscription(userId);
     const currentDate = new Date();
 
     if (currentSubscription) {
-        const currentExpirationDate= new Date(currentSubscription.expiration_date);
+        const currentExpirationDate = new Date(currentSubscription.expiration_date);
         const expirationDate = new Date(currentExpirationDate);
         expirationDate.setMonth(expirationDate.getMonth() + durationInMonths);
 
@@ -38,6 +54,26 @@ export async function POST(req: NextRequest) {
         expirationDate.setMonth(expirationDate.getMonth() + durationInMonths);
 
         await database.addSubscription(userId, tariffId, currentDate, expirationDate);
+    }
+
+    const profileUrl = 'http://localhost:3000/profile';
+    const demoUrl = 'http://localhost:3000/demo';
+    const wordMonths = pluralizeMonths(durationInMonths);
+
+    const html = `
+    <h2>Здравствуйте, ${user.name}!</h2>
+    <p>Вы приобрели подписку <b>${tariffName}</b> на <b>${durationInMonths}</b> ${wordMonths}.</p>
+    <p>
+      <a href="${profileUrl}">Перейти в личный кабинет</a><br>
+      <a href="${demoUrl}">Перейти в справочник</a>
+    </p>
+  `;
+
+    try {
+        await sendMail(user.login, 'Подписка оформлена', html);
+        console.log('Письмо успешно отправлено на', user.login);
+    } catch (error) {
+        console.error('Ошибка отправки письма:', error);
     }
 
     return NextResponse.json({ message: 'Subscription saved' }, { status: 200 });
