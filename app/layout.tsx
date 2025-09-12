@@ -105,12 +105,17 @@ export default async function RootLayout({
                         <section className="footer-legal" aria-labelledby="footer-legal-heading">
                             <h2 id="footer-legal-heading" className="visually-hidden">Правовая информация</h2>
                             <div className="legal-link">
-                                <Link href="#">Политика конфиденциальности</Link>
-                                <Link href="#">Пользовательское соглашение</Link>
+                                <a href="/policy.pdf" target="_blank" rel="noopener noreferrer">
+                                    Политика конфиденциальности
+                                </a>
+                                <a href="/agreement.pdf" target="_blank" rel="noopener noreferrer">
+                                    Пользовательское соглашение
+                                </a>
                             </div>
                             <div className="copyright">© 2025 easymed.pro</div>
                             <div className="inn">
                                 ИП Васильцов Давыд Юрьевич<br />
+                                ОГРНИП 324784700301501<br />
                                 ИНН 781304344630
                             </div>
                         </section>
