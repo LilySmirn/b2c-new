@@ -134,7 +134,7 @@ export default class db {
         await connection.query(
             `INSERT INTO subscriptions (id, user_id, last_paid_tariff_id, start_date, expiration_date, is_auto_renewal)
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [id, userId, tariffId, startDate, newExpirationDate, 0]
+            [id, userId, tariffId, startDate, newExpirationDate, 1]
         );
     }
 
