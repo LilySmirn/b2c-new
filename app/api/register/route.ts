@@ -8,7 +8,9 @@ import { sendMail } from "@/app/lib/mailer";
 export async function POST(req: Request) {
     const { email, password, name } = await req.json();
 
-    const existingUser = await new db().findUserByEmail(email);
+    const database = new db();
+
+    const existingUser = await database.findUserByEmail(email);
     if (existingUser) {
         return NextResponse.json(
             { ok: false, error: "Email уже зарегистрирован" },
@@ -25,7 +27,14 @@ export async function POST(req: Request) {
         password_hash: hashed,
     };
 
-    await new db().createUser(newUser);
+    await database.createUser(newUser);
+
+    try {
+        await database.createUserRequestRecord(newUser.user_id);
+        console.log("Запись user_requests создана");
+    } catch (err) {
+        console.error("Ошибка при добавлении user_requests:", err);
+    }
 
     const profileUrl = "http://localhost:3000/profile";
     const demoUrl = "http://localhost:3000/demo";

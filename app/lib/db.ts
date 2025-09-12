@@ -157,6 +157,14 @@ export default class db {
         return (rows as any[])[0].title as string;
     }
 
+    public async createUserRequestRecord(userId: string): Promise<void> {
+        await connection.query(
+            `INSERT INTO user_requests (user_id, current_count, last_request, total_count)
+         VALUES (?, 0, NULL, 0)`,
+            [userId]
+        );
+    }
+
 }
 
 
