@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "./globals.css";
 import AuthButtons from './components/AuthButton';
+import AuthButtonsServer from './components/AuthButtonsServer';
 // import Header from "./components/Header";
 
 export const metadata: Metadata = {
@@ -36,7 +37,7 @@ export default async function RootLayout({
                             </ul>
                         </nav>
                         <div className="header-buttons">
-                            <AuthButtons variant="header" />
+                            <AuthButtonsServer variant="header" />
                             <Link href="/login" className="btn btn-demo">Демо</Link>
                         </div>
                         <div className="mobile-nav">
@@ -88,7 +89,7 @@ export default async function RootLayout({
                             </nav>
 
                             <div className="footer-buttons">
-                                <AuthButtons variant="footer" />
+                                <AuthButtonsServer variant="footer" />
                                 <Link href="/login" className="btn btn-demo footer-btn-demo">Демо</Link>
                             </div>
                         </section>
