@@ -486,6 +486,7 @@ input:checked + .slider::before {
 
 }
 
+
 @media (max-width: 768px) {
     .profile {
         display: flex;
