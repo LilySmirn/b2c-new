@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     }
 
     const profileUrl = "http://localhost:3000/profile";
-    const demoUrl = "http://localhost:3000/demo";
+    const demoUrl = "https://easymed.pro/kr/";
 
     const html = `
     <h2>Добро пожаловать в EasyMed, ${name}!</h2>

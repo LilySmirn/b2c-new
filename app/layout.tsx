@@ -71,7 +71,7 @@ export default async function RootLayout({
                     <div className="footer-container">
                         <section className="footer-nav" aria-labelledby="footer-nav-heading">
                             <h2 id="footer-nav-heading" className="visually-hidden">Навигация</h2>
-                            <Link href="/app/page" className="footer-logo-link">
+                            <Link href="/" className="footer-logo-link">
                                 <Image
                                     src="/images/logo-white.png"
                                     alt="Клинические рекомендации Минздрава — логотип"

@@ -151,20 +151,20 @@ export default async function AccountPage() {
                             </div>
 
                             <div>
-                                <Link href="#" className={styles.open}>Открыть справочник</Link>
+                                <Link href="https://easymed.pro/kr/" className={styles.open}>Открыть справочник</Link>
                             </div>
 
-                            <div className={styles.desktopIconDiv}>
-                                <Link href="#" className={styles.desktopIcon}>
-                                    <Image
-                                        src="/images/desktop-icon.png"
-                                        alt="desktop-icon"
-                                        width={32}
-                                        height={32}
-                                    />
-                                    <p className={styles.desktopIconText}>Создать ярлык для рабочего стола</p>
-                                </Link>
-                            </div>
+                            {/*<div className={styles.desktopIconDiv}>*/}
+                            {/*    <Link href="#" className={styles.desktopIcon}>*/}
+                            {/*        <Image*/}
+                            {/*            src="/images/desktop-icon.png"*/}
+                            {/*            alt="desktop-icon"*/}
+                            {/*            width={32}*/}
+                            {/*            height={32}*/}
+                            {/*        />*/}
+                            {/*        <p className={styles.desktopIconText}>Создать ярлык для рабочего стола</p>*/}
+                            {/*    </Link>*/}
+                            {/*</div>*/}
                         </div>
                     </div>
                 </section>

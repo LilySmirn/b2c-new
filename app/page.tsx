@@ -165,7 +165,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="hero-buttons">
-                <Link href="#" className="btn btn-hero-demo">Найти рекомендации</Link>
+                <Link href="https://easymed.pro/kr/" className="btn btn-hero-demo">Найти рекомендации</Link>
                 <Link href="/login" className="btn btn-pricing">
                   Приобрести подписку
                 </Link>
@@ -584,7 +584,7 @@ export default function Home() {
         <section id="why-us" className="why-us-section">
           <div className="why-us-container">
             <h2 className="title why-us-title">
-              Почему сайт <span className="highlight"><Link href="#" className="why-us-btn">klinicheskie-rekomendatsii.ru</Link></span> —
+              Почему сайт <span className="highlight"><Link href="https://klinicheskie-rekomendatsii.ru" className="why-us-btn">klinicheskie-rekomendatsii.ru</Link></span> —
               лучший выбор?
             </h2>
           </div>
@@ -623,7 +623,7 @@ export default function Home() {
               Вы по адресу
             </h2>
             <h2 className="title cta-banner-title-2">
-              <span className="highlight"><Link href="#" className="why-us-btn">klinicheskie-rekomendatsii.ru</Link></span> - ваш надёжный
+              <span className="highlight"><Link href="https://klinicheskie-rekomendatsii.ru" className="why-us-btn">klinicheskie-rekomendatsii.ru</Link></span> - ваш надёжный
               справочник
             </h2>
           </div>
