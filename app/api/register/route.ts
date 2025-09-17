@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         console.error("Ошибка при добавлении user_requests:", err);
     }
 
-    const profileUrl = "http://localhost:3000/profile";
+    const profileUrl = "https://klinicheskie-rekomendatsii.ru/profile";
     const demoUrl = "https://easymed.pro/kr/";
 
     const html = `

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         await database.addSubscription(userId, tariffId, currentDate, expirationDate);
     }
 
-    const profileUrl = 'http://localhost:3000/profile';
+    const profileUrl = 'https://klinicheskie-rekomendatsii.ru/profile';
     const demoUrl = 'https://easymed.pro/kr/';
     const wordMonths = pluralizeMonths(durationInMonths);
 
