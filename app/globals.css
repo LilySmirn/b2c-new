@@ -193,11 +193,14 @@ header.scrolled {
   border: none;
   color: white;
   background-color: #0085FF;
-  margin-right: 15px;
 }
 
 .btn-auth:hover {
   color: #D8EDFF;
+}
+
+.user-icon-link {
+  padding: 15px;
 }
 
 .footer-btn-login {
@@ -891,6 +894,8 @@ html, body {
 .footer-logo-link,
 .footer-buttons {
   z-index: 1;
+  display: flex;
+  align-items: center;
 }
 
 .footer-menu {
@@ -948,7 +953,7 @@ html, body {
   font-size: 20px;
   color: #0085FF;
   background-color: white;
-  width: 152px;
+  width: 90px;
   height: 50px;
   padding: 15px 70px;
   border-radius: 5px;
@@ -1170,7 +1175,7 @@ body.noscroll {
 .footer-btn-demo {
   background-color: #0085FF;
   color: white;
-  padding: 15px;
+  padding: 15px 0 15px 0;
 }
 
 .footer-btn-demo:hover {
@@ -1659,6 +1664,6 @@ body.noscroll {
     display: flex;
     justify-content: center;
     align-items: center;
-
+    gap: 8px;
   }
 }
