@@ -12,7 +12,7 @@ import TariffModal from "./TariffModal";
 export default async function AccountPage() {
 
     //ошибка для теста
-    throw new Error('Тестовая ошибка для проверки app/error.tsx');
+    // throw new Error('Тестовая ошибка для проверки app/error.tsx');
 
     const session = await getServerSession(authOptions);
 

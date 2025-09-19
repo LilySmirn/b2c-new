@@ -1,6 +1,7 @@
 'use client';
 
 import ErrorModal from './components/ErrorModal';
+import { useRouter } from 'next/navigation';
 
 export default function Error({
                                   error,
@@ -9,5 +10,12 @@ export default function Error({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
-    return <ErrorModal message={error.message} />;
+    const router = useRouter();
+
+    const handleClose = () => {
+        reset();
+        router.push('/');
+    };
+
+    return <ErrorModal message={error.message} onClose={handleClose} />;
 }

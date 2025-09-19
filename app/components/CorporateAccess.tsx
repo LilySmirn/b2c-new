@@ -1,5 +1,8 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
+import ErrorModal from "./ErrorModal";
+import { safeTry } from "@/app/lib/safeTry";
 
 export default function CorporateAccess() {
     const [popupOpen, setPopupOpen] = useState(false);
@@ -13,12 +16,11 @@ export default function CorporateAccess() {
         crm: ""
     });
 
+    const [showError, setShowError] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+
     useEffect(() => {
-        if (popupOpen) {
-            document.body.classList.add("noscroll");
-        } else {
-            document.body.classList.remove("noscroll");
-        }
+        document.body.classList.toggle("noscroll", popupOpen);
     }, [popupOpen]);
 
     useEffect(() => {
@@ -30,9 +32,7 @@ export default function CorporateAccess() {
         if (popupOpen) {
             document.addEventListener("mousedown", handleClickOutside);
         }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [popupOpen]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,25 +43,29 @@ export default function CorporateAccess() {
         e.preventDefault();
         setLoading(true);
 
-        try {
-            const res = await fetch("/api/sendTelegram", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
+        await safeTry(
+            async () => {
+                const res = await fetch("/api/sendTelegram", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
 
-            const data = await res.json();
-            alert(data.message);
+                if (!res.ok) throw new Error("Сервер вернул ошибку");
 
-            if (res.ok) {
+                const data = await res.json();
+
+                // Очистка формы и закрытие попапа
                 setFormData({ email: "", name: "", phone: "", crm: "" });
                 setPopupOpen(false);
-            }
-        } catch {
-            alert("Ошибка соединения. Проверьте интернет.");
-        } finally {
-            setLoading(false);
-        }
+
+                // Можно оставить уведомление о успешной отправке
+                alert(data.message);
+            },
+            { setErrorMsg, setShowError }
+        );
+
+        setLoading(false);
     };
 
     return (
@@ -131,6 +135,9 @@ export default function CorporateAccess() {
                         </div>
                     </div>
                 )}
+
+                {/* Модалка для ошибок */}
+                {showError && <ErrorModal message={errorMsg} onClose={() => setShowError(false)} />}
             </div>
         </section>
     );

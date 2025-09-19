@@ -10,6 +10,13 @@ const connection = mysql.createPool({
     database: process.env.DB_NAME,
 });
 
+const logConnection = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: 'logsdb',
+});
+
 export { connection };
 
 export default class db {
@@ -162,6 +169,23 @@ export default class db {
             `INSERT INTO user_requests (user_id, current_count, last_request, total_count)
          VALUES (?, 0, NULL, 0)`,
             [userId]
+        );
+    }
+
+    public async logError(params: {
+        level: 'ERROR' | 'WARNING' | 'INFO';
+        source: string;
+        event_name: string;
+        message: string;
+        stacktrace?: string;
+        user_id?: string;
+    }): Promise<void> {
+        const { level, source, event_name, message, stacktrace, user_id } = params;
+
+        await logConnection.query(
+            `INSERT INTO error_logs (level, source, event_name, message, stacktrace, user_id)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [level, source, event_name, message, stacktrace || null, user_id || null]
         );
     }
 
