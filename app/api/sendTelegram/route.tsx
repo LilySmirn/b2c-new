@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import {logError} from "@/app/lib/logger";
+import {ErrorType} from "@/app/types/ErrorType";
 
 export async function POST(req: Request) {
     try {
@@ -34,11 +36,14 @@ Email: ${email}
         });
 
         if (!tgRes.ok) {
+            await logError('Error sending to Telegram', ErrorType.SendTelegramSendingFailed);
             return NextResponse.json({ message: "Ошибка при отправке в Telegram" }, { status: 500 });
         }
 
         return NextResponse.json({ message: "Заявка успешно отправлена!" }, { status: 200 });
-    } catch {
+    } catch (error) {
+        // TODO: make function incapsulating response and logging
+        await logError(error, ErrorType.SendTelegramServerError);
         return NextResponse.json({ message: "Ошибка сервера" }, { status: 500 });
     }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/app/lib/db';
 import { sendMail } from '@/app/lib/mailer';
+import {logError, logInfo} from "@/app/lib/logger";
+import {ErrorType} from "@/app/types/ErrorType";
 
 function pluralizeMonths(n: number): string {
     if (n === 1) return 'месяц';
@@ -12,6 +14,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     if (body.event !== 'payment.succeeded') {
+        await logError('Payment failed', ErrorType.PaymentNotSucceed);
         return NextResponse.json({ message: 'Ignored event' }, { status: 200 });
     }
 
@@ -20,6 +23,7 @@ export async function POST(req: NextRequest) {
     const tariffId = payment.metadata?.tariff_id;
 
     if (!userId || !tariffId) {
+        await logError('Missing metadata', ErrorType.PaymentMissingMetadata);
         return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
     }
 
@@ -27,16 +31,19 @@ export async function POST(req: NextRequest) {
 
     const durationInMonths = await database.getTariffDuration(tariffId);
     if (!durationInMonths) {
+        await logError('Tariff not found', ErrorType.PaymentTariffNotFound);
         return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
     }
 
     const tariffName = await database.getTariffName(tariffId);
     if (!tariffName) {
+        await logError('Tariff not found', ErrorType.PaymentTariffNotFound);
         return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
     }
 
     const user = await database.getCurrentUser(userId);
     if (!user) {
+        await logError('User not found', ErrorType.PaymentUserNotFound);
         return NextResponse.json({ error: 'User not found' }, { status: 400 });
     }
 
@@ -70,10 +77,11 @@ export async function POST(req: NextRequest) {
   `;
 
     try {
+        // TODO: put logging inside sendMail
         await sendMail(user.login, 'Подписка оформлена', html);
-        console.log('Письмо успешно отправлено на', user.login);
+        await logInfo('PaymentLetterSent', `Letter successfully sent to ${user.login}`);
     } catch (error) {
-        console.error('Ошибка отправки письма:', error);
+        await logError(error, ErrorType.PaymentLetterSendingFailed, user.user_id);
     }
 
     return NextResponse.json({ message: 'Subscription saved' }, { status: 200 });

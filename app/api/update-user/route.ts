@@ -3,12 +3,17 @@ import bcrypt from 'bcryptjs';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import db from '@/app/lib/db';
+import { logError } from '@/app/lib/logger';
+import {ErrorType} from "@/app/types/ErrorType";
 
 export async function POST(req: NextRequest) {
+    let userId:string | null = null;
     try {
+        //throw new Error('Тестовая ошибка для проверки логирования');
         const session = await getServerSession(authOptions);
+        userId = session?.user?.id ?? null;
 
-        if (!session?.user?.id) {
+        if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -29,25 +34,25 @@ export async function POST(req: NextRequest) {
         }
 
         const database = new db();
-        await database.updateUser(session.user.id, updateData);
+        await database.updateUser(userId, updateData);
 
         let freshUser = null;
         try {
-            freshUser = await database.getCurrentUser(session.user.id);
+            freshUser = await database.getCurrentUser(userId);
         } catch (err) {
-            console.error('getCurrentUser error:', err);
+            await logError(err, 'getCurrentUser', userId);
         }
 
-        // Create response object with email field if user exists
-        const userResponse = freshUser ? {
-            ...freshUser,
-            email: freshUser.login
-        } : null;
+        const userResponse = freshUser
+            ? {
+                ...freshUser,
+                email: freshUser.login,
+            }
+            : null;
 
         return NextResponse.json({ success: true, user: userResponse });
-
     } catch (error) {
-        console.error('Update user error:', error);
+        await logError(error, ErrorType.UserUpdate, userId);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

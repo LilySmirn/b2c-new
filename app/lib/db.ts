@@ -172,23 +172,29 @@ export default class db {
         );
     }
 
-    public async logError(params: {
+    public async logEvent(params: {
         level: 'ERROR' | 'WARNING' | 'INFO';
         source: string;
         event_name: string;
         message: string;
-        stacktrace?: string;
-        user_id?: string;
+        stacktrace?: string | null;
+        user_id?: string | null;
     }): Promise<void> {
         const { level, source, event_name, message, stacktrace, user_id } = params;
 
         await logConnection.query(
             `INSERT INTO error_logs (level, source, event_name, message, stacktrace, user_id)
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [level, source, event_name, message, stacktrace || null, user_id || null]
+            [
+                level,
+                source,
+                event_name,
+                message,
+                stacktrace ?? null,
+                user_id ?? null,
+            ]
         );
     }
-
 }
 
 

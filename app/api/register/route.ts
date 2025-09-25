@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { User } from "@/app/types/User";
 import { v4 as uuidv4 } from "uuid";
 import { sendMail } from "@/app/lib/mailer";
+import {logError, logInfo} from "@/app/lib/logger";
+import {ErrorType} from "@/app/types/ErrorType";
 
 export async function POST(req: Request) {
     const { email, password, name } = await req.json();
@@ -12,6 +14,7 @@ export async function POST(req: Request) {
 
     const existingUser = await database.findUserByEmail(email);
     if (existingUser) {
+        await logError('Already registered', ErrorType.RegisterUserAlreadyRegistered, existingUser.user_id);
         return NextResponse.json(
             { ok: false, error: "Email уже зарегистрирован" },
             { status: 400 }
@@ -31,9 +34,9 @@ export async function POST(req: Request) {
 
     try {
         await database.createUserRequestRecord(newUser.user_id);
-        console.log("Запись user_requests создана");
+        await logInfo('RegisterRequestRecordCreated', `Request record successfully created for ${newUser.user_id}`);
     } catch (err) {
-        console.error("Ошибка при добавлении user_requests:", err);
+        await logError(err, ErrorType.RegisterRequestRecordCreationFailed, newUser.user_id);
     }
 
     const profileUrl = "https://klinicheskie-rekomendatsii.ru/profile";
@@ -49,11 +52,12 @@ export async function POST(req: Request) {
     </p>
   `;
 
+    // TODO: put logging inside sendMail
     try {
         await sendMail(email, "Добро пожаловать в EasyMed!", html);
-        console.log("Письмо успешно отправлено на", email);
+        await logInfo('RegisterLetterSent', `Letter successfully sent to ${email}`);
     } catch (error) {
-        console.error("Ошибка отправки письма:", error);
+        await logError(error, ErrorType.RegisterLetterSendingFailed);
     }
 
     return NextResponse.json({ ok: true });
