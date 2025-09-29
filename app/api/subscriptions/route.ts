@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import db from '@/app/lib/db';
-import { logError, logInfo } from "@/app/lib/logger";
+import { logInfo, NextErrorResponse } from "@/app/lib/logger";
 import { ErrorType } from "@/app/types/ErrorType";
+import { InfoType } from "@/app/types/InfoType";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -16,10 +17,9 @@ export async function POST(req: Request) {
     try {
         const { state, id } = await req.json();
         await new db().updateAutoRenewal(id, state);
-        await logInfo("SubscriptionAutoRenewalUpdated", `Successfully updated to ${state}`);
+        await logInfo(InfoType.SubscriptionAutoRenewalUpdated, `Successfully updated to ${state}`);
     } catch (error) {
-        await logError(error, ErrorType.SubscriptionAutoRenewalUpdate, null);
-        NextResponse.json({error: error});
+        return NextErrorResponse(ErrorType.SubscriptionAutoRenewalUpdate, error, 500, null);
     }
 
     return NextResponse.json({ ok: true });

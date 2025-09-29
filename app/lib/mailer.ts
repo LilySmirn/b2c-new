@@ -1,5 +1,8 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { logError, logInfo } from "@/app/lib/logger";
+import { ErrorType } from "@/app/types/ErrorType";
+import { InfoType } from "@/app/types/InfoType";
 
 dotenv.config();
 
@@ -16,16 +19,14 @@ export async function sendMail(to: string, subject: string, html: string) {
 
     try {
         await transporter.verify();
-        console.log("SMTP подключение успешно");
-    } catch (err) {
-        console.error("Ошибка подключения SMTP:", err);
-        throw err;
+    } catch (error) {
+        await logError(ErrorType.MailSendingTransporterFailed, error);
     }
 
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM,
-        to,
-        subject,
-        html,
-    });
+    try {
+        await transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, html, });
+        await logInfo(InfoType.MailSendingSucceed, `Letter successfully sent to ${to}`);
+    } catch (error) {
+        await logError(ErrorType.MailSendingFailed, error);
+    }
 }

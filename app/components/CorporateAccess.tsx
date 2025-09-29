@@ -55,11 +55,9 @@ export default function CorporateAccess() {
 
                 const data = await res.json();
 
-                // Очистка формы и закрытие попапа
                 setFormData({ email: "", name: "", phone: "", crm: "" });
                 setPopupOpen(false);
 
-                // Можно оставить уведомление о успешной отправке
                 alert(data.message);
             },
             { setErrorMsg, setShowError }

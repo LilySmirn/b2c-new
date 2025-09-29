@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/app/lib/db';
 import { sendMail } from '@/app/lib/mailer';
-import {logError, logInfo} from "@/app/lib/logger";
+import {logError, logInfo, NextErrorResponse} from "@/app/lib/logger";
 import {ErrorType} from "@/app/types/ErrorType";
 
 function pluralizeMonths(n: number): string {
@@ -14,8 +14,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     if (body.event !== 'payment.succeeded') {
-        await logError('Payment failed', ErrorType.PaymentNotSucceed);
-        return NextResponse.json({ message: 'Ignored event' }, { status: 200 });
+        return await NextErrorResponse(ErrorType.PaymentNotSucceed, 'Payment not succeed', 200, null);
     }
 
     const payment = body.object;
@@ -23,28 +22,24 @@ export async function POST(req: NextRequest) {
     const tariffId = payment.metadata?.tariff_id;
 
     if (!userId || !tariffId) {
-        await logError('Missing metadata', ErrorType.PaymentMissingMetadata);
-        return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
+        return await NextErrorResponse(ErrorType.PaymentMissingMetadata, 'Missing metadata', 400, userId);
     }
 
     const database = new db();
 
     const durationInMonths = await database.getTariffDuration(tariffId);
     if (!durationInMonths) {
-        await logError('Tariff not found', ErrorType.PaymentTariffNotFound);
-        return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
+        return await NextErrorResponse(ErrorType.PaymentTariffNotFound, 'Tariff not found', 400, userId);
     }
 
     const tariffName = await database.getTariffName(tariffId);
     if (!tariffName) {
-        await logError('Tariff not found', ErrorType.PaymentTariffNotFound);
-        return NextResponse.json({ error: 'Tariff not found' }, { status: 400 });
+        return await NextErrorResponse(ErrorType.PaymentTariffNotFound, 'Tariff not found', 400, userId);
     }
 
     const user = await database.getCurrentUser(userId);
     if (!user) {
-        await logError('User not found', ErrorType.PaymentUserNotFound);
-        return NextResponse.json({ error: 'User not found' }, { status: 400 });
+        return await NextErrorResponse(ErrorType.PaymentUserNotFound, 'User not found', 400, userId);
     }
 
     const currentSubscription = await database.getSubscription(userId);
@@ -76,13 +71,7 @@ export async function POST(req: NextRequest) {
     </p>
   `;
 
-    try {
-        // TODO: put logging inside sendMail
-        await sendMail(user.login, 'Подписка оформлена', html);
-        await logInfo('PaymentLetterSent', `Letter successfully sent to ${user.login}`);
-    } catch (error) {
-        await logError(error, ErrorType.PaymentLetterSendingFailed, user.user_id);
-    }
+    await sendMail(user.login, 'Подписка оформлена', html);
 
     return NextResponse.json({ message: 'Subscription saved' }, { status: 200 });
 }

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 import bcrypt from 'bcryptjs';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/lib/auth';
+import {getServerSession} from 'next-auth';
+import {authOptions} from '@/app/lib/auth';
 import db from '@/app/lib/db';
-import { logError } from '@/app/lib/logger';
+import {logError, NextErrorResponse} from '@/app/lib/logger';
 import {ErrorType} from "@/app/types/ErrorType";
 
 export async function POST(req: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         userId = session?.user?.id ?? null;
 
         if (!userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return await NextErrorResponse(ErrorType.UserUpdateUnauthorized, 'Unauthorized', 401, userId);
         }
 
         const { name, login, password } = await req.json();
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (Object.keys(updateData).length === 0) {
-            return NextResponse.json({ error: 'No fields provided' }, { status: 400 });
+            return await NextErrorResponse(ErrorType.UserUpdateNoFieldProvided, 'No fields provided', 400, userId);
         }
 
         const database = new db();
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         try {
             freshUser = await database.getCurrentUser(userId);
         } catch (err) {
-            await logError(err, 'getCurrentUser', userId);
+            await logError('getCurrentUser', err, userId);
         }
 
         const userResponse = freshUser
@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, user: userResponse });
     } catch (error) {
-        await logError(error, ErrorType.UserUpdate, userId);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return await NextErrorResponse(ErrorType.UserUpdateServerError, 'Internal server error', 500, userId);
     }
 }
