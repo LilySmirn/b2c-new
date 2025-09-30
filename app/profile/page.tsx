@@ -175,6 +175,7 @@ export default async function AccountPage() {
             </div>
 
             <ProfileClientWrapper initialUser={{name: user?.name, login: user?.login}}/>
+
         </div>
     );
 }
