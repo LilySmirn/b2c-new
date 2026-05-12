@@ -1,0 +1,593 @@
+.profileTitle {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 44px;
+}
+
+.profileTitle h2 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.logoutLink {
+    margin-left: auto;
+    text-decoration: underline;
+    color: #0085FF;
+    font-weight: 500;
+    text-align: right;
+    font-size: 23px;
+}
+
+.profileTable {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.profileTableTitle {
+    font-size: 28px;
+    text-align: center;
+    font-weight: bold;
+    margin-top: 49px;
+}
+
+.profileTableData {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    height: auto;
+    gap: 10px;
+    padding: 32px 0 48px 0;
+    max-width: 1400px;
+}
+
+.personalInfo, .tariffInfo {
+    width: 50%;
+    border-radius: 10px;
+    border: 1px solid #0085FF;
+    background: #F7FBFF;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    height: 400px;
+}
+
+.personalInfoTitle {
+    font-size: 26px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.infoBox {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 35px auto 31px auto;
+    gap: 34px;
+}
+
+.infoBoxName, .infoBoxMail, .infoBoxPassword, .infoBoxTariff, .infoBoxDuration, .infoBoxAuto {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 36px;
+}
+
+.infoBoxTitle {
+    font-size: 23px;
+    text-align: right;
+    font-weight: normal;
+    width: 112px;
+}
+
+.infoBoxText {
+    font-size: 23px;
+    text-align: left;
+    font-weight: normal;
+    width: 300px;
+}
+
+.infoBoxValue {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.infoBoxChangeBtn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 20px;
+    color: #0085FF;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#switch-box {
+    width: 94px;
+    height: 40px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 94px;
+    height: 40px;
+}
+
+.switchInput {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    border-radius: 34px;
+    cursor: pointer;
+    background-color: #D2E2F3;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transition: 0.4s;
+}
+
+.slider::before {
+    position: absolute;
+    content: "";
+    height: 28px;
+    width: 28px;
+    left: 4px;
+    bottom: 6px;
+    background-color: #AFC9E5;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: #BADEFF;
+}
+
+input:checked + .slider::before {
+    transform: translateX(58px);
+    background-color: #0085FF;
+}
+
+.switch input:focus + .slider {
+    outline: none;
+}
+
+.slider {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.slider {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.infoBoxTariff .infoBoxTitle,
+.infoBoxDuration .infoBoxTitle,
+.infoBoxAuto .infoBoxTitle {
+    width: 187px;
+}
+
+.infoBoxTariff .infoBoxText,
+.infoBoxDuration .infoBoxText,
+.infoBoxSwitch {
+    width: 296px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.tariffLink {
+    border: 1px solid #0085FF;
+    background: #ffffff;
+    color: #0085FF;
+    width: 277px;
+    height: 66px;
+    font-size: 23px;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin-bottom: 35px;
+}
+
+.infoBoxPassword {
+    margin-bottom: 15px;
+}
+
+.open {
+    background: #0085FF;
+    color: #ffffff;
+    width: 277px;
+    height: 66px;
+    font-size: 23px;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin-bottom: 50px;
+}
+
+.desktopIcon {
+    margin-top: 45px;
+    margin-bottom: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    text-decoration: none;
+}
+
+.desktopIconText {
+    font-size: 23px;
+    text-align: left;
+    font-weight: 600;
+    text-decoration: none;
+    color: #0085FF;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal {
+    background: #fff;
+    padding: 50px;
+    border-radius: 10px;
+    width: auto;
+    margin: 100px auto;
+    position: relative;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+}
+
+.modalHeader {
+    font-family: "Segoe UI", sans-serif;
+    font-weight: bold;
+    font-size: 30px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#confirmPasswordInput {
+    margin-top: 0 !important;
+}
+
+#modalInputs {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin: 20px 0;
+}
+
+.modalInput {
+    width: 510px;
+    padding: 30px;
+    height: 39px;
+    border-radius: 10px;
+    border: 1px solid #0085FF;
+    outline: none;
+    margin-bottom: 5px;
+}
+
+.modalInput {
+    margin: 0;
+}
+
+#modalSubmit, #modalCancel {
+    width: 250px;
+    height: 66px;
+    background: #0085FF;
+    color: #fff;
+    font-size: 23px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+.passwordField {
+    position: relative;
+}
+
+.togglePassword .icon {
+    transition: all 0.3s ease;
+}
+
+.togglePassword.visible .icon {
+    position: relative;
+}
+
+.togglePassword.visible .icon::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    width: 18px;
+    height: 2px;
+    background: gray;
+    transform: rotate(-45deg);
+    transform-origin: center;
+}
+
+.togglePassword {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+.togglePassword:hover {
+    opacity: 1;
+}
+.togglePassword svg {
+    fill: #888;
+    width: 24px;
+    height: 24px;
+}
+
+.inputError {
+    border: 1px solid red;
+    background-color: #ffecec;
+}
+
+.desktopIconDiv {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal {
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 690px;
+    height: auto;
+    background-color: #99CEFF;
+    padding: 30px;
+    position: relative;
+    border-radius: 20px;
+}
+
+.modalHeader {
+    margin-bottom: 30px;
+}
+
+.passwordField {
+    display: flex;
+    flex-direction: column;
+}
+
+.passwordField + .passwordField {
+    margin-top: 10px;
+}
+
+.modalClose {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transform: none;
+    margin: 0;
+}
+
+.modalButtons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.changeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    background-color: #0085FF;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 50px;
+}
+
+.cancelBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    background-color: white;
+    border: #0085FF solid 1px;
+    border-radius: 10px;
+    padding: 12px 60px;
+}
+
+.warnings {
+    max-width: 890px;
+    margin-bottom: 40px;
+}
+
+.warningsTitle {
+    font-size: 23px;
+    font-weight: bold;
+}
+
+.warningsText {
+    font-size: 20px;
+    margin-top: 19px;
+    max-width: 680px;
+}
+
+.warningsLink {
+    text-decoration: underline;
+    color: #0085FF;
+
+}
+
+
+@media (max-width: 768px) {
+    .profile {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: auto;
+    }
+
+    .profileTitle {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: auto;
+    }
+
+    .logoutLink {
+        text-align: center;
+        margin-left: 0;
+    }
+
+    .profileTitle h2 {
+        position: static;
+        transform: none;
+    }
+
+    .profileTableData {
+        flex-direction: column;
+    }
+
+    .personalInfo, .tariffInfo {
+        width: 300px;
+    }
+
+    .infoBoxTitle {
+        display: none;
+    }
+
+    .infoBoxValue {
+        align-items: center;
+    }
+
+    .infoBoxText {
+        font-size: 23px;
+        text-align: center;
+        font-weight: normal;
+        width: 280px;
+    }
+
+    .infoBoxChange {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    .infoBoxName, .infoBoxMail, .infoBoxPassword, .infoBoxTariff, .infoBoxDuration, .infoBoxAuto {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .infoBoxAuto {
+        gap: 10px;
+    }
+
+    .infoBoxValue .infoBoxText {
+        text-align: center;
+    }
+
+    .infoBoxTariff .infoBoxText, .infoBoxDuration .infoBoxText, .infoBoxSwitch {
+        justify-content: center;
+    }
+
+    .infoBoxTitleAuto {
+        display: block;
+    }
+
+    .infoBoxAuto {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tariffInfo {
+        height: auto;
+        padding-top: 15px;
+    }
+
+    .open {
+        width: 300px;
+    }
+
+    .desktopIcon {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .desktopIconText {
+        text-align: center;
+        max-width: 90%;
+    }
+
+}

@@ -1,0 +1,16 @@
+export enum ErrorType {
+    UserUpdateServerError = "UserUpdateServerError",
+    UserUpdateNoFieldProvided = "UserUpdateNoFieldProvided",
+    UserUpdateUnauthorized = "UserUpdateUnauthorized",
+    SubscriptionAutoRenewalUpdate = "SubscriptionAutoRenewalUpdate",
+    PaymentNotSucceed = "PaymentNotSucceed",
+    PaymentMissingMetadata = "PaymentMissingMetadata",
+    PaymentTariffNotFound = "PaymentTariffNotFound",
+    PaymentUserNotFound = "PaymentUserNotFound",
+    RegisterUserAlreadyRegistered = "RegisterUserAlreadyRegistered",
+    MailSendingTransporterFailed = "MailSendingTransporterFailed",
+    MailSendingFailed = "MailSendingFailed",
+    RegisterRequestRecordCreationFailed = "RegisterRequestRecordCreationFailed",
+    SendTelegramSendingFailed = "SendTelegramSendingFailed",
+    SendTelegramServerError = "SendTelegramServerError",
+}
