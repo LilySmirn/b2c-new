@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="aac806a0-bb65-48f8-8f45-f9aeb4d438b7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="31UznCzASWRfyFJqc72MrvjrCwc" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "cypress",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "D:/work/easymed-b2c-next-js-new/b2c-landing",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "D:\\work\\easymed-b2c-next-js-new\\b2c-landing\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\work\easymed-b2c-next-js-new\b2c-landing\cron" />
+      <recent name="D:\work\easymed-b2c-next-js-new\b2c-landing\app\profile" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-WS-243.26053.12" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="aac806a0-bb65-48f8-8f45-f9aeb4d438b7" name="Changes" comment="" />
+      <created>1755593603865</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1755593603865</updated>
+      <workItem from="1755593605113" duration="150000" />
+      <workItem from="1755755460525" duration="16314000" />
+      <workItem from="1755848952960" duration="802000" />
+      <workItem from="1755862342828" duration="4474000" />
+      <workItem from="1756105996514" duration="1314000" />
+      <workItem from="1756727883314" duration="4313000" />
+      <workItem from="1756796575731" duration="7906000" />
+      <workItem from="1756829031691" duration="989000" />
+      <workItem from="1756833323952" duration="693000" />
+      <workItem from="1756880255612" duration="415000" />
+      <workItem from="1756882131785" duration="9259000" />
+      <workItem from="1756966216161" duration="9017000" />
+      <workItem from="1756989430532" duration="710000" />
+      <workItem from="1756990163136" duration="3898000" />
+      <workItem from="1757051301646" duration="11730000" />
+      <workItem from="1757248180972" duration="2590000" />
+      <workItem from="1757488372205" duration="12444000" />
+      <workItem from="1757568526819" duration="17662000" />
+      <workItem from="1757917821165" duration="6518000" />
+      <workItem from="1757942766888" duration="3214000" />
+      <workItem from="1758000423200" duration="7628000" />
+      <workItem from="1758089581949" duration="4972000" />
+      <workItem from="1758176050572" duration="5869000" />
+      <workItem from="1758264133464" duration="5924000" />
+      <workItem from="1758535533859" duration="15639000" />
+      <workItem from="1758871141711" duration="16636000" />
+      <workItem from="1759125837580" duration="2284000" />
+      <workItem from="1759135363320" duration="6083000" />
+      <workItem from="1759214042437" duration="5447000" />
+      <workItem from="1759303499224" duration="7855000" />
+      <workItem from="1759390312616" duration="14518000" />
+      <workItem from="1759817513612" duration="1733000" />
+      <workItem from="1760506304503" duration="1142000" />
+      <workItem from="1777638016350" duration="1757000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/app/api/update-user/route.ts</url>
+          <line>11</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/app/api/update-user/route.ts</url>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
