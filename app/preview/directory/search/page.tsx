@@ -1,80 +1,60 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import SearchBar from "../components/SearchBar";
+import Filters from "../components/Filters";
+import MatchesList from "../components/MatchesList";
+import styles from "./search.module.css";
 
-type SearchState = "initial" | "empty" | "results";
+const matches = [
+  "K26: Язва двенадцатиперстной кишки",
+  "K26.0: Язва двенадцатиперстной кишки острая с кровотечением",
+  "P10: Разрыв внутричерепных тканей и кровоизлияние вследствие родовой травмы",
+  "K20: Эзофагит",
+  "K21: Гастроэзофагеальный рефлюкс",
+  "K21.0: Гастроэзофагеальный рефлюкс с эзофагитом",
+];
 
-const mockCards = [
-  { id: 1, title: "Карточка рекомендации #1", mkb: "J06.9" },
-  { id: 2, title: "Карточка рекомендации #2", mkb: "E11.9" },
-  { id: 3, title: "Карточка рекомендации #3", mkb: "I10" },
+const visitOptions = [
+  { id: "primary", label: "Первичный" },
+  { id: "repeat", label: "Повторный" },
+  { id: "inpatient", label: "Стационар" },
+];
+
+const ageOptions = [
+  { id: "adult", label: "Взрослый" },
+  { id: "child", label: "Ребёнок" },
 ];
 
 export default function SearchPreviewPage() {
   const [query, setQuery] = useState("");
-  const [state, setState] = useState<SearchState>("initial");
+  const [visitType, setVisitType] = useState("primary");
+  const [ageGroup, setAgeGroup] = useState("adult");
 
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const results = useMemo(() => {
-    if (!normalizedQuery) return mockCards;
-    return mockCards.filter(
-      (item) =>
-        item.title.toLowerCase().includes(normalizedQuery) ||
-        item.mkb.toLowerCase().includes(normalizedQuery),
-    );
-  }, [normalizedQuery]);
-
-  const onSearch = () => {
-    if (!normalizedQuery) {
-      setState("initial");
-      return;
-    }
-
-    setState(results.length ? "results" : "empty");
-  };
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return matches;
+    return matches.filter((item) => item.toLowerCase().includes(q));
+  }, [query]);
 
   return (
-    <main style={{ padding: 24, fontFamily: "sans-serif" }}>
-      <h1>Preview: Главный поиск</h1>
-      <p>Одна страница для всех состояний: начальное, пустой результат, карточки.</p>
+    <main className={styles.wrapper}>
+      <section className={styles.content}>
+        <h1 className={styles.brand}>EasyMed</h1>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Введите запрос или МКБ..."
-          style={{ minWidth: 320, padding: "8px 10px" }}
+        <SearchBar value={query} onChange={setQuery} />
+
+        <Filters
+          visitOptions={visitOptions}
+          visitValue={visitType}
+          onVisitChange={setVisitType}
+          ageOptions={ageOptions}
+          ageValue={ageGroup}
+          onAgeChange={setAgeGroup}
         />
-        <button onClick={onSearch} style={{ padding: "8px 14px" }}>
-          Найти
-        </button>
-      </div>
 
-      {state === "initial" && (
-        <section style={{ marginTop: 20 }}>
-          <strong>Состояние:</strong> результаты скрыты до запуска поиска.
-        </section>
-      )}
-
-      {state === "empty" && (
-        <section style={{ marginTop: 20 }}>
-          <strong>Совпадений не найдено.</strong>
-        </section>
-      )}
-
-      {state === "results" && (
-        <section style={{ marginTop: 20 }}>
-          <strong>Найдено карточек:</strong> {results.length}
-          <ul>
-            {results.map((item) => (
-              <li key={item.id}>
-                {item.title} — МКБ: {item.mkb}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        <MatchesList items={filtered} />
+      </section>
     </main>
   );
 }

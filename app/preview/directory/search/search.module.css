@@ -1,0 +1,18 @@
+.wrapper {
+  min-height: 100%;
+  padding: 82px 0 40px;
+  background: #efefef;
+}
+
+.content {
+  width: 772px;
+  margin: 0 auto;
+}
+
+.brand {
+  margin: 0 0 34px;
+  text-align: center;
+  color: #1182ee;
+  font-size: 74px;
+  font-weight: 900;
+}

@@ -1,0 +1,30 @@
+.row {
+  margin-top: 26px;
+  display: flex;
+  justify-content: space-between;
+  gap: 38px;
+}
+
+.group {
+  border: 1px solid #0f84f2;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex: 1;
+}
+
+.button {
+  flex: 1;
+  height: 38px;
+  border: none;
+  background: #d8e4ef;
+  color: #1182ee;
+  font-weight: 700;
+  font-size: 29px;
+  transform: scale(0.42);
+}
+
+.active {
+  background: #1182ee;
+  color: #fff;
+}
