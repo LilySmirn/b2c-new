@@ -1,11 +1,11 @@
 .wrapper {
   min-height: 100%;
   padding: 82px 0 40px;
-  background: #efefef;
+  background: #ffffff;
 }
 
 .content {
-  width: 772px;
+  width: 777px;
   margin: 0 auto;
 }
 
@@ -18,6 +18,16 @@
 }
 
 .logo {
-  margin-bottom: 30px;
   margin-top: 80px;
+  margin-bottom: 30px;
+}
+
+.visitFilter {
+  flex: 0 0 420px;
+  width: 420px;
+}
+
+.ageFilter {
+  flex: 0 0 315px;
+  width: 315px;
 }

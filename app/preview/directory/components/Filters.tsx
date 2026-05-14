@@ -1,6 +1,20 @@
-import styles from "./Filters.module.css";
+import styles from "@/app/preview/directory/components/Filters.module.css";
+import Image, { StaticImageData } from "next/image";
+import stethoscopeIcon from "@/assets/images/Stethoscope.png";
+import checkupIcon from "@/assets/images/Checkup.png";
+import injectionIcon from "@/assets/images/Injection.png";
+import adultIcon from "@/assets/images/adult.png";
+import childIcon from "@/assets/images/child.png";
 
 type FilterOption = { id: string; label: string };
+
+const optionIcons: Record<string, StaticImageData> = {
+  primary: stethoscopeIcon,
+  repeat: checkupIcon,
+  inpatient: injectionIcon,
+  adult: adultIcon,
+  child: childIcon,
+};
 
 type FiltersProps = {
   options: FilterOption[];
@@ -12,13 +26,24 @@ function FilterGroup({ options, value, onChange }: FiltersProps) {
   return (
     <div className={styles.group}>
       {options.map((option) => (
+        
         <button
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
           className={value === option.id ? `${styles.button} ${styles.active}` : styles.button}
         >
-          {option.label}
+          <span className={styles.content}>
+            {optionIcons[option.id] ? (
+              <Image
+                src={optionIcons[option.id]}
+                alt=""
+                className={value === option.id ? `${styles.icon} ${styles.iconActive}` : styles.icon}
+                aria-hidden="true"
+              />
+            ) : null}
+            <span>{option.label}</span>
+          </span>
         </button>
       ))}
     </div>
