@@ -20,13 +20,13 @@ type FiltersProps = {
   options: FilterOption[];
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 };
 
-function FilterGroup({ options, value, onChange }: FiltersProps) {
+function FilterGroup({ options, value, onChange, className }: FiltersProps) {
   return (
-    <div className={styles.group}>
+    <div className={className ? `${styles.group} ${className}` : styles.group}>
       {options.map((option) => (
-        
         <button
           key={option.id}
           type="button"
@@ -67,8 +67,18 @@ export default function Filters({
 }) {
   return (
     <div className={styles.row}>
-      <FilterGroup options={visitOptions} value={visitValue} onChange={onVisitChange} />
-      <FilterGroup options={ageOptions} value={ageValue} onChange={onAgeChange} />
+      <FilterGroup
+        options={visitOptions}
+        value={visitValue}
+        onChange={onVisitChange}
+        className={styles.visitGroup}
+      />
+      <FilterGroup
+        options={ageOptions}
+        value={ageValue}
+        onChange={onAgeChange}
+        className={styles.ageGroup}
+      />
     </div>
   );
 }

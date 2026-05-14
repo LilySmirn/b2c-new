@@ -10,7 +10,16 @@
   border-radius: 12px;
   overflow: hidden;
   display: flex;
-  flex: 1;
+}
+
+.visitGroup {
+  flex: 0 0 420px;
+  width: 420px;
+}
+
+.ageGroup {
+  flex: 0 0 315px;
+  width: 315px;
 }
 
 .button {

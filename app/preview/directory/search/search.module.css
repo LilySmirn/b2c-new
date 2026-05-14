@@ -21,13 +21,3 @@
   margin-top: 80px;
   margin-bottom: 30px;
 }
-
-.visitFilter {
-  flex: 0 0 420px;
-  width: 420px;
-}
-
-.ageFilter {
-  flex: 0 0 315px;
-  width: 315px;
-}
