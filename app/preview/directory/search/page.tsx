@@ -5,6 +5,8 @@ import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
 import styles from "./search.module.css";
+import Image from "next/image";
+import logoBig from "@/assets/images/logo-big.svg";
 
 const matches = [
   "K26: Язва двенадцатиперстной кишки",
@@ -40,7 +42,12 @@ export default function SearchPreviewPage() {
   return (
     <main className={styles.wrapper}>
       <section className={styles.content}>
-        <h1 className={styles.brand}>EasyMed</h1>
+        <Image
+        src={logoBig}
+        alt="EasyMed"
+        className={styles.logo}
+        priority
+/>
 
         <SearchBar value={query} onChange={setQuery} />
 
