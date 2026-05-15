@@ -37,7 +37,7 @@ export default function RecommendationCard({
 }: RecommendationCardProps) {
   return (
     <article className={styles.card}>
-      <header className={styles.header}>
+      <div className={styles.header}>
         <h3 className={styles.title}>{title}</h3>
         <a
           className={styles.eagleLink}
@@ -48,7 +48,7 @@ export default function RecommendationCard({
         >
           <Image src={eagleIcon} alt="Орел" className={styles.eagleIcon} />
         </a>
-      </header>
+      </div>
 
       <div className={styles.body}>
         <div className={styles.topRow}>
