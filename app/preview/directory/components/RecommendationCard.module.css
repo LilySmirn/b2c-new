@@ -1,0 +1,91 @@
+.card {
+  width: 380px;
+  height: 240px;
+  border: 1px solid #ccd6e6;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  width: 100%;
+  min-height: 40px;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  color: #000000;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.2;
+  max-width: calc(100% - 32px);
+}
+
+.eagleLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.eagleIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.body {
+  padding: 12px;
+  font-family: Arial, sans-serif;
+  flex: 1;
+}
+
+.topRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.infoPair {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.label {
+  color: #8b8b8b;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.value {
+  color: #00182f;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.idValue {
+  min-width: 112px;
+}
+
+.classificationPair {
+  margin-top: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 0;
+}

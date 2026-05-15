@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
+import RecommendationCard from "../components/RecommendationCard";
 import styles from "./search.module.css";
 import Image from "next/image";
 import logoBig from "@/assets/images/logo-big.svg";
@@ -22,6 +23,31 @@ const visitOptions = [
   { id: "repeat", label: "Повторный" },
   { id: "inpatient", label: "Стационар" },
 ];
+
+const recommendationCardBaseData = {
+  externalUrl: "https://cr.minzdrav.gov.ru/",
+  idLabel: "ID:",
+  idValue: "277_2",
+  statusLabel: "Статус:",
+  statusValue: "Действует",
+  ageCategoryLabel: "Возрастная категория:",
+  ageCategoryValue: "Взрослые",
+  publicationDateLabel: "Дата размещения КР:",
+  publicationDateValue: "13.01.2025",
+  approvalYearLabel: "Год утверждения:",
+  approvalYearValue: "2024",
+  classificationLabel:
+    "Кодирование по международной статистической классификации болезней и проблем, связанных со здоровьем:",
+  classificationValue:
+    "K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0",
+};
+
+const recommendationSourceTexts = matches.slice(0, 4);
+
+const getRecommendationTitle = (text: string) => {
+  const [, rawTitle] = text.split(":");
+  return rawTitle?.trim() || text.trim();
+};
 
 const ageOptions = [
   { id: "adult", label: "Взрослый" },
@@ -61,6 +87,16 @@ export default function SearchPreviewPage() {
         />
 
         <MatchesList items={filtered} />
+
+        <section className={styles.recommendationsGrid}>
+          {recommendationSourceTexts.map((text) => (
+            <RecommendationCard
+              key={text}
+              {...recommendationCardBaseData}
+              title={getRecommendationTitle(text)}
+            />
+          ))}
+        </section>
       </section>
     </main>
   );
