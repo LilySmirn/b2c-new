@@ -1,0 +1,1 @@
+.sideCart { width: 390px; height: calc(100vh - 64px); border: 1px dashed #c4cad3; border-radius: 8px; padding: 18px; overflow-y: auto; background: #fafbfc; }

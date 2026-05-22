@@ -1,0 +1,161 @@
+.checklistWrapper {
+  width: 720px;
+  max-height: calc(100vh - 64px);
+  overflow: hidden;
+  position: relative;
+}
+
+.checklistScroll {
+  max-height: inherit;
+  overflow-y: auto;
+}
+
+.tableArea {
+  width: 100%;
+}
+
+.sectionBlock {
+  width: 100%;
+}
+
+.sectionRow {
+  min-height: 31px;
+  display: flex;
+  align-items: center;
+  padding: 7px 12px;
+  font: 400 13px/17px Arial, sans-serif;
+  color: #000000;
+  background: #f6f7f9;
+}
+
+.row {
+  min-height: 35px;
+  border-bottom: 1px solid #e0e3e7;
+  display: grid;
+  grid-template-columns: 103px 1px 331px 1px 42px 1px 1fr;
+  align-items: stretch;
+}
+
+.firstCol,
+.secondCol,
+.thirdCol,
+.commentCol {
+  min-height: 35px;
+}
+
+.firstCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+}
+
+.secondCol {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 6px 8px;
+  color: #10253f;
+  font: 400 13px/1.25 Arial, sans-serif;
+}
+
+.thirdCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.commentCol {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  padding: 0 10px;
+  font: 400 11px/1.3 Arial, sans-serif;
+  color: #8a8a8a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.verticalDivider {
+  width: 1px;
+  align-self: center;
+  height: calc(100% - 10px);
+  background: #e0e3e7;
+}
+
+.checkbox {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1px solid rgba(133, 144, 162, 0.5);
+  background: #ffffff;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 19px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.checkboxChecked {
+  border-color: #0085ff;
+  background: #0085ff;
+}
+
+.qcValue,
+.codeValue {
+  min-width: 20px;
+  font: 400 16px/1 Arial, sans-serif;
+  color: #000000;
+}
+
+.infoButton {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #8a8a8a;
+  background: #ffffff;
+  color: #8a8a8a;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.modal {
+  width: min(500px, calc(100vw - 32px));
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 20px;
+}
+
+.commentInput {
+  width: 100%;
+  min-height: 120px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #d2d6dd;
+}
+
+.modalActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

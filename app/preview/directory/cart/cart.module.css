@@ -1,0 +1,2 @@
+.page { min-height: 100vh; padding: 125px 24px 24px; background: #fff; font-family: Arial, sans-serif; }
+.layout { max-width: 1140px; margin: 0 auto; display: grid; grid-template-columns: 720px 390px; gap: 20px; align-items: start; }
