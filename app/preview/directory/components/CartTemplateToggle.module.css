@@ -1,0 +1,23 @@
+.wrapper {
+  width: 368px;
+  height: 36px;
+  margin: 13px auto 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid #0085ff;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #badeff;
+}
+
+.button {
+  border: 0;
+  background: transparent;
+  color: #0085ff;
+  font: 600 14px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.button + .button {
+  border-left: 1px solid #0085ff;
+}

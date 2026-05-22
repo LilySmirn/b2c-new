@@ -1,0 +1,54 @@
+.panel {
+  width: 100%;
+  height: 65px;
+  background: #579460;
+  border-radius: 6px 6px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  overflow: hidden;
+}
+
+.actionButton {
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font: 700 13px/1.2 Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.actionButton::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 50px;
+  background: #4a8352;
+}
+
+.actionButton:last-child::before {
+  display: none;
+}
+
+.actionButton:hover {
+  background: #4a8352;
+  border-radius: 6px 6px 0 0;
+}
+
+.icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: nowrap;
+}
