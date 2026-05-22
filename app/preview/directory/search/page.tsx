@@ -43,6 +43,7 @@ const recommendationCardBaseData = {
 };
 
 const recommendationSourceTexts = matches.slice(0, 4);
+const emptySearchSuggestions = matches.slice(0, 4);
 
 const getRecommendationTitle = (text: string) => {
   const [, rawTitle] = text.split(":");
@@ -64,6 +65,8 @@ export default function SearchPreviewPage() {
     if (!q) return matches;
     return matches.filter((item) => item.toLowerCase().includes(q));
   }, [query]);
+
+  const searchedCode = query.trim() || "K26";
 
   return (
     <main className={styles.wrapper}>
@@ -97,6 +100,21 @@ export default function SearchPreviewPage() {
             />
           ))}
         </section>
+
+        <section className={styles.emptyStateSection}>
+            <p className={styles.emptyStateText}>
+              По выбранному МКБ <strong>{searchedCode}</strong> рекомендации не
+              найдены.
+              <br />
+              Возможно, вам подойдут следующие коды:
+            </p>
+
+            <MatchesList
+              items={emptySearchSuggestions}
+              listClassName={styles.emptySuggestionList}
+              itemClassName={styles.emptySuggestionItem}
+            />
+          </section>
       </section>
     </main>
   );
