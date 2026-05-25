@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./PrescriptionChecklist.module.css";
 
 type ChecklistItem = {
@@ -16,7 +16,15 @@ type ChecklistItem = {
 type ChecklistSection = {
   id: string;
   title: string;
+  groupTitle: string;
   items: ChecklistItem[];
+};
+
+export type SelectedPrescription = {
+  id: string;
+  groupTitle: string;
+  sectionTitle: string;
+  title: string;
 };
 
 const baseItems: ChecklistItem[] = [
@@ -62,16 +70,28 @@ const initialSections: ChecklistSection[] = [
   {
     id: "lab",
     title: "Лабораторные исследования",
+    groupTitle: "Диагностика",
     items: baseItems.map((item) => ({ ...item, id: `lab-${item.id}` })),
   },
   {
     id: "instrumental",
     title: "Инструментальные исследования",
+    groupTitle: "Диагностика",
     items: baseItems.map((item) => ({ ...item, id: `inst-${item.id}` })),
   },
 ];
 
-export default function PrescriptionChecklist() {
+type PrescriptionChecklistProps = {
+  onSelectionChange?: (items: SelectedPrescription[]) => void;
+  uncheckItemId?: string | null;
+  onUncheckHandled?: () => void;
+};
+
+export default function PrescriptionChecklist({
+  onSelectionChange,
+  uncheckItemId,
+  onUncheckHandled,
+}: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(initialSections);
   const [infoText, setInfoText] = useState<string | null>(null);
   const [commentTarget, setCommentTarget] = useState<{
@@ -106,6 +126,35 @@ export default function PrescriptionChecklist() {
     setCommentTarget(null);
   };
 
+  useEffect(() => {
+    onSelectionChange?.(
+      sections.flatMap((section) =>
+        section.items
+          .filter((item) => item.checked)
+          .map((item) => ({
+            id: item.id,
+            groupTitle: section.groupTitle,
+            sectionTitle: section.title,
+            title: item.title,
+          })),
+      ),
+    );
+  }, [onSelectionChange, sections]);
+
+  useEffect(() => {
+    if (!uncheckItemId) return;
+
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        items: section.items.map((item) =>
+          item.id === uncheckItemId ? { ...item, checked: false } : item,
+        ),
+      })),
+    );
+    onUncheckHandled?.();
+  }, [onUncheckHandled, uncheckItemId]);
+
   return (
     <div className={styles.checklistWrapper}>
       <div className={styles.checklistScroll}>
@@ -125,7 +174,9 @@ export default function PrescriptionChecklist() {
                     >
                       {item.checked ? "✓" : ""}
                     </button>
-                    <span className={styles.qcValue}>{item.qualityControl ? "КК" : ""}</span>
+                    <span className={styles.qcValue}>
+                      {item.qualityControl ? "КК" : ""}
+                    </span>
                     <span className={styles.codeValue}>{item.code}</span>
                   </div>
 
@@ -164,7 +215,10 @@ export default function PrescriptionChecklist() {
 
       {infoText && (
         <div className={styles.modalOverlay} onClick={() => setInfoText(null)}>
-          <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+          <div
+            className={styles.modal}
+            onClick={(event) => event.stopPropagation()}
+          >
             <h3>Информация о назначении</h3>
             <p>{infoText}</p>
             <button type="button" onClick={() => setInfoText(null)}>
@@ -179,7 +233,10 @@ export default function PrescriptionChecklist() {
           className={styles.modalOverlay}
           onClick={() => setCommentTarget(null)}
         >
-          <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+          <div
+            className={styles.modal}
+            onClick={(event) => event.stopPropagation()}
+          >
             <h3>Комментарий врача</h3>
             <textarea
               className={styles.commentInput}
