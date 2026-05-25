@@ -1,3 +1,13 @@
+.sideCart {
+  width: 390px;
+  height: calc(100vh - 125px);
+  border: 1px solid rgba(133, 144, 162, 0.4);
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .headerRow {
   width: 368px;
   margin: 19px auto 0;
@@ -26,6 +36,7 @@
   width: 368px;
   margin: 10px auto 0;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
