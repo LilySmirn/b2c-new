@@ -1666,3 +1666,33 @@ body.noscroll {
     gap: 8px;
   }
 }
+
+.btn-logout-preview {
+  display: none;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+body.preview-directory-search-route .header-container .navigation,
+body.preview-directory-search-route .header-container .mobile-nav {
+  display: none;
+}
+
+body.preview-directory-search-route .header-container .header-buttons > *:not(.btn-logout-preview) {
+  display: none;
+}
+
+body.preview-directory-search-route .header-container .btn-logout-preview {
+  display: inline-flex;
+}
+
+body.preview-directory-search-route .header-container .btn-login {
+  display: none;
+}

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import "./globals.css";
-import AuthButtons from './components/AuthButton';
+
 import AuthButtonsServer from './components/AuthButtonsServer';
 // import Header from "./components/Header";
+import RouteBodyClass from './components/RouteBodyClass';
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,7 +20,7 @@ export default async function RootLayout({
     return (
         <html lang="ru">
             <body>
-                {/*<Header />*/}
+                <RouteBodyClass />
 
                 <header id="header" className="header-section">
                     <div className="header-container">
@@ -39,6 +40,7 @@ export default async function RootLayout({
                         <div className="header-buttons">
                             <AuthButtonsServer variant="header" />
                             <Link href="/login" className="btn btn-demo">Демо</Link>
+                            <button type="button" className="btn btn-logout-preview">Выйти</button>
                         </div>
                         <div className="mobile-nav">
                             <button className="burger-btn" aria-label="Открыть меню">
