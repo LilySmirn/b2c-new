@@ -1681,18 +1681,49 @@ body.noscroll {
 }
 
 body.preview-directory-search-route .header-container .navigation,
-body.preview-directory-search-route .header-container .mobile-nav {
+body.preview-directory-search-route .header-container .mobile-nav,
+body.preview-directory-cart-route .header-container .navigation,
+body.preview-directory-cart-route .header-container .mobile-nav {
   display: none;
 }
 
-body.preview-directory-search-route .header-container .header-buttons > *:not(.btn-logout-preview) {
+body.preview-directory-search-route .header-container .header-buttons > *:not(.btn-logout-preview),
+body.preview-directory-cart-route .header-container .header-buttons > *:not(.btn-logout-preview) {
   display: none;
 }
 
-body.preview-directory-search-route .header-container .btn-logout-preview {
+body.preview-directory-search-route .header-container .btn-logout-preview,
+body.preview-directory-cart-route .header-container .btn-logout-preview {
   display: inline-flex;
 }
 
-body.preview-directory-search-route .header-container .btn-login {
+body.preview-directory-search-route .header-container .btn-login,
+body.preview-directory-cart-route .header-container .btn-login {
   display: none;
+}
+
+.btn-back-preview {
+  display: none;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+body.preview-directory-cart-route .header-container .navigation,
+body.preview-directory-cart-route .header-container .mobile-nav {
+  display: none;
+}
+
+body.preview-directory-cart-route .header-container .header-buttons > *:not(.btn-back-preview) {
+  display: none;
+}
+
+body.preview-directory-cart-route .header-container .btn-back-preview {
+  display: inline-flex;
 }

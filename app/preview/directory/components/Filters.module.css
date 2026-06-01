@@ -6,7 +6,7 @@
 }
 
 .group {
-  border: 1px solid #0085ff;
+  border: 1px solid #e4e4e4;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -26,18 +26,19 @@
   flex: 1;
   height: 30px;
   border: none;
-  background: #edf6ff;
-  color: #1182ee;
+  background: #f4f4f4;
+  color: #a3a3a3;
   font-family: Arial, sans-serif;
   font-weight: 700;
   font-size: 12px;
   line-height: 1;
-  transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    transform 0.2s ease;
   cursor: pointer;
 }
 
 .button + .button {
-  box-shadow: inset 1px 0 0 #0085ff;
+  box-shadow: inset 1px 0 0 #e4e4e4;
 }
 
 .button:first-child {
@@ -49,7 +50,7 @@
 }
 
 .button:hover {
-  background: #dceeff;
+  background: #eeeeee;
 }
 
 .button:active {
@@ -57,12 +58,12 @@
 }
 
 .active {
-  background: #1182ee;
-  color: #fff;
+  background: #e8e8e8;
+  color: #515151;
 }
 
 .active:hover {
-  background: #0f77d9;
+  background: #e8e8e8;
 }
 
 .content {
@@ -77,11 +78,21 @@
   width: 20px;
   height: 20px;
   object-fit: contain;
-  filter: brightness(0) saturate(100%) invert(40%) sepia(98%) saturate(3324%) hue-rotate(198deg)
-    brightness(101%) contrast(97%);
+  filter: brightness(0) saturate(100%) invert(70%) sepia(0%) saturate(0%) hue-rotate(180deg)
+    brightness(93%) contrast(89%);
   transition: filter 0.25s ease;
 }
 
 .iconActive {
-  filter: brightness(0) saturate(100%) invert(100%);
+  filter: brightness(0) saturate(100%) invert(31%) sepia(0%) saturate(1%) hue-rotate(187deg)
+    brightness(95%) contrast(89%);
+}
+
+.badge {
+  min-width: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
 }
