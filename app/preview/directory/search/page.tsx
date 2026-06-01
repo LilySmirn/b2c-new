@@ -5,6 +5,7 @@ import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
 import RecommendationCard from "../components/RecommendationCard";
+import Bookmarks from "../components/Bookmarks";
 import styles from "./search.module.css";
 import Image from "next/image";
 import logoBig from "@/assets/images/logo-big.svg";
@@ -88,6 +89,8 @@ export default function SearchPreviewPage() {
           ageValue={ageGroup}
           onAgeChange={setAgeGroup}
         />
+
+        <Bookmarks />
 
         <MatchesList items={filtered} />
 
