@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
@@ -60,6 +60,8 @@ export default function SearchPreviewPage() {
   const [query, setQuery] = useState("");
   const [visitType, setVisitType] = useState("primary");
   const [ageGroup, setAgeGroup] = useState("adult");
+  const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -67,19 +69,43 @@ export default function SearchPreviewPage() {
     return matches.filter((item) => item.toLowerCase().includes(q));
   }, [query]);
 
+  useEffect(() => {
+    if (!isMatchesOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!searchDropdownRef.current?.contains(event.target as Node)) {
+        setIsMatchesOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [isMatchesOpen]);
+
   const searchedCode = query.trim() || "K26";
 
   return (
     <main className={styles.wrapper}>
       <section className={styles.content}>
-        <Image
-        src={logoBig}
-        alt="EasyMed"
-        className={styles.logo}
-        priority
-/>
+        <Image src={logoBig} alt="EasyMed" className={styles.logo} priority />
 
-        <SearchBar value={query} onChange={setQuery} />
+        <div
+          className={styles.searchDropdown}
+          ref={searchDropdownRef}
+          data-open={isMatchesOpen}
+        >
+          <SearchBar
+            value={query}
+            onChange={setQuery}
+            onFocus={() => setIsMatchesOpen(true)}
+            variant="connected"
+          />
+
+          {isMatchesOpen && <MatchesList items={filtered} />}
+        </div>
 
         <Filters
           visitOptions={visitOptions}
@@ -92,8 +118,6 @@ export default function SearchPreviewPage() {
 
         <Bookmarks />
 
-        <MatchesList items={filtered} />
-
         <section className={styles.recommendationsGrid}>
           {recommendationSourceTexts.map((text) => (
             <RecommendationCard
@@ -105,19 +129,19 @@ export default function SearchPreviewPage() {
         </section>
 
         <section className={styles.emptyStateSection}>
-            <p className={styles.emptyStateText}>
-              По выбранному МКБ <strong>{searchedCode}</strong> рекомендации не
-              найдены.
-              <br />
-              Возможно, вам подойдут следующие коды:
-            </p>
+          <p className={styles.emptyStateText}>
+            По выбранному МКБ <strong>{searchedCode}</strong> рекомендации не
+            найдены.
+            <br />
+            Возможно, вам подойдут следующие коды:
+          </p>
 
-            <MatchesList
-              items={emptySearchSuggestions}
-              listClassName={styles.emptySuggestionList}
-              itemClassName={styles.emptySuggestionItem}
-            />
-          </section>
+          <MatchesList
+            items={emptySearchSuggestions}
+            listClassName={styles.emptySuggestionList}
+            itemClassName={styles.emptySuggestionItem}
+          />
+        </section>
       </section>
     </main>
   );
