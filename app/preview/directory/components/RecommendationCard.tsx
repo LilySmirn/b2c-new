@@ -4,6 +4,8 @@ import eagleIcon from "@/assets/images/eagle.png";
 
 type RecommendationCardProps = {
   title: string;
+  selected?: boolean;
+  onSelect?: () => void;
   externalUrl: string;
   idLabel: string;
   idValue: string;
@@ -34,9 +36,25 @@ export default function RecommendationCard({
   approvalYearValue,
   classificationLabel,
   classificationValue,
+  selected = false,
+  onSelect,
 }: RecommendationCardProps) {
+  const cardClassName = selected ? `${styles.card} ${styles.selected}` : styles.card;
+
   return (
-    <article className={styles.card}>
+    <article
+      className={cardClassName}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      aria-pressed={onSelect ? selected : undefined}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (!onSelect || (event.key !== "Enter" && event.key !== " ")) return;
+
+        event.preventDefault();
+        onSelect();
+      }}
+    >
       <div className={styles.header}>
         <h3 className={styles.title}>{title}</h3>
         <a
@@ -45,6 +63,7 @@ export default function RecommendationCard({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Открыть внешний ресурс"
+          onClick={(event) => event.stopPropagation()}
         >
           <Image src={eagleIcon} alt="Орел" className={styles.eagleIcon} />
         </a>
