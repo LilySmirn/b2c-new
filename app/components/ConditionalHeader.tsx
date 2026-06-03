@@ -15,7 +15,7 @@ type ConditionalHeaderProps = {
 export default function ConditionalHeader({ children }: ConditionalHeaderProps) {
   const pathname = usePathname();
 
-  if (HIDDEN_HEADER_PATHS.has(pathname)) {
+if (pathname && HIDDEN_HEADER_PATHS.has(pathname)) {
     return null;
   }
 

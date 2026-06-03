@@ -5,7 +5,7 @@ import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
-import DirectoryPageHeader from "../components/DirectoryPageHeader";
+import DirectoryPageHeader from "@/app/preview/directory/components/DirectoryPageHeader";
 
 export default function CartPreviewPage() {
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
