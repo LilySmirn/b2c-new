@@ -1,4 +1,6 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useRef, useState } from "react";import Image from "next/image";
 import styles from "./RecommendationCard.module.css";
 import eagleIcon from "@/assets/images/eagle.png";
 
@@ -19,6 +21,8 @@ type RecommendationCardProps = {
   approvalYearValue: string;
   classificationLabel: string;
   classificationValue: string;
+  showBookmarkMenu?: boolean;
+  onAddBookmark?: () => void;
 };
 
 export default function RecommendationCard({
@@ -38,11 +42,32 @@ export default function RecommendationCard({
   classificationValue,
   selected = false,
   onSelect,
+  showBookmarkMenu = false,
+  onAddBookmark,
 }: RecommendationCardProps) {
+  const [isBookmarkMenuOpen, setIsBookmarkMenuOpen] = useState(false);
+  const cardRef = useRef<HTMLElement | null>(null);
   const cardClassName = selected ? `${styles.card} ${styles.selected}` : styles.card;
+
+  useEffect(() => {
+    if (!isBookmarkMenuOpen) return;
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (cardRef.current?.contains(event.target as Node)) return;
+
+      setIsBookmarkMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleDocumentClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentClick);
+    };
+  }, [isBookmarkMenuOpen]);
 
   return (
     <article
+      ref={cardRef}
       className={cardClassName}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
@@ -55,18 +80,57 @@ export default function RecommendationCard({
         onSelect();
       }}
     >
-      <div className={styles.header}>
+      <div className={`${styles.header} ${showBookmarkMenu ? styles.headerWithMenu : ""}`}>
         <h3 className={styles.title}>{title}</h3>
-        <a
-          className={styles.eagleLink}
-          href={externalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Открыть внешний ресурс"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <Image src={eagleIcon} alt="Орел" className={styles.eagleIcon} />
-        </a>
+        <div className={showBookmarkMenu ? styles.headerActions : undefined}>
+          <a
+            className={styles.eagleLink}
+            href={externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Открыть внешний ресурс"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Image src={eagleIcon} alt="Орел" className={styles.eagleIcon} />
+          </a>
+
+          {showBookmarkMenu ? (
+            <>
+              <button
+                type="button"
+                className={styles.bookmarkMenuButton}
+                aria-label="Открыть меню рекомендации"
+                aria-haspopup="menu"
+                aria-expanded={isBookmarkMenuOpen}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsBookmarkMenuOpen((isOpen) => !isOpen);
+                }}
+              >
+                <span />
+                <span />
+                <span />
+              </button>
+
+              {isBookmarkMenuOpen ? (
+                <div className={styles.bookmarkMenu} role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.bookmarkMenuItem}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setIsBookmarkMenuOpen(false);
+                      onAddBookmark?.();
+                    }}
+                  >
+                    Добавить закладку
+                  </button>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className={styles.body}>

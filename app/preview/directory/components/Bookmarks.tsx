@@ -7,17 +7,25 @@ import adultIcon from "@/assets/images/adult.png";
 import NewBookmarkPopup from "./NewBookmarkPopup";
 import styles from "./Bookmarks.module.css";
 
-const savedBookmarks = [
+export type BookmarkItem = {
+  id: string;
+  code: string;
+  title: string;
+};
+
+export const initialBookmarks: BookmarkItem[] = [
   {
     id: "k26-duodenal-ulcer",
     code: "K26",
     title: "Язва двенадцатиперсной кишки",
-    visitIcon: stethoscopeIcon,
-    ageIcon: adultIcon,
   },
 ];
 
-export default function Bookmarks() {
+type BookmarksProps = {
+  items?: BookmarkItem[];
+};
+
+export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const activeCardRef = useRef<HTMLElement | null>(null);
@@ -42,7 +50,7 @@ export default function Bookmarks() {
   return (
     <>
       <section className={styles.bookmarks} aria-label="Закладки нозологий">
-        {savedBookmarks.map((bookmark) => {
+        {items.map((bookmark) => {
           const isMenuOpen = openMenuId === bookmark.id;
 
           return (
@@ -55,8 +63,8 @@ export default function Bookmarks() {
                 <span className={styles.codeCircle}>{bookmark.code}</span>
                 <span className={styles.bookmarkTitle}>{bookmark.title}</span>
                 <span className={styles.iconRow} aria-hidden="true">
-                  <Image src={bookmark.visitIcon} alt="" className={styles.filterIcon} />
-                  <Image src={bookmark.ageIcon} alt="" className={styles.filterIcon} />
+                  <Image src={stethoscopeIcon} alt="" className={styles.filterIcon} />
+                  <Image src={adultIcon} alt="" className={styles.filterIcon} />
                 </span>
               </button>
 
