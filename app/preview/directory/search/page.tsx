@@ -5,6 +5,7 @@ import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
 import RecommendationCard from "../components/RecommendationCard";
+import SuggestedCodesList from "../components/SuggestedCodesList";
 import Bookmarks from "../components/Bookmarks";
 import styles from "./search.module.css";
 import Image from "next/image";
@@ -136,11 +137,7 @@ export default function SearchPreviewPage() {
             Возможно, вам подойдут следующие коды:
           </p>
 
-          <MatchesList
-            items={emptySearchSuggestions}
-            listClassName={styles.emptySuggestionList}
-            itemClassName={styles.emptySuggestionItem}
-          />
+          <SuggestedCodesList items={emptySearchSuggestions} />
         </section>
       </section>
     </main>
