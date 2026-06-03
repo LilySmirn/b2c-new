@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import stethoscopeIcon from "@/assets/images/Stethoscope.png";
-import adultIcon from "@/assets/images/adult.png";
+import Image, { StaticImageData } from "next/image";
+import stethoscopeIcon from "@/assets/images/Stethoscope.svg";
+import injectionIcon from "@/assets/images/Injection.svg";
+import hospitalIcon from "@/assets/images/hospital.svg";
 import NewBookmarkPopup from "./NewBookmarkPopup";
 import styles from "./Bookmarks.module.css";
 
@@ -11,6 +12,8 @@ export type BookmarkItem = {
   id: string;
   code: string;
   title: string;
+  visitType?: string;
+  ageGroup?: string;
 };
 
 export const initialBookmarks: BookmarkItem[] = [
@@ -18,8 +21,21 @@ export const initialBookmarks: BookmarkItem[] = [
     id: "k26-duodenal-ulcer",
     code: "K26",
     title: "Язва двенадцатиперсной кишки",
+    visitType: "primary",
+    ageGroup: "adult",
   },
 ];
+
+const visitIcons: Record<string, StaticImageData> = {
+  primary: stethoscopeIcon,
+  repeat: injectionIcon,
+  inpatient: hospitalIcon,
+};
+
+const ageBadges: Record<string, string> = {
+  adult: "18+",
+  child: "0+",
+};
 
 type BookmarksProps = {
   items?: BookmarkItem[];
@@ -53,6 +69,9 @@ export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) 
         {items.map((bookmark) => {
           const isMenuOpen = openMenuId === bookmark.id;
 
+          const visitIcon = visitIcons[bookmark.visitType ?? "primary"] ?? stethoscopeIcon;
+          const ageBadge = ageBadges[bookmark.ageGroup ?? "adult"] ?? ageBadges.adult;
+
           return (
             <article key={bookmark.id} className={styles.bookmarkCard}>
               <button
@@ -63,8 +82,8 @@ export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) 
                 <span className={styles.codeCircle}>{bookmark.code}</span>
                 <span className={styles.bookmarkTitle}>{bookmark.title}</span>
                 <span className={styles.iconRow} aria-hidden="true">
-                  <Image src={stethoscopeIcon} alt="" className={styles.filterIcon} />
-                  <Image src={adultIcon} alt="" className={styles.filterIcon} />
+                  <Image src={visitIcon} alt="" className={styles.filterIcon} />
+                  <span className={styles.ageBadge}>{ageBadge}</span>
                 </span>
               </button>
 

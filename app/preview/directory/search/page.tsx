@@ -106,7 +106,7 @@ export default function SearchPreviewPage() {
         return currentBookmarks;
       }
 
-      return [...currentBookmarks, { id, code, title }];
+      return [...currentBookmarks, { id, code, title, visitType, ageGroup }];
     });
   };
 

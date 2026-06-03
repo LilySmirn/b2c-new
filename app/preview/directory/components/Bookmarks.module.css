@@ -84,6 +84,16 @@
   gap: 6px;
 }
 
+.ageBadge {
+  min-width: 18px;
+  color: #515151;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
 .filterIcon {
   width: 18px;
   height: 18px;
