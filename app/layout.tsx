@@ -5,7 +5,7 @@ import "./globals.css";
 
 import AuthButtonsServer from './components/AuthButtonsServer';
 // import Header from "./components/Header";
-import RouteBodyClass from './components/RouteBodyClass';
+import ConditionalHeader from './components/ConditionalHeader';
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,9 +20,8 @@ export default async function RootLayout({
     return (
         <html lang="ru">
             <body>
-                <RouteBodyClass />
-
-                <header id="header" className="header-section">
+                 <ConditionalHeader>
+                    <header id="header" className="header-section">
                     <div className="header-container">
                         <Link href="/" className="footer-logo-link">
                             <Image src="/images/logo-white.png"
@@ -68,6 +67,7 @@ export default async function RootLayout({
                         <div className="overlay hidden"></div>
                     </div>
                 </header>
+                </ConditionalHeader>
 
                 <main>{children}</main>
                 <footer id="footer" className="footer">

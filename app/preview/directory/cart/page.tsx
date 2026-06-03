@@ -5,6 +5,7 @@ import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
+import DirectoryPageHeader from "../components/DirectoryPageHeader";
 
 export default function CartPreviewPage() {
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
@@ -16,7 +17,9 @@ export default function CartPreviewPage() {
   };
 
   return (
-    <main className={styles.page}>
+    <>
+      <DirectoryPageHeader variant="cart" />
+      <main className={styles.page}>
       <section className={styles.layout}>
         <PrescriptionChecklist
           onSelectionChange={setSelectedItems}
@@ -25,6 +28,7 @@ export default function CartPreviewPage() {
         />
         <SideCart selectedItems={selectedItems} onDeleteItem={handleDeleteItem} />
       </section>
-    </main>
+      </main>
+    </>
   );
 }

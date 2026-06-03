@@ -9,6 +9,7 @@ import SuggestedCodesList from "../components/SuggestedCodesList";
 import Bookmarks, { initialBookmarks, type BookmarkItem } from "../components/Bookmarks";
 import styles from "./search.module.css";
 import Image from "next/image";
+import DirectoryPageHeader from "../components/DirectoryPageHeader";
 import logoBig from "@/assets/images/logo-big.svg";
 
 const matches = [
@@ -110,7 +111,9 @@ export default function SearchPreviewPage() {
   };
 
   return (
-    <main className={styles.wrapper}>
+<>
+      <DirectoryPageHeader variant="search" />
+      <main className={styles.wrapper}>
       <section className={styles.content}>
         <Image src={logoBig} alt="EasyMed" className={styles.logo} priority />
 
@@ -162,6 +165,7 @@ export default function SearchPreviewPage() {
           <SuggestedCodesList items={emptySearchSuggestions} />
         </section>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
