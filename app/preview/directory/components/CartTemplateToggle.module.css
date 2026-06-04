@@ -4,20 +4,26 @@
   margin: 13px auto 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid #0085ff;
+  border: 1px solid #e4e4e4;
   border-radius: 8px;
   overflow: hidden;
-  background: #badeff;
+  background: #f4f4f4;
 }
 
 .button {
   border: 0;
   background: transparent;
-  color: #0085ff;
-  font: 600 14px/1 Arial, sans-serif;
+  color: #696969;
+  font: 700 14px/1 Arial, sans-serif;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .button + .button {
-  border-left: 1px solid #0085ff;
+  border-left: 1px solid #e4e4e4;
+}
+
+.button:hover,
+.button:focus-visible {
+  background: #eeeeee;
 }

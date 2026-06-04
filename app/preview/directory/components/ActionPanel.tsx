@@ -1,20 +1,24 @@
+import Image from "next/image";
+import chartIcon from "@/assets/images/action-panel-1.svg";
+import copyIcon from "@/assets/images/action-panel-2.svg";
+import documentIcon from "@/assets/images/action-panel-3.svg";
 import styles from "./ActionPanel.module.css";
 
 const actions = [
   {
     id: "chart",
     label: "Запись\nв карту",
-    icon: "/assets/images/action-panel-1.png",
+    icon: chartIcon,
   },
   {
     id: "copy",
     label: "Скопировать\nвыбранное",
-    icon: "/assets/images/action-panel-2.png",
+    icon: copyIcon,
   },
   {
     id: "doc",
     label: "Сформировать\nдокумент",
-    icon: "/assets/images/action-panel-3.png",
+    icon: documentIcon,
   },
 ];
 
@@ -23,12 +27,12 @@ export default function ActionPanel() {
     <div className={styles.panel}>
       {actions.map((action) => (
         <button key={action.id} type="button" className={styles.actionButton}>
-          <img
+          <Image
             className={styles.icon}
             src={action.icon}
             alt=""
-            width={18}
-            height={18}
+            width={20}
+            height={20}
             aria-hidden="true"
           />
           <span className={styles.label}>
