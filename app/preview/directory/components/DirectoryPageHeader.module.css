@@ -13,8 +13,9 @@
 }
 
 .container {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 32px;
   align-items: center;
   width: 100%;
   max-width: 1600px;
@@ -27,9 +28,24 @@
   align-items: center;
 }
 
+.diagnosisTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .action {
+  grid-column: -2 / -1;
   display: inline-flex;
   align-items: center;
+  justify-self: end;
   padding: 0;
   border: none;
   background: transparent;
@@ -40,14 +56,31 @@
   line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .backAction {
-  font-size: 16px;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.backAction:hover {
+  color: #d6edff;
+}
+
+.searchIcon {
+  transition: opacity 0.2s ease;
+}
+
+.backAction:hover .searchIcon {
+  opacity: 0.75;
 }
 
 @media (max-width: 900px) {
   .container {
+    gap: 16px;
     margin-right: 16px;
     margin-left: 16px;
   }

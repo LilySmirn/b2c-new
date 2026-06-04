@@ -7,6 +7,9 @@ import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
 import DirectoryPageHeader from "@/app/preview/directory/components/DirectoryPageHeader";
 
+const EXAMPLE_DIAGNOSIS_TITLE =
+  "К26.5 Смешанные и другие расстройства личности и поведения, обусловленные повреждением и дисфункцией головного мозга";
+
 export default function CartPreviewPage() {
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
   const [uncheckItemId, setUncheckItemId] = useState<string | null>(null);
@@ -18,7 +21,7 @@ export default function CartPreviewPage() {
 
   return (
     <>
-      <DirectoryPageHeader variant="cart" />
+      <DirectoryPageHeader variant="cart" diagnosisTitle={EXAMPLE_DIAGNOSIS_TITLE} />
       <main className={styles.page}>
       <section className={styles.layout}>
         <PrescriptionChecklist

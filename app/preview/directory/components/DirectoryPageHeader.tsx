@@ -1,16 +1,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
 
 type DirectoryPageHeaderProps = {
   variant: 'search' | 'cart';
+  diagnosisTitle?: string;
 };
 
-export default function DirectoryPageHeader({ variant }: DirectoryPageHeaderProps) {
+export default function DirectoryPageHeader({ variant, diagnosisTitle }: DirectoryPageHeaderProps) {
   const action =
     variant === 'cart' ? (
       <Link href="/preview/directory/search" className={`${styles.action} ${styles.backAction}`}>
-        ←Назад
+        <Image src={searchIcon} alt="" width={18} height={18} className={styles.searchIcon} />
+        Вернуться к поиску
       </Link>
     ) : (
       <button type="button" className={styles.action}>
@@ -30,6 +33,9 @@ export default function DirectoryPageHeader({ variant }: DirectoryPageHeaderProp
             loading="eager"
           />
         </Link>
+        {variant === 'cart' && diagnosisTitle ? (
+          <p className={styles.diagnosisTitle}>{diagnosisTitle}</p>
+        ) : null}
         {action}
       </div>
     </header>
