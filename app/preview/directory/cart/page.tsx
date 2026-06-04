@@ -13,10 +13,16 @@ const EXAMPLE_DIAGNOSIS_TITLE =
 export default function CartPreviewPage() {
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
   const [uncheckItemId, setUncheckItemId] = useState<string | null>(null);
+  const [clearSelectionSignal, setClearSelectionSignal] = useState(0);
 
   const handleDeleteItem = (id: string) => {
     setSelectedItems((prev) => prev.filter((item) => item.id !== id));
     setUncheckItemId(id);
+  };
+
+  const handleDeleteAll = () => {
+    setSelectedItems([]);
+    setClearSelectionSignal((prev) => prev + 1);
   };
 
   return (
@@ -28,8 +34,13 @@ export default function CartPreviewPage() {
           onSelectionChange={setSelectedItems}
           uncheckItemId={uncheckItemId}
           onUncheckHandled={() => setUncheckItemId(null)}
+          clearSelectionSignal={clearSelectionSignal}
         />
-        <SideCart selectedItems={selectedItems} onDeleteItem={handleDeleteItem} />
+        <SideCart
+          selectedItems={selectedItems}
+          onDeleteItem={handleDeleteItem}
+          onDeleteAll={handleDeleteAll}
+        />
       </section>
       </main>
     </>

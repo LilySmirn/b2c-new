@@ -138,12 +138,14 @@ type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
   uncheckItemId?: string | null;
   onUncheckHandled?: () => void;
+  clearSelectionSignal?: number;
 };
 
 export default function PrescriptionChecklist({
   onSelectionChange,
   uncheckItemId,
   onUncheckHandled,
+  clearSelectionSignal = 0,
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(initialSections);
   const [activeCategoryId, setActiveCategoryId] = useState(checklistCategories[0].id);
@@ -230,7 +232,18 @@ export default function PrescriptionChecklist({
     onUncheckHandled?.();
   }, [onUncheckHandled, uncheckItemId]);
 
-const visibleSections = sections.filter(
+  useEffect(() => {
+    if (clearSelectionSignal === 0) return;
+
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        items: section.items.map((item) => ({ ...item, checked: false })),
+      })),
+    );
+  }, [clearSelectionSignal]);
+
+  const visibleSections = sections.filter(
     (section) => section.categoryId === activeCategoryId,
   );
 

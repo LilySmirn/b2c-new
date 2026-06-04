@@ -1,8 +1,8 @@
 .sideCart {
   width: 100%;
-  height: calc(100vh - 125px);
+  height: calc(100vh - 155px);
   border: 1px solid rgba(133, 144, 162, 0.4);
-  border-radius: 16px 16px 0 0;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -12,7 +12,7 @@
   width: calc(100% - 40px);
   margin: 19px auto 0;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -24,11 +24,14 @@
 
 .clearButton {
   border: 0;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   background: transparent;
   padding: 0;
-  color: #3f3f3f;
-  font: 700 14px/1.2 Arial, sans-serif;
-  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
@@ -57,7 +60,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 0 10px;
+  padding: 0 0 0 10px;
 }
 
 .itemRowAlt {
@@ -71,9 +74,9 @@
 }
 
 .deleteButton {
-  width: 17px;
-  height: 17px;
-  flex: 0 0 17px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   border: 0;
   background: transparent;
   padding: 0;

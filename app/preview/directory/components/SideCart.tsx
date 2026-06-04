@@ -4,14 +4,20 @@ import Image from "next/image";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import RecommendationField from "./RecommendationField";
 import styles from "./SideCart.module.css";
-import deleteIcon from "@/assets/images/delete-icon.svg";
+import deleteAllIcon from "@/assets/images/delete-all.svg";
+import deleteIcon from "@/assets/images/delete.svg";
 
 type SideCartProps = {
   selectedItems?: SelectedPrescription[];
   onDeleteItem?: (id: string) => void;
+  onDeleteAll?: () => void;
 };
 
-export default function SideCart({ selectedItems = [], onDeleteItem }: SideCartProps) {
+export default function SideCart({
+  selectedItems = [],
+  onDeleteItem,
+  onDeleteAll,
+}: SideCartProps) {
   const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
     (acc, item) => {
       acc[item.groupTitle] = [...(acc[item.groupTitle] ?? []), item];
@@ -26,8 +32,13 @@ export default function SideCart({ selectedItems = [], onDeleteItem }: SideCartP
 
       <div className={styles.headerRow}>
         <h2 className={styles.title}>Корзина назначений</h2>
-        <button type="button" className={styles.clearButton}>
-          Удалить всё
+        <button
+          type="button"
+          className={styles.clearButton}
+          aria-label="Удалить всё из корзины"
+          onClick={onDeleteAll}
+        >
+          <Image src={deleteAllIcon} alt="" width={22} height={22} aria-hidden="true" />
         </button>
       </div>
 
@@ -47,7 +58,7 @@ export default function SideCart({ selectedItems = [], onDeleteItem }: SideCartP
                   aria-label={`Удалить ${item.title}`}
                   onClick={() => onDeleteItem?.(item.id)}
                 >
-                  <Image src={deleteIcon} alt="Удалить" width={17} height={17} />
+                  <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
                 </button>
               </div>
             ))}
