@@ -16,6 +16,7 @@ type ChecklistItem = {
 type ChecklistSection = {
   id: string;
   title: string;
+  categoryId: string;
   groupTitle: string;
   items: ChecklistItem[];
 };
@@ -66,18 +67,70 @@ const baseItems: ChecklistItem[] = [
   },
 ];
 
+const checklistCategories = [
+  { id: "required-diagnostics", label: "Диагностика обязательная" },
+  { id: "indicated-diagnostics", label: "Диагностика по показаниям" },
+  { id: "treatment", label: "Лечение" },
+  { id: "medications", label: "Препараты" },
+  { id: "scales", label: "Шкалы и опросники" },
+  { id: "lifestyle", label: "Образ жизни" },
+  { id: "appendix-a3", label: "Приложение А3" },
+];
+
+const indicatedDiagnosticItems: ChecklistItem[] = [
+  {
+    id: "ultrasound",
+    checked: false,
+    qualityControl: true,
+    code: "A04",
+    title: "Ультразвуковое исследование органов брюшной полости",
+    info: "Назначается при наличии клинических показаний.",
+    comment: "При болевом синдроме",
+  },
+  {
+    id: "biochemistry",
+    checked: true,
+    qualityControl: true,
+    code: "B03",
+    title: "Биохимический анализ крови расширенный",
+    info: "Дополнительное лабораторное исследование по показаниям.",
+    comment: "",
+  },
+  {
+    id: "consultation",
+    checked: false,
+    qualityControl: false,
+    code: "B01",
+    title: "Консультация врача-гастроэнтеролога",
+    info: "Консультация профильного специалиста по показаниям.",
+    comment: "При сохранении симптомов",
+  },
+];
+
 const initialSections: ChecklistSection[] = [
   {
     id: "lab",
+    categoryId: "required-diagnostics",
     title: "Лабораторные исследования",
     groupTitle: "Диагностика",
     items: baseItems.map((item) => ({ ...item, id: `lab-${item.id}` })),
   },
   {
     id: "instrumental",
+    categoryId: "required-diagnostics",
     title: "Инструментальные исследования",
     groupTitle: "Диагностика",
     items: baseItems.map((item) => ({ ...item, id: `inst-${item.id}` })),
+  },
+  {
+    id: "indicated-lab",
+    categoryId: "indicated-diagnostics",
+    title: "Дополнительные исследования",
+    groupTitle: "Диагностика по показаниям",
+    items: indicatedDiagnosticItems.map((item) => ({
+      ...item,
+      id: `indicated-${item.id}`,
+    })),
   },
 ];
 
@@ -93,6 +146,7 @@ export default function PrescriptionChecklist({
   onUncheckHandled,
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(initialSections);
+  const [activeCategoryId, setActiveCategoryId] = useState(checklistCategories[0].id);
   const [infoText, setInfoText] = useState<string | null>(null);
   const [commentTarget, setCommentTarget] = useState<{
     id: string;
@@ -155,11 +209,32 @@ export default function PrescriptionChecklist({
     onUncheckHandled?.();
   }, [onUncheckHandled, uncheckItemId]);
 
+const visibleSections = sections.filter(
+    (section) => section.categoryId === activeCategoryId,
+  );
+
   return (
     <div className={styles.checklistWrapper}>
+      <div className={styles.categoryTabs} role="tablist" aria-label="Раздел назначений">
+        {checklistCategories.map((category) => (
+          <button
+            key={category.id}
+            type="button"
+            role="tab"
+            aria-selected={activeCategoryId === category.id}
+            className={`${styles.categoryTab} ${
+              activeCategoryId === category.id ? styles.categoryTabActive : ""
+            }`}
+            onClick={() => setActiveCategoryId(category.id)}
+          >
+            {category.label}
+          </button>
+        ))}
+      </div>
+      
       <div className={styles.checklistScroll}>
         <div className={styles.tableArea}>
-          {sections.map((section) => (
+          {visibleSections.map((section) => (
             <div key={section.id} className={styles.sectionBlock}>
               <div className={styles.sectionRow}>{section.title}</div>
 
@@ -210,6 +285,9 @@ export default function PrescriptionChecklist({
               ))}
             </div>
           ))}
+          {visibleSections.length === 0 ? (
+            <div className={styles.emptyState}>В этом разделе пока нет назначений</div>
+          ) : null}
         </div>
       </div>
 
