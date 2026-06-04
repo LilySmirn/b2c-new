@@ -17,8 +17,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1600px;
+  margin: 0 32px;
   padding: 0 16px;
 }
 
@@ -44,4 +44,11 @@
 
 .backAction {
   font-size: 16px;
+}
+
+@media (max-width: 900px) {
+  .container {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
 }

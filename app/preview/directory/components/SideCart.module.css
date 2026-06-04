@@ -1,5 +1,5 @@
 .sideCart {
-  width: 390px;
+  width: 100%;
   height: calc(100vh - 125px);
   border: 1px solid rgba(133, 144, 162, 0.4);
   border-radius: 16px 16px 0 0;
@@ -9,7 +9,7 @@
 }
 
 .headerRow {
-  width: 368px;
+  width: calc(100% - 40px);
   margin: 19px auto 0;
   display: flex;
   align-items: baseline;
@@ -33,7 +33,7 @@
 }
 
 .listPlaceholder {
-  width: 368px;
+  width: calc(100% - 40px);
   margin: 10px auto 0;
   flex: 1;
   min-height: 0;
@@ -84,7 +84,7 @@
 }
 
 .addButton {
-  width: 368px;
+  width: calc(100% - 40px);
   margin: 10px auto 0;
   border: 0;
   background: transparent;
@@ -107,7 +107,7 @@
 }
 
 .recommendationWrap {
-  width: 368px;
+  width: calc(100% - 40px);
   margin: 17px auto 0;
 }
 
