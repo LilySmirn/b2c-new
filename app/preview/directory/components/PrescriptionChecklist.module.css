@@ -24,15 +24,24 @@
   align-items: center;
   padding: 7px 12px;
   font: 400 13px/17px Arial, sans-serif;
+  gap: 10px;
   color: #000000;
   background: #f6f7f9;
+}
+
+.requiredDiagnosticsSectionRow {
+  padding-left: 8px;
+}
+
+.sectionRowWithoutCheckbox {
+  padding-left: 39px;
 }
 
 .row {
   min-height: 35px;
   border-bottom: 1px solid #e0e3e7;
   display: grid;
-  grid-template-columns: 103px 1px minmax(0, 1fr) 1px 42px 1px 241px;
+  grid-template-columns: 103px minmax(0, 1fr) 42px 241px;
   align-items: stretch;
 }
 
@@ -67,10 +76,13 @@
 }
 
 .commentCol {
-  border: 0;
-  background: transparent;
+  border: 1px solid #e0e3e7;
+  border-radius: 26px;
+  background: #ffffff;
   text-align: left;
-  width: 100%;
+  width: calc(100% - 16px);
+  min-height: 27px;
+  margin: 4px 8px;
   padding: 0 10px;
   font: 400 11px/1.3 Arial, sans-serif;
   color: #8a8a8a;
@@ -78,13 +90,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
-}
-
-.verticalDivider {
-  width: 1px;
-  align-self: center;
-  height: calc(100% - 10px);
-  background: #e0e3e7;
 }
 
 .checkbox {
@@ -111,8 +116,8 @@
 .qcValue,
 .codeValue {
   min-width: 20px;
-  font: 400 16px/1 Arial, sans-serif;
-  color: #000000;
+  font: 400 13px/1.25 Arial, sans-serif;
+  color: #10253f;
 }
 
 .infoButton {

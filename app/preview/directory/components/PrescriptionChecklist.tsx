@@ -164,6 +164,27 @@ export default function PrescriptionChecklist({
     );
   };
 
+  const toggleRequiredDiagnostics = () => {
+    setSections((prev) => {
+      const requiredItems = prev.flatMap((section) =>
+        section.categoryId === "required-diagnostics" ? section.items : [],
+      );
+      const shouldCheckAll = requiredItems.some((item) => !item.checked);
+
+      return prev.map((section) =>
+        section.categoryId === "required-diagnostics"
+          ? {
+              ...section,
+              items: section.items.map((item) => ({
+                ...item,
+                checked: shouldCheckAll,
+              })),
+            }
+          : section,
+      );
+    });
+  };
+
   const saveComment = () => {
     if (!commentTarget) return;
 
@@ -213,6 +234,11 @@ const visibleSections = sections.filter(
     (section) => section.categoryId === activeCategoryId,
   );
 
+  const allRequiredDiagnosticsChecked = sections
+    .filter((section) => section.categoryId === "required-diagnostics")
+    .flatMap((section) => section.items)
+    .every((item) => item.checked);
+
   return (
     <div className={styles.checklistWrapper}>
       <div className={styles.categoryTabs} role="tablist" aria-label="Раздел назначений">
@@ -236,7 +262,32 @@ const visibleSections = sections.filter(
         <div className={styles.tableArea}>
           {visibleSections.map((section) => (
             <div key={section.id} className={styles.sectionBlock}>
-              <div className={styles.sectionRow}>{section.title}</div>
+              <div
+                className={`${styles.sectionRow} ${
+                  activeCategoryId === "required-diagnostics"
+                    ? styles.requiredDiagnosticsSectionRow
+                    : ""
+                } ${
+                  activeCategoryId === "required-diagnostics" && section.id !== "lab"
+                    ? styles.sectionRowWithoutCheckbox
+                    : ""
+                }`}
+              >
+                {section.id === "lab" ? (
+                  <button
+                    type="button"
+                    className={`${styles.checkbox} ${
+                      allRequiredDiagnosticsChecked ? styles.checkboxChecked : ""
+                    }`}
+                    onClick={toggleRequiredDiagnostics}
+                    aria-label="Выбрать всю обязательную диагностику"
+                    aria-pressed={allRequiredDiagnosticsChecked}
+                  >
+                    {allRequiredDiagnosticsChecked ? "✓" : ""}
+                  </button>
+                ) : null}
+                <span>{section.title}</span>
+              </div>
 
               {section.items.map((item) => (
                 <article key={item.id} className={styles.row}>
@@ -255,9 +306,7 @@ const visibleSections = sections.filter(
                     <span className={styles.codeValue}>{item.code}</span>
                   </div>
 
-                  <div className={styles.verticalDivider} />
                   <div className={styles.secondCol}>{item.title}</div>
-                  <div className={styles.verticalDivider} />
 
                   <div className={styles.thirdCol}>
                     <button
@@ -269,8 +318,6 @@ const visibleSections = sections.filter(
                       i
                     </button>
                   </div>
-
-                  <div className={styles.verticalDivider} />
 
                   <button
                     type="button"
