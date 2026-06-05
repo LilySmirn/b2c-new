@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1100;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,13 +13,43 @@
 .modal {
   position: relative;
   width: min(900px, 100%);
-  max-height: min(92vh, 920px);
-  padding: 34px 46px 38px;
-  overflow-y: auto;
-  border-radius: 18px;
+  height: 720px;
+  max-height: calc(100vh - 64px);
+  overflow: hidden;
+  border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 24px 60px rgba(0, 24, 47, 0.24);
   box-sizing: border-box;
+}
+
+.modalContent {
+  height: 100%;
+  margin-right: 12px;
+  padding: 40px 34px 38px 46px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c4d6 transparent;
+  box-sizing: border-box;
+}
+
+.modalContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalContent::-webkit-scrollbar-track {
+  margin: 10px 0;
+  background: transparent;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c4d6;
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: #8fa1b8;
 }
 
 .closeButton {
@@ -38,6 +68,7 @@
   font-weight: 300;
   line-height: 34px;
   cursor: pointer;
+  z-index: 1;
 }
 
 .closeButton:hover,
@@ -163,7 +194,9 @@
 
 @media (max-width: 860px) {
   .modal {
-    padding: 30px 20px 34px;
+    height: 680px;
+    max-height: calc(100vh - 40px);
+    padding: 40px 20px 34px;
   }
 
   .filtersLabelRow,

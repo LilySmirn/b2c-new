@@ -31,7 +31,7 @@ export default function PopupShell({ children, onClose }: PopupShellProps) {
         >
           ×
         </button>
-        {children}
+        <div className={styles.modalContent}>{children}</div>
       </section>
     </div>
   );
