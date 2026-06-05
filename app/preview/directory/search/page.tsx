@@ -11,6 +11,7 @@ import styles from "./search.module.css";
 import Image from "next/image";
 import DirectoryPageHeader from "../components/DirectoryPageHeader";
 import logoBig from "@/assets/images/logo-big.svg";
+import { testRecommendationTitle } from "../components/recommendationTestTitle";
 
 const matches = [
   "K26: Язва двенадцатиперстной кишки",
@@ -45,7 +46,7 @@ const recommendationCardBaseData = {
     "K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0",
 };
 
-const recommendationSourceTexts = matches.slice(0, 4);
+const recommendationSourceTexts = [`K26: ${testRecommendationTitle}`, ...matches.slice(1, 4)];
 const emptySearchSuggestions = matches.slice(0, 4);
 
 const getRecommendationTitle = (text: string) => {

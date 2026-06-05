@@ -26,13 +26,18 @@
 
 .title {
   margin: 0;
+  min-width: 0;
+  max-width: calc(100% - 32px);
+  overflow: hidden;
   color: #000000;
+  cursor: inherit;
   font-family: Arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
-  text-align: left;
   line-height: 1.2;
-  max-width: calc(100% - 32px);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eagleLink {

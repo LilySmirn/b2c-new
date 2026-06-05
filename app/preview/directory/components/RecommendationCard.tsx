@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "./RecommendationCard.module.css";
 import eagleIcon from "@/assets/images/eagle.png";
 
@@ -81,7 +82,9 @@ export default function RecommendationCard({
       }}
     >
       <div className={`${styles.header} ${showBookmarkMenu ? styles.headerWithMenu : ""}`}>
-        <h3 className={styles.title}>{title}</h3>
+        <h3 className={styles.title} title={title}>
+          {title}
+        </h3>
         <div className={showBookmarkMenu ? styles.headerActions : undefined}>
           <a
             className={styles.eagleLink}

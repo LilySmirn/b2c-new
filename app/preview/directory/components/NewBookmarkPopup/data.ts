@@ -1,3 +1,5 @@
+import { testRecommendationTitle } from "@/app/preview/directory/components/recommendationTestTitle";
+
 export const newBookmarkVisitOptions = [
   { id: "primary", label: "Первичный" },
   { id: "repeat", label: "Повторный" },
@@ -10,7 +12,7 @@ export const newBookmarkAgeOptions = [
 ];
 
 export const newBookmarkRecommendationTitles = [
-  "Язва двенадцатиперстной кишки",
+  testRecommendationTitle,
   "Язвенная болезнь",
   "Эзофагит",
   "Гастроэзофагеальный рефлюкс",
