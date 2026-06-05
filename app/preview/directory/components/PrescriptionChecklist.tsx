@@ -359,7 +359,11 @@ export default function PrescriptionChecklist({
           >
             <h3>Информация о назначении</h3>
             <p>{infoText}</p>
-            <button type="button" onClick={() => setInfoText(null)}>
+            <button
+              type="button"
+              className={`${styles.modalButton} ${styles.modalButtonPrimary}`}
+              onClick={() => setInfoText(null)}
+            >
               Закрыть
             </button>
           </div>
@@ -375,7 +379,17 @@ export default function PrescriptionChecklist({
             className={styles.modal}
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Комментарий врача</h3>
+            <div className={styles.modalHeader}>
+              <h3>Комментарий врача</h3>
+              <button
+                type="button"
+                className={styles.modalCloseButton}
+                onClick={() => setCommentTarget(null)}
+                aria-label="Закрыть окно комментария"
+              >
+                ×
+              </button>
+            </div>
             <textarea
               className={styles.commentInput}
               value={commentTarget.value}
@@ -387,10 +401,18 @@ export default function PrescriptionChecklist({
               placeholder="Комментарий..."
             />
             <div className={styles.modalActions}>
-              <button type="button" onClick={() => setCommentTarget(null)}>
+              <button
+                type="button"
+                className={`${styles.modalButton} ${styles.modalButtonSecondary}`}
+                onClick={() => setCommentTarget(null)}
+              >
                 Отмена
               </button>
-              <button type="button" onClick={saveComment}>
+              <button
+                type="button"
+                className={`${styles.modalButton} ${styles.modalButtonPrimary}`}
+                onClick={saveComment}
+              >
                 Сохранить
               </button>
             </div>
