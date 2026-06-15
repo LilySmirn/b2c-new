@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 const HIDDEN_HEADER_PATHS = new Set([
   '/preview/directory/search',
   '/preview/directory/cart',
+  '/preview/directory/access-error',
 ]);
 
 type ConditionalHeaderProps = {
@@ -15,7 +16,7 @@ type ConditionalHeaderProps = {
 export default function ConditionalHeader({ children }: ConditionalHeaderProps) {
   const pathname = usePathname();
 
-if (pathname && HIDDEN_HEADER_PATHS.has(pathname)) {
+  if (pathname && HIDDEN_HEADER_PATHS.has(pathname)) {
     return null;
   }
 
