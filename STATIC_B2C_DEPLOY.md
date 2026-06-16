@@ -1,66 +1,54 @@
-# Static B2C export for FTP hosting
+# Static B2C export for net2ftp
 
-This project keeps the original preview pages untouched and adds isolated static B2C pages in `app/(static-b2c)/`.
+The `build:b2c` script builds a static Next.js export for only the public B2C pages:
 
-## Source pages
+- `/b2c/search`
+- `/b2c/cart`
 
-- `app/(static-b2c)/search/page.tsx` becomes `/search` in Next.js.
-- `app/(static-b2c)/cart/page.tsx` becomes `/cart` in Next.js.
+In B2C export mode, `next.config.ts` narrows `pageExtensions` to `*.b2c.*`. That keeps regular application pages and API routes such as `/api/auth/[...nextauth]` out of the static export build, because FTP hosting cannot serve Next.js server routes.
 
-The route-group folder name `(static-b2c)` is only for code organization. It is not included in the public URL.
+The B2C page source files are:
 
-## Build command
+- `app/(static-b2c)/search/page.b2c.tsx`
+- `app/(static-b2c)/cart/page.b2c.tsx`
+- `app/layout.b2c.tsx`
 
-Run:
+## Why the Windows build failed
+
+The old script used Unix shell syntax:
 
 ```bash
+B2C_STATIC_EXPORT=true next build
+```
+
+Windows `cmd.exe` and PowerShell do not understand `NAME=value command`, so they report that this text is not a recognized command. The script now runs a small Node.js wrapper (`scripts/build-b2c.mjs`) that sets `B2C_STATIC_EXPORT=true` in a cross-platform way and then runs the local `next build`.
+
+## Build locally
+
+```bash
+npm install
 npm run build:b2c
 ```
 
-The command sets `B2C_STATIC_EXPORT=true`, so `next.config.ts` switches to static export mode with:
+After a successful build, Next.js writes the static site to `out/`.
 
-- `output: "export"`
-- `basePath: "/b2c"`
-- `assetPrefix: "/b2c"`
-- `images.unoptimized: true`
+## What to upload through net2ftp
 
-## What is `out/`?
+Upload the **contents** of `out/` to the target folder on the hosting account, for example to the domain folder that serves `/b2c/`.
 
-`out/` is the generated static site folder created by `next build` when `output: "export"` is enabled. It contains only files that a regular static/PHP hosting can serve, for example:
+Because `next.config.ts` uses `basePath: "/b2c"`, `assetPrefix: "/b2c"`, and `trailingSlash: true` for this export, the pages are emitted as folders with `index.html` files and expect to be opened as:
 
-- `index.html` files for pages
-- `_next/static/...` JavaScript and CSS bundles
-- copied public assets needed by the build
+- `https://your-domain.example/b2c/search/`
+- `https://your-domain.example/b2c/cart/`
 
-Do not upload the source folder `app/(static-b2c)/` to hosting. Upload the contents of generated `out/` instead.
+Do not upload the source folder `app/(static-b2c)`. It contains React/Next.js source code, not browser-ready HTML/CSS/JS. If you previously uploaded a build that produced `cart.html`/`search.html`, rebuild and re-upload after this `trailingSlash` setting so the server has `cart/index.html` and `search/index.html`.
 
-## FTP upload target
+## Database/API note
 
-Upload everything inside `out/` into the hosting folder:
-
-```text
-public_html/b2c/
-```
-
-After upload, the intended URLs are:
-
-```text
-https://easymed.pro/b2c/search
-https://easymed.pro/b2c/cart
-```
-
-## API calls
-
-The static search page calls the existing PHP API with a root-relative URL:
+A static HTML site cannot connect to MySQL directly. The search page calls a backend endpoint from the browser:
 
 ```text
 /php/API/search.php?search=...
 ```
 
-When the page is opened from `https://easymed.pro/b2c/search`, this request goes to:
-
-```text
-https://easymed.pro/php/API/search.php?search=...
-```
-
-This keeps MySQL credentials out of the browser and lets the existing PHP API talk to the database.
+So the hosting account must also contain a working PHP API endpoint that connects to MySQL and returns JSON. Keep the database credentials only in PHP/server-side code; do not put them into the static Next.js page.

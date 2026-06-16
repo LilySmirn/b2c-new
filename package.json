@@ -8,10 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "cron": "tsx cron/cronRunner.ts",
-    "build:b2c": "B2C_STATIC_EXPORT=true next build"
+    "build:b2c": "node scripts/build-b2c.mjs"
   },
   "dependencies": {
-    "-": "^0.0.1",
     "bcryptjs": "^3.0.2",
     "cookie": "^1.0.2",
     "dotenv": "^17.2.2",
