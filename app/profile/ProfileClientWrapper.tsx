@@ -27,6 +27,9 @@ export default function ProfileClientWrapper({ initialUser }: { initialUser: any
     }, [user]);
 
     useEffect(() => {
+            if (!searchParams) {
+            return;
+        }
         const paymentStatus = searchParams.get('payment');
         if (paymentStatus === 'success') {
             const title = searchParams.get('tariff_title') || 'Неизвестный тариф';

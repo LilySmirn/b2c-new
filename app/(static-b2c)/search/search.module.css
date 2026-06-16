@@ -1,0 +1,260 @@
+.pageShell {
+  min-height: 100vh;
+  padding: 32px;
+  background: linear-gradient(135deg, #eef7ff 0%, #f8fbff 48%, #ffffff 100%);
+  color: #102033;
+}
+
+.hero,
+.card,
+.resultsCard,
+.examplesCard {
+  width: min(1120px, 100%);
+  margin: 0 auto 24px;
+  border: 1px solid #d8e6f3;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 60px rgba(40, 74, 112, 0.12);
+}
+
+.hero {
+  padding: 40px;
+}
+
+.logoLink {
+  display: inline-flex;
+  margin-bottom: 28px;
+  color: #0f75bc;
+  font-size: 28px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #46739c;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.04;
+}
+
+.description {
+  max-width: 760px;
+  margin: 20px 0 0;
+  color: #4b647d;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.card,
+.resultsCard,
+.examplesCard {
+  padding: 28px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.searchForm {
+  margin-top: 20px;
+}
+
+.searchLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: #405873;
+  font-weight: 700;
+}
+
+.searchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.searchInput {
+  min-height: 54px;
+  border: 1px solid #bfd3e7;
+  border-radius: 16px;
+  padding: 0 18px;
+  color: #102033;
+  font-size: 18px;
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: #0f75bc;
+  box-shadow: 0 0 0 4px rgba(15, 117, 188, 0.12);
+}
+
+.searchButton,
+.cartLink,
+.resultAction,
+.exampleButton {
+  border: 0;
+  border-radius: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.searchButton {
+  min-width: 150px;
+  background: #0f75bc;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.searchButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.hint {
+  margin: 14px 0 0;
+  color: #5c7388;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hint code {
+  border-radius: 6px;
+  background: #edf5fc;
+  padding: 2px 5px;
+}
+
+.resultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cartLink,
+.resultAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  background: #e8f4ff;
+  color: #0f75bc;
+  text-decoration: none;
+}
+
+.resultsList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resultItem {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #e3edf6;
+  border-radius: 18px;
+  padding: 16px;
+  background: #fbfdff;
+}
+
+.resultCode {
+  border-radius: 999px;
+  background: #0f75bc;
+  padding: 8px 12px;
+  color: #ffffff;
+  font-weight: 800;
+  text-align: center;
+}
+
+.resultName {
+  color: #213a52;
+  line-height: 1.45;
+}
+
+.errorBox,
+.emptyState,
+.statusText {
+  border-radius: 18px;
+  padding: 18px;
+  background: #fff8e9;
+  color: #684711;
+}
+
+.errorBox {
+  display: grid;
+  gap: 8px;
+  background: #fff0f0;
+  color: #7c2020;
+}
+
+.examplesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.exampleButton {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #d8e6f3;
+  background: #ffffff;
+  padding: 18px;
+  color: #20364c;
+  text-align: left;
+}
+
+.exampleButton strong {
+  color: #0f75bc;
+  font-size: 20px;
+}
+
+.exampleButton span {
+  color: #4b647d;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .pageShell {
+    padding: 16px;
+  }
+
+  .hero,
+  .card,
+  .resultsCard,
+  .examplesCard {
+    border-radius: 20px;
+    padding: 22px;
+  }
+
+  .searchRow,
+  .resultItem,
+  .examplesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .searchButton {
+    min-height: 52px;
+  }
+
+  .resultsHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
