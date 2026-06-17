@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cron": "tsx cron/cronRunner.ts",
-    "build:b2c": "node scripts/build-b2c.mjs"
+    "cron": "tsx cron/cronRunner.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
