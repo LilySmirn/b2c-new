@@ -74,6 +74,7 @@ const checklistCategories = [
   { id: "medications", label: "Препараты" },
   { id: "scales", label: "Шкалы и опросники" },
   { id: "lifestyle", label: "Образ жизни" },
+  { id: "vaccination", label: "Вакцинация" },
   { id: "appendix-a3", label: "Приложение А3" },
 ];
 

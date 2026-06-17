@@ -281,7 +281,7 @@
   border-radius: 12px;
   overflow: hidden;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   background: #f4f4f4;
 }
 
@@ -291,8 +291,8 @@
   border: 0;
   background: #f4f4f4;
   color: #a3a3a3;
-  padding: 2px 7px;
-  font: 400 12px/1.2 Arial, sans-serif;
+  padding: 2px 5px;
+  font: 400 13px/1.2 Arial, sans-serif;
   white-space: normal;
   overflow: hidden;
   display: -webkit-box;
