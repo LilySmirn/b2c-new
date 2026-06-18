@@ -16,9 +16,9 @@ export default function DirectoryPageHeader({ variant, diagnosisTitle }: Directo
         Вернуться к поиску
       </Link>
     ) : (
-      <button type="button" className={styles.action}>
-        Выйти
-      </button>
+      <Link href="/profile" className={styles.action}>
+        В личный кабинет
+      </Link>
     );
 
   return (
