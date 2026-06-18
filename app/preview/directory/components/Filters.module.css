@@ -57,6 +57,19 @@
   transform: translateY(1px);
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.button:disabled:hover {
+  background: #f4f4f4;
+}
+
+.button:disabled:active {
+  transform: none;
+}
+
 .active {
   background: #e8e8e8;
   color: #515151;

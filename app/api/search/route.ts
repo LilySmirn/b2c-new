@@ -7,8 +7,30 @@ type EasyMedSearchItem = {
   name?: unknown;
 };
 
-const isValidSearchItem = (item: EasyMedSearchItem) =>
+type ValidSearchItem = {
+  code: string;
+  name: string;
+};
+
+const isValidSearchItem = (item: EasyMedSearchItem): item is ValidSearchItem =>
   typeof item.code === "string" && typeof item.name === "string";
+
+const getSearchItemKey = ({ code, name }: ValidSearchItem) =>
+  `${code.trim().toLowerCase()}::${name.trim().toLowerCase()}`;
+
+const getUniqueSearchItems = (items: EasyMedSearchItem[]) => {
+  const seen = new Set<string>();
+
+  return items.filter((item) => {
+    if (!isValidSearchItem(item)) return false;
+
+    const key = getSearchItemKey(item);
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+};
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -46,7 +68,7 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json(data.filter(isValidSearchItem));
+    return NextResponse.json(getUniqueSearchItems(data));
   } catch {
     return NextResponse.json(
       { error: "EasyMed search service is unavailable" },

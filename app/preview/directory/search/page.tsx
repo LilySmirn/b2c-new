@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
-import Bookmarks, { initialBookmarks, type BookmarkItem } from "../components/Bookmarks";
+import Bookmarks from "../components/Bookmarks";
 import styles from "./search.module.css";
 import Image from "next/image";
 import DirectoryPageHeader from "../components/DirectoryPageHeader";
@@ -15,7 +15,16 @@ type MkbSearchResult = {
   name: string;
 };
 
+type AgeGroup = "adult" | "child";
+type VisitType = "primary" | "repeat" | "inpatient";
+type FilterAvailability = Record<AgeGroup, Record<VisitType, boolean>>;
+
+type FiltersResponse = {
+  availability: FilterAvailability;
+};
+
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
+const getCodeFromMatch = (item: string) => item.split(":")[0]?.trim() ?? item.trim();
 
 const visitOptions = [
   { id: "primary", label: "Первичный" },
@@ -28,13 +37,19 @@ const ageOptions = [
   { id: "child", label: "Ребёнок" },
 ];
 
+const hasDataForFilters = (
+  availability: FilterAvailability,
+  age: AgeGroup,
+  visit: VisitType,
+) => availability[age][visit];
+
 export default function SearchPreviewPage() {
   const [query, setQuery] = useState("");
-  const [visitType, setVisitType] = useState("primary");
-  const [ageGroup, setAgeGroup] = useState("adult");
+  const [visitType, setVisitType] = useState<VisitType>("primary");
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>("adult");
   const [isMatchesOpen, setIsMatchesOpen] = useState(false);
-  const [bookmarks] = useState<BookmarkItem[]>(initialBookmarks);
   const [apiMatches, setApiMatches] = useState<MkbSearchResult[]>([]);
+  const [filterAvailability, setFilterAvailability] = useState<FilterAvailability | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
@@ -42,6 +57,13 @@ export default function SearchPreviewPage() {
   const search = query.trim();
   const matches = useMemo(() => apiMatches.map(formatMkbResult), [apiMatches]);
 
+  const selectedCode = useMemo(() => {
+    const exactMatch = apiMatches.find((item) => formatMkbResult(item) === query);
+    if (exactMatch) return exactMatch.code;
+
+    return /^[A-ZА-Я]\d{2}(?:\.\d+)?/i.test(search) ? getCodeFromMatch(search) : null;
+  }, [apiMatches, query, search]);
+  
   useEffect(() => {
     if (search.length < 2) {
       setApiMatches([]);
@@ -84,6 +106,62 @@ export default function SearchPreviewPage() {
   }, [search]);
 
   useEffect(() => {
+    if (!selectedCode) {
+      setFilterAvailability(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadFilterAvailability = async () => {
+      try {
+        const response = await fetch(`/api/filters?code=${encodeURIComponent(selectedCode)}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Не удалось получить данные фильтров");
+
+        const data = (await response.json()) as FiltersResponse;
+        setFilterAvailability(data.availability);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setFilterAvailability(null);
+      }
+    };
+
+    loadFilterAvailability();
+
+    return () => controller.abort();
+  }, [selectedCode]);
+
+  useEffect(() => {
+    if (!filterAvailability || hasDataForFilters(filterAvailability, ageGroup, visitType)) return;
+
+    const fallbackCandidates = [
+      { age: ageGroup === "adult" ? "child" : "adult", visit: visitType },
+      ...visitOptions.map((visitOption) => ({
+        age: ageGroup,
+        visit: visitOption.id as VisitType,
+      })),
+      ...(ageOptions as { id: AgeGroup; label: string }[]).flatMap((ageOption) =>
+        (visitOptions as { id: VisitType; label: string }[]).map((visitOption) => ({
+          age: ageOption.id,
+          visit: visitOption.id,
+        })),
+      ),
+    ] as { age: AgeGroup; visit: VisitType }[];
+
+    const fallback = fallbackCandidates.find(({ age, visit }) =>
+      hasDataForFilters(filterAvailability, age, visit),
+    );
+
+    if (fallback) {
+      setAgeGroup(fallback.age);
+      setVisitType(fallback.visit);
+    }
+  }, [ageGroup, filterAvailability, visitType]);
+
+  useEffect(() => {
     if (!isMatchesOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
@@ -98,6 +176,22 @@ export default function SearchPreviewPage() {
       document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [isMatchesOpen]);
+
+  const disabledVisitIds = useMemo(() => {
+    if (!filterAvailability) return [];
+
+    return visitOptions
+      .filter((option) => !hasDataForFilters(filterAvailability, ageGroup, option.id as VisitType))
+      .map((option) => option.id);
+  }, [ageGroup, filterAvailability]);
+
+  const disabledAgeIds = useMemo(() => {
+    if (!filterAvailability) return [];
+
+    return ageOptions
+      .filter((option) => !hasDataForFilters(filterAvailability, option.id as AgeGroup, visitType))
+      .map((option) => option.id);
+  }, [filterAvailability, visitType]);
 
   const handleMatchSelect = (item: string) => {
     setQuery(item);
@@ -142,13 +236,15 @@ export default function SearchPreviewPage() {
           <Filters
             visitOptions={visitOptions}
             visitValue={visitType}
-            onVisitChange={setVisitType}
+            onVisitChange={(value) => setVisitType(value as VisitType)}
             ageOptions={ageOptions}
             ageValue={ageGroup}
-            onAgeChange={setAgeGroup}
+            onAgeChange={(value) => setAgeGroup(value as AgeGroup)}
+            disabledVisitIds={disabledVisitIds}
+            disabledAgeIds={disabledAgeIds}
           />
 
-          <Bookmarks items={bookmarks} />
+          <Bookmarks />
         </section>
       </main>
     </>
