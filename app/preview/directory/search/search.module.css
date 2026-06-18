@@ -105,8 +105,9 @@
   position: absolute;
   top: 50px;
   left: -1px;
-  right: -1px;
+  right: auto;
   z-index: 20;
+  width: calc(100% + 2px);
   box-sizing: border-box;
   border: 1px solid #dce4ef;
   border-top: none;
