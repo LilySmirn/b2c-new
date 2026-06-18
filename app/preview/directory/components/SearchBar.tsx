@@ -34,6 +34,16 @@ export default function SearchBar({
       <span className={styles.icon} aria-hidden>
         ⌕
       </span>
+      {value ? (
+        <button
+          className={styles.clearButton}
+          type="button"
+          aria-label="Очистить поиск"
+          onClick={() => onChange("")}
+        >
+          ×
+        </button>
+      ) : null}
     </div>
   );
 }

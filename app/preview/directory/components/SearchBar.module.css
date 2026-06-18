@@ -42,3 +42,28 @@
   color: #8d8d8d;
   margin-bottom: 5px;
 }
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #8d8d8d;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clearButton:hover,
+.clearButton:focus-visible {
+  color: #111111;
+  background: #f1f1f1;
+  outline: none;
+}

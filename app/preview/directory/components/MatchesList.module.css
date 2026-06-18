@@ -3,13 +3,17 @@
   padding: 0 0 14px;
   list-style: none;
   width: 100%;
-  overflow: hidden;
+  max-height: 260px;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #ffffff;
 }
 
 .item {
   min-height: 40px;
-  width: 100%;
+  min-width: 100%;
+  width: max-content;
   box-sizing: border-box;
   background: #ffffff;
   display: flex;
@@ -20,9 +24,33 @@
   line-height: 1.2;
   text-align: left;
   color: #111111;
+  white-space: nowrap;
 }
 
 .item:hover,
 .item:active {
   background: #f1f1f1;
+}
+.itemButton {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.emptyItem {
+  color: #6b7280;
+}
+
+.footerItem {
+  padding: 8px 13px 0;
+  color: #c2410c;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.3;
 }
