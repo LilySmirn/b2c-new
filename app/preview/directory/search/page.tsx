@@ -9,6 +9,11 @@ import styles from "./search.module.css";
 import Image from "next/image";
 import DirectoryPageHeader from "../components/DirectoryPageHeader";
 import logoBig from "@/assets/images/logo-big.svg";
+import PrescriptionChecklist from "../components/PrescriptionChecklist";
+import RecommendationList from "../components/RecommendationList";
+import RecommendationField from "../components/RecommendationField";
+import RecommendationCard from "../components/RecommendationCard";
+import SuggestedCodesList from "../components/SuggestedCodesList";
 
 type MkbSearchResult = {
   code: string;
@@ -21,6 +26,11 @@ type FilterAvailability = Record<AgeGroup, Record<VisitType, boolean>>;
 
 type FiltersResponse = {
   availability: FilterAvailability;
+};
+
+type MkbRecommendationsResponse = {
+  child: MkbSearchResult[];
+  grownup: MkbSearchResult[];
 };
 
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
@@ -52,17 +62,24 @@ export default function SearchPreviewPage() {
   const [filterAvailability, setFilterAvailability] = useState<FilterAvailability | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [recommendedMatches, setRecommendedMatches] = useState<MkbSearchResult[]>([]);
+  const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
 
   const search = query.trim();
   const matches = useMemo(() => apiMatches.map(formatMkbResult), [apiMatches]);
+  const normalizedSearchCode = useMemo(() => {
+    const code = search.match(/^[A-ZА-Я]\d{2}(?:\.\d+)?/i)?.[0];
+
+    return code ? code.toUpperCase() : null;
+  }, [search]);
 
   const selectedCode = useMemo(() => {
     const exactMatch = apiMatches.find((item) => formatMkbResult(item) === query);
     if (exactMatch) return exactMatch.code;
 
-    return /^[A-ZА-Я]\d{2}(?:\.\d+)?/i.test(search) ? getCodeFromMatch(search) : null;
-  }, [apiMatches, query, search]);
+return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
+  }, [apiMatches, normalizedSearchCode, query]);
   
   useEffect(() => {
     if (search.length < 2) {
@@ -104,6 +121,42 @@ export default function SearchPreviewPage() {
       controller.abort();
     };
   }, [search]);
+
+  useEffect(() => {
+    const shouldLoadRecommendations =
+      Boolean(normalizedSearchCode) && search.length >= 2 && !isSearchLoading && apiMatches.length === 0;
+
+    if (!shouldLoadRecommendations || !normalizedSearchCode) {
+      setRecommendedMatches([]);
+      setRecommendationsError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadRecommendations = async () => {
+      try {
+        const response = await fetch(
+          `/api/mkb-recommendations?code=${encodeURIComponent(normalizedSearchCode)}`,
+          { signal: controller.signal },
+        );
+
+        if (!response.ok) throw new Error("Не удалось получить рекомендации");
+
+        const data = (await response.json()) as MkbRecommendationsResponse;
+        setRecommendedMatches(ageGroup === "child" ? data.child : data.grownup);
+        setRecommendationsError(null);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setRecommendedMatches([]);
+        setRecommendationsError("Не удалось загрузить рекомендованные коды. Попробуйте позже.");
+      }
+    };
+
+    loadRecommendations();
+
+    return () => controller.abort();
+  }, [ageGroup, apiMatches.length, isSearchLoading, normalizedSearchCode, search.length]);
 
   useEffect(() => {
     if (!selectedCode) {
@@ -198,6 +251,10 @@ export default function SearchPreviewPage() {
     setIsMatchesOpen(false);
   };
 
+   const shouldShowRecommendations = Boolean(
+    normalizedSearchCode && search.length >= 2 && !isSearchLoading && apiMatches.length === 0,
+  );
+
   const matchesEmptyText = (() => {
     if (search.length < 2) return "Введите минимум 2 символа";
     if (isSearchLoading) return "Ищем в базе МКБ...";
@@ -245,6 +302,24 @@ export default function SearchPreviewPage() {
           />
 
           <Bookmarks />
+      
+            {shouldShowRecommendations && normalizedSearchCode ? (
+            <section className={styles.emptyStateSection} aria-label="Рекомендованные коды МКБ">
+              <p className={styles.emptyStateText}>
+                По выбранному МКБ <strong>{normalizedSearchCode}</strong> рекомендации не найдены.
+                <br />
+                Возможно, вам подойдут следующие коды:
+              </p>
+              <SuggestedCodesList
+                items={
+                  recommendedMatches.length > 0
+                    ? recommendedMatches.map(formatMkbResult)
+                    : [recommendationsError ?? "Рекомендованные коды не найдены"]
+                }
+              />
+            </section>
+          ) : null}
+
         </section>
       </main>
     </>
