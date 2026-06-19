@@ -9,9 +9,6 @@ import styles from "./search.module.css";
 import Image from "next/image";
 import DirectoryPageHeader from "../components/DirectoryPageHeader";
 import logoBig from "@/assets/images/logo-big.svg";
-import PrescriptionChecklist from "../components/PrescriptionChecklist";
-import RecommendationList from "../components/RecommendationList";
-import RecommendationField from "../components/RecommendationField";
 import RecommendationCard from "../components/RecommendationCard";
 import SuggestedCodesList from "../components/SuggestedCodesList";
 
@@ -31,6 +28,19 @@ type FiltersResponse = {
 type MkbRecommendationsResponse = {
   child: MkbSearchResult[];
   grownup: MkbSearchResult[];
+};
+
+type RecommendationStandard = {
+  id: string;
+  title: string;
+  status: string;
+  source: string;
+  mkbCodes: string[];
+  ageCategory: string;
+};
+
+type StandardsResponse = {
+  standards: RecommendationStandard[];
 };
 
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
@@ -53,6 +63,14 @@ const hasDataForFilters = (
   visit: VisitType,
 ) => availability[age][visit];
 
+const getRecommendationExternalUrl = (source: string, id: string) => {
+  if (source.toLowerCase() === "minzdrav" && id !== "—") {
+    return `https://cr.minzdrav.gov.ru/schema/${encodeURIComponent(id)}`;
+  }
+
+  return "https://cr.minzdrav.gov.ru/";
+};
+
 export default function SearchPreviewPage() {
   const [query, setQuery] = useState("");
   const [visitType, setVisitType] = useState<VisitType>("primary");
@@ -64,6 +82,9 @@ export default function SearchPreviewPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [recommendedMatches, setRecommendedMatches] = useState<MkbSearchResult[]>([]);
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
+  const [recommendationCards, setRecommendationCards] = useState<RecommendationStandard[]>([]);
+  const [cardsError, setCardsError] = useState<string | null>(null);
+  const [isCardsLoading, setIsCardsLoading] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
 
   const search = query.trim();
@@ -188,6 +209,48 @@ export default function SearchPreviewPage() {
   }, [selectedCode]);
 
   useEffect(() => {
+    if (!selectedCode) {
+      setRecommendationCards([]);
+      setCardsError(null);
+      setIsCardsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadRecommendationCards = async () => {
+      setIsCardsLoading(true);
+      setCardsError(null);
+
+      try {
+        const params = new URLSearchParams({
+          code: selectedCode,
+          age: ageGroup,
+          visit: visitType,
+        });
+        const response = await fetch(`/api/mkb-standards?${params.toString()}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Не удалось получить карточки рекомендаций");
+
+        const data = (await response.json()) as StandardsResponse;
+        setRecommendationCards(data.standards);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setRecommendationCards([]);
+        setCardsError("Не удалось загрузить клинические рекомендации. Попробуйте позже.");
+      } finally {
+        setIsCardsLoading(false);
+      }
+    };
+
+    loadRecommendationCards();
+
+    return () => controller.abort();
+  }, [ageGroup, selectedCode, visitType]);
+
+  useEffect(() => {
     if (!filterAvailability || hasDataForFilters(filterAvailability, ageGroup, visitType)) return;
 
     const fallbackCandidates = [
@@ -303,7 +366,39 @@ export default function SearchPreviewPage() {
 
           <Bookmarks />
       
-            {shouldShowRecommendations && normalizedSearchCode ? (
+            {selectedCode ? (
+            <section className={styles.recommendationsSection} aria-label="Клинические рекомендации">
+              {isCardsLoading ? (
+                <p className={styles.recommendationsMessage}>Загружаем клинические рекомендации...</p>
+              ) : cardsError ? (
+                <p className={styles.recommendationsMessage}>{cardsError}</p>
+              ) : recommendationCards.length > 0 ? (
+                <div className={styles.recommendationsGrid}>
+                  {recommendationCards.map((card) => (
+                    <RecommendationCard
+                      key={`${card.id}-${card.title}`}
+                      title={card.title}
+                      externalUrl={getRecommendationExternalUrl(card.source, card.id)}
+                      idLabel="ID:"
+                      idValue={card.id}
+                      statusLabel="Статус:"
+                      statusValue={card.status}
+                      ageCategoryLabel="Возрастная категория:"
+                      ageCategoryValue={card.ageCategory}
+                      publicationDateLabel="Дата размещения КР:"
+                      publicationDateValue="—"
+                      approvalYearLabel="Год утверждения:"
+                      approvalYearValue="—"
+                      classificationLabel="Кодирование по международной статистической классификации болезней и проблем, связанных со здоровьем:"
+                      classificationValue={card.mkbCodes.length > 0 ? card.mkbCodes.join(", ") : selectedCode}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {shouldShowRecommendations && normalizedSearchCode ? (
             <section className={styles.emptyStateSection} aria-label="Рекомендованные коды МКБ">
               <p className={styles.emptyStateText}>
                 По выбранному МКБ <strong>{normalizedSearchCode}</strong> рекомендации не найдены.
