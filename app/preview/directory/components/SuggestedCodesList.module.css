@@ -33,3 +33,11 @@
 .item:active {
   background: #f4f4f4;
 }
+
+.item:disabled {
+  cursor: default;
+}
+
+.item:disabled:hover {
+  background: #ffffff;
+}

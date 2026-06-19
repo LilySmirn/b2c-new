@@ -78,7 +78,7 @@ export default function SearchPreviewPage() {
     const exactMatch = apiMatches.find((item) => formatMkbResult(item) === query);
     if (exactMatch) return exactMatch.code;
 
-return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
+    return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
   }, [apiMatches, normalizedSearchCode, query]);
   
   useEffect(() => {
@@ -251,7 +251,7 @@ return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
     setIsMatchesOpen(false);
   };
 
-   const shouldShowRecommendations = Boolean(
+  const shouldShowRecommendations = Boolean(
     normalizedSearchCode && search.length >= 2 && !isSearchLoading && apiMatches.length === 0,
   );
 
@@ -315,6 +315,14 @@ return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
                   recommendedMatches.length > 0
                     ? recommendedMatches.map(formatMkbResult)
                     : [recommendationsError ?? "Рекомендованные коды не найдены"]
+                }
+                onItemSelect={
+                  recommendedMatches.length > 0
+                    ? (item) => {
+                        setQuery(item);
+                        setIsMatchesOpen(true);
+                      }
+                    : undefined
                 }
               />
             </section>
