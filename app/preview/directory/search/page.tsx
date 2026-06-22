@@ -76,6 +76,7 @@ export default function SearchPreviewPage() {
   const [visitType, setVisitType] = useState<VisitType>("primary");
   const [ageGroup, setAgeGroup] = useState<AgeGroup>("adult");
   const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+  const [submittedCode, setSubmittedCode] = useState<string | null>(null);
   const [apiMatches, setApiMatches] = useState<MkbSearchResult[]>([]);
   const [filterAvailability, setFilterAvailability] = useState<FilterAvailability | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -209,7 +210,7 @@ export default function SearchPreviewPage() {
   }, [selectedCode]);
 
   useEffect(() => {
-    if (!selectedCode) {
+    if (!submittedCode) {
       setRecommendationCards([]);
       setCardsError(null);
       setIsCardsLoading(false);
@@ -224,7 +225,7 @@ export default function SearchPreviewPage() {
 
       try {
         const params = new URLSearchParams({
-          code: selectedCode,
+          code: submittedCode,
           age: ageGroup,
           visit: visitType,
         });
@@ -248,7 +249,7 @@ export default function SearchPreviewPage() {
     loadRecommendationCards();
 
     return () => controller.abort();
-  }, [ageGroup, selectedCode, visitType]);
+  }, [ageGroup, submittedCode, visitType]);
 
   useEffect(() => {
     if (!filterAvailability || hasDataForFilters(filterAvailability, ageGroup, visitType)) return;
@@ -309,9 +310,21 @@ export default function SearchPreviewPage() {
       .map((option) => option.id);
   }, [filterAvailability, visitType]);
 
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    setSubmittedCode(null);
+  };
+
+  const submitSearch = (code = selectedCode) => {
+    if (!code) return;
+
+    setSubmittedCode(code);
+    setIsMatchesOpen(false);
+  };
+  
   const handleMatchSelect = (item: string) => {
     setQuery(item);
-    setIsMatchesOpen(false);
+    submitSearch(getCodeFromMatch(item));
   };
 
   const shouldShowRecommendations = Boolean(
@@ -338,8 +351,9 @@ export default function SearchPreviewPage() {
           >
             <SearchBar
               value={query}
-              onChange={setQuery}
+              onChange={handleQueryChange}
               onFocus={() => setIsMatchesOpen(true)}
+              onSearch={() => submitSearch()}
               variant="connected"
             />
 
@@ -366,7 +380,7 @@ export default function SearchPreviewPage() {
 
           <Bookmarks />
       
-            {selectedCode ? (
+            {submittedCode ? (
             <section className={styles.recommendationsSection} aria-label="Клинические рекомендации">
               {isCardsLoading ? (
                 <p className={styles.recommendationsMessage}>Загружаем клинические рекомендации...</p>
@@ -379,18 +393,10 @@ export default function SearchPreviewPage() {
                       key={`${card.id}-${card.title}`}
                       title={card.title}
                       externalUrl={getRecommendationExternalUrl(card.source, card.id)}
-                      idLabel="ID:"
-                      idValue={card.id}
-                      statusLabel="Статус:"
-                      statusValue={card.status}
-                      ageCategoryLabel="Возрастная категория:"
-                      ageCategoryValue={card.ageCategory}
-                      publicationDateLabel="Дата размещения КР:"
-                      publicationDateValue="—"
-                      approvalYearLabel="Год утверждения:"
-                      approvalYearValue="—"
-                      classificationLabel="Кодирование по международной статистической классификации болезней и проблем, связанных со здоровьем:"
-                      classificationValue={card.mkbCodes.length > 0 ? card.mkbCodes.join(", ") : selectedCode}
+                      standardId={card.id}
+                      status={card.status}
+                      ageCategory={card.ageCategory}
+                      classification={card.mkbCodes.length > 0 ? card.mkbCodes.join(", ") : submittedCode}
                     />
                   ))}
                 </div>

@@ -10,37 +10,35 @@ type RecommendationCardProps = {
   selected?: boolean;
   onSelect?: () => void;
   externalUrl: string;
-  idLabel: string;
-  idValue: string;
-  statusLabel: string;
-  statusValue: string;
-  ageCategoryLabel: string;
-  ageCategoryValue: string;
-  publicationDateLabel: string;
-  publicationDateValue: string;
-  approvalYearLabel: string;
-  approvalYearValue: string;
-  classificationLabel: string;
-  classificationValue: string;
+ standardId: string;
+  status: string;
+  ageCategory: string;
+  publicationDate?: string;
+  approvalYear?: string;
+  classification: string;
   showBookmarkMenu?: boolean;
   onAddBookmark?: () => void;
+};
+
+const cardLabels = {
+  id: "ID:",
+  status: "Статус:",
+  ageCategory: "Возрастная категория:",
+  publicationDate: "Дата размещения КР:",
+  approvalYear: "Год утверждения:",
+  classification:
+    "Кодирование по международной статистической классификации болезней и проблем, связанных со здоровьем:",
 };
 
 export default function RecommendationCard({
   title,
   externalUrl,
-  idLabel,
-  idValue,
-  statusLabel,
-  statusValue,
-  ageCategoryLabel,
-  ageCategoryValue,
-  publicationDateLabel,
-  publicationDateValue,
-  approvalYearLabel,
-  approvalYearValue,
-  classificationLabel,
-  classificationValue,
+  standardId,
+  status,
+  ageCategory,
+  publicationDate = "—",
+  approvalYear = "—",
+  classification,
   selected = false,
   onSelect,
   showBookmarkMenu = false,
@@ -139,34 +137,34 @@ export default function RecommendationCard({
       <div className={styles.body}>
         <div className={styles.topRow}>
           <div className={styles.infoPair}>
-            <span className={styles.label}>{idLabel}</span>
-            <span className={`${styles.value} ${styles.idValue}`}>{idValue}</span>
+            <span className={styles.label}>{cardLabels.id}</span>
+            <span className={`${styles.value} ${styles.idValue}`}>{standardId}</span>
           </div>
 
           <div className={styles.infoPair}>
-            <span className={styles.label}>{statusLabel}</span>
-            <span className={styles.value}>{statusValue}</span>
+            <span className={styles.label}>{cardLabels.status}</span>
+            <span className={styles.value}>{status}</span>
           </div>
         </div>
 
         <div className={styles.infoPair}>
-          <span className={styles.label}>{ageCategoryLabel}</span>
-          <span className={styles.value}>{ageCategoryValue}</span>
+          <span className={styles.label}>{cardLabels.ageCategory}</span>
+          <span className={styles.value}>{ageCategory}</span>
         </div>
 
         <div className={styles.infoPair}>
-          <span className={styles.label}>{publicationDateLabel}</span>
-          <span className={styles.value}>{publicationDateValue}</span>
+          <span className={styles.label}>{cardLabels.publicationDate}</span>
+          <span className={styles.value}>{publicationDate}</span>
         </div>
 
         <div className={styles.infoPair}>
-          <span className={styles.label}>{approvalYearLabel}</span>
-          <span className={styles.value}>{approvalYearValue}</span>
+          <span className={styles.label}>{cardLabels.approvalYear}</span>
+          <span className={styles.value}>{approvalYear}</span>
         </div>
 
         <div className={`${styles.infoPair} ${styles.classificationPair}`}>
-          <span className={styles.label}>{classificationLabel}</span>
-          <span className={styles.value}>{classificationValue}</span>
+          <span className={styles.label}>{cardLabels.classification}</span>
+          <span className={styles.value}>{classification}</span>
         </div>
       </div>
     </article>

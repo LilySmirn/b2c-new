@@ -4,6 +4,7 @@ type SearchBarProps = {
   value: string;
   onChange: (value: string) => void;
   onFocus?: () => void;
+  onSearch?: () => void;
   placeholder?: string;
   variant?: "default" | "connected";
 };
@@ -12,6 +13,7 @@ export default function SearchBar({
   value,
   onChange,
   onFocus,
+  onSearch,
   placeholder = "Название нозологии или код МКБ",
   variant = "default",
 }: SearchBarProps) {
@@ -28,12 +30,25 @@ export default function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+
+          event.preventDefault();
+          onSearch?.();
+        }}
         placeholder={placeholder}
         className={styles.input}
       />
-      <span className={styles.icon} aria-hidden>
-        ⌕
-      </span>
+      <button
+        className={styles.iconButton}
+        type="button"
+        aria-label="Запустить поиск"
+        onClick={onSearch}
+      >
+        <span className={styles.icon} aria-hidden>
+          ⌕
+        </span>
+      </button>
       {value ? (
         <button
           className={styles.clearButton}

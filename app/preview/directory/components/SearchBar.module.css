@@ -36,6 +36,23 @@
   outline: none;
 }
 
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid #1182ee;
+  outline-offset: 2px;
+}
+
 .icon {
   font-size: 70px;
   transform: scale(0.42);

@@ -1,6 +1,7 @@
 .card {
   width: 380px;
-  height: 240px;
+  min-height: 240px;
+  height: 100%;
   border: 1px solid #ccd6e6;
   border-radius: 8px;
   background: #ffffff;
@@ -58,6 +59,7 @@
   padding: 12px;
   font-family: Arial, sans-serif;
   flex: 1;
+  box-sizing: border-box;
 }
 
 .topRow {
@@ -103,6 +105,10 @@
 .classificationPair .value {
   text-align: left;
   width: 100%;
+}
+
+.classificationPair .value {
+  overflow-wrap: anywhere;
 }
 
 .card:hover {
