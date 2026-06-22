@@ -347,23 +347,24 @@ export default function SearchPreviewPage() {
 
           {shouldShowRecommendations && submittedCode ? (
             <section className={styles.emptyStateSection} aria-label="Рекомендованные коды МКБ">
-              <p className={styles.emptyStateText}>
-                По выбранному МКБ <strong>{submittedCode}</strong> рекомендации не найдены.
-                <br />
-                Возможно, вам подойдут следующие коды:
-              </p>
-              <SuggestedCodesList
-                items={
-                  recommendedMatches.length > 0
-                    ? recommendedMatches.map(formatMkbResult)
-                    : ["Рекомендованные коды не найдены"]
-                }
-                onItemSelect={
-                  recommendedMatches.length > 0
-                    ? (item) => handleMatchSelect(item)
-                    : undefined
-                }
-              />
+              {recommendedMatches.length > 0 ? (
+                <>
+                  <p className={styles.emptyStateText}>
+                    По выбранному МКБ <strong>{submittedCode}</strong> рекомендации не найдены.
+                    <br />
+                    Возможно, вам подойдут следующие коды:
+                  </p>
+                  <SuggestedCodesList
+                    items={recommendedMatches.map(formatMkbResult)}
+                    onItemSelect={(item) => handleMatchSelect(item)}
+                  />
+                </>
+              ) : (
+                <p className={styles.emptyStateText}>
+                  По выбранному МКБ <strong>{submittedCode}</strong> у Минздрава клинических
+                  рекомендаций и стандартов не предусмотрено
+                </p>
+              )}
             </section>
           ) : null}
 
