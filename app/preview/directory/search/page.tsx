@@ -21,10 +21,6 @@ type AgeGroup = "adult" | "child";
 type VisitType = "primary" | "repeat" | "inpatient";
 type FilterAvailability = Record<AgeGroup, Record<VisitType, boolean>>;
 
-type FiltersResponse = {
-  availability: FilterAvailability;
-};
-
 type MkbRecommendationsResponse = {
   child: MkbSearchResult[];
   grownup: MkbSearchResult[];
@@ -39,8 +35,12 @@ type RecommendationStandard = {
   ageCategory: string;
 };
 
-type StandardsResponse = {
-  standards: RecommendationStandard[];
+type StandardsByFilters = Record<AgeGroup, Record<VisitType, RecommendationStandard[]>>;
+
+type MkbDataResponse = {
+  availability: FilterAvailability;
+  recommendations: MkbRecommendationsResponse;
+  standards: StandardsByFilters;
 };
 
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
@@ -81,9 +81,7 @@ export default function SearchPreviewPage() {
   const [filterAvailability, setFilterAvailability] = useState<FilterAvailability | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [recommendedMatches, setRecommendedMatches] = useState<MkbSearchResult[]>([]);
-  const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
-  const [recommendationCards, setRecommendationCards] = useState<RecommendationStandard[]>([]);
+  const [mkbData, setMkbData] = useState<MkbDataResponse | null>(null);
   const [cardsError, setCardsError] = useState<string | null>(null);
   const [isCardsLoading, setIsCardsLoading] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
@@ -145,73 +143,9 @@ export default function SearchPreviewPage() {
   }, [search]);
 
   useEffect(() => {
-    const shouldLoadRecommendations =
-      Boolean(normalizedSearchCode) && search.length >= 2 && !isSearchLoading && apiMatches.length === 0;
-
-    if (!shouldLoadRecommendations || !normalizedSearchCode) {
-      setRecommendedMatches([]);
-      setRecommendationsError(null);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const loadRecommendations = async () => {
-      try {
-        const response = await fetch(
-          `/api/mkb-recommendations?code=${encodeURIComponent(normalizedSearchCode)}`,
-          { signal: controller.signal },
-        );
-
-        if (!response.ok) throw new Error("Не удалось получить рекомендации");
-
-        const data = (await response.json()) as MkbRecommendationsResponse;
-        setRecommendedMatches(ageGroup === "child" ? data.child : data.grownup);
-        setRecommendationsError(null);
-      } catch (error) {
-        if ((error as Error).name === "AbortError") return;
-        setRecommendedMatches([]);
-        setRecommendationsError("Не удалось загрузить рекомендованные коды. Попробуйте позже.");
-      }
-    };
-
-    loadRecommendations();
-
-    return () => controller.abort();
-  }, [ageGroup, apiMatches.length, isSearchLoading, normalizedSearchCode, search.length]);
-
-  useEffect(() => {
-    if (!selectedCode) {
-      setFilterAvailability(null);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const loadFilterAvailability = async () => {
-      try {
-        const response = await fetch(`/api/filters?code=${encodeURIComponent(selectedCode)}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) throw new Error("Не удалось получить данные фильтров");
-
-        const data = (await response.json()) as FiltersResponse;
-        setFilterAvailability(data.availability);
-      } catch (error) {
-        if ((error as Error).name === "AbortError") return;
-        setFilterAvailability(null);
-      }
-    };
-
-    loadFilterAvailability();
-
-    return () => controller.abort();
-  }, [selectedCode]);
-
-  useEffect(() => {
     if (!submittedCode) {
-      setRecommendationCards([]);
+      setMkbData(null);
+      setFilterAvailability(null);
       setCardsError(null);
       setIsCardsLoading(false);
       return;
@@ -219,37 +153,34 @@ export default function SearchPreviewPage() {
 
     const controller = new AbortController();
 
-    const loadRecommendationCards = async () => {
+    const loadMkbData = async () => {
       setIsCardsLoading(true);
       setCardsError(null);
 
       try {
-        const params = new URLSearchParams({
-          code: submittedCode,
-          age: ageGroup,
-          visit: visitType,
-        });
-        const response = await fetch(`/api/mkb-standards?${params.toString()}`, {
+        const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(submittedCode)}`, {
           signal: controller.signal,
         });
 
-        if (!response.ok) throw new Error("Не удалось получить карточки рекомендаций");
+        if (!response.ok) throw new Error("Не удалось получить данные по коду МКБ");
 
-        const data = (await response.json()) as StandardsResponse;
-        setRecommendationCards(data.standards);
+        const data = (await response.json()) as MkbDataResponse;
+        setMkbData(data);
+        setFilterAvailability(data.availability);
       } catch (error) {
         if ((error as Error).name === "AbortError") return;
-        setRecommendationCards([]);
-        setCardsError("Не удалось загрузить клинические рекомендации. Попробуйте позже.");
+        setMkbData(null);
+        setFilterAvailability(null);
+        setCardsError("Не удалось загрузить данные по коду МКБ. Попробуйте позже.");
       } finally {
         setIsCardsLoading(false);
       }
     };
 
-    loadRecommendationCards();
+    loadMkbData();
 
     return () => controller.abort();
-  }, [ageGroup, submittedCode, visitType]);
+  }, [submittedCode]);
 
   useEffect(() => {
     if (!filterAvailability || hasDataForFilters(filterAvailability, ageGroup, visitType)) return;
@@ -327,6 +258,15 @@ export default function SearchPreviewPage() {
     setQuery(item);
     submitSearch(getCodeFromMatch(item));
   };
+
+  const recommendationCards = useMemo(
+    () => mkbData?.standards[ageGroup][visitType] ?? [],
+    [ageGroup, mkbData, visitType],
+  );
+  const recommendedMatches = useMemo(
+    () => (ageGroup === "child" ? mkbData?.recommendations.child : mkbData?.recommendations.grownup) ?? [],
+    [ageGroup, mkbData],
+  );
 
   const shouldShowRecommendations = Boolean(
     submittedCode && !isCardsLoading && !cardsError && recommendationCards.length === 0,
@@ -416,7 +356,7 @@ export default function SearchPreviewPage() {
                 items={
                   recommendedMatches.length > 0
                     ? recommendedMatches.map(formatMkbResult)
-                    : [recommendationsError ?? "Рекомендованные коды не найдены"]
+                    : ["Рекомендованные коды не найдены"]
                 }
                 onItemSelect={
                   recommendedMatches.length > 0
