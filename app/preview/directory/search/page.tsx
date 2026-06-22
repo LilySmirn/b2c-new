@@ -102,7 +102,7 @@ export default function SearchPreviewPage() {
   }, [apiMatches, normalizedSearchCode, query]);
   
   useEffect(() => {
-    if (search.length < 2) {
+    if (search.length < 3) {
       setApiMatches([]);
       setIsSearchLoading(false);
       setSearchError(null);
@@ -273,7 +273,7 @@ export default function SearchPreviewPage() {
   );
 
   const matchesEmptyText = (() => {
-    if (search.length < 2) return "Введите минимум 2 символа";
+    if (search.length < 3) return "Введите минимум 3 символа";
     if (isSearchLoading) return "Ищем в базе МКБ...";
     return "Ничего не найдено";
   })();
