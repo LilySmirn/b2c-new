@@ -316,10 +316,11 @@ export default function SearchPreviewPage() {
   };
 
   const submitSearch = (code = selectedCode) => {
+    setIsMatchesOpen(false);
+
     if (!code) return;
 
     setSubmittedCode(code);
-    setIsMatchesOpen(false);
   };
   
   const handleMatchSelect = (item: string) => {
@@ -328,7 +329,7 @@ export default function SearchPreviewPage() {
   };
 
   const shouldShowRecommendations = Boolean(
-    normalizedSearchCode && search.length >= 2 && !isSearchLoading && apiMatches.length === 0,
+    submittedCode && !isCardsLoading && !cardsError && recommendationCards.length === 0,
   );
 
   const matchesEmptyText = (() => {
@@ -404,10 +405,10 @@ export default function SearchPreviewPage() {
             </section>
           ) : null}
 
-          {shouldShowRecommendations && normalizedSearchCode ? (
+          {shouldShowRecommendations && submittedCode ? (
             <section className={styles.emptyStateSection} aria-label="Рекомендованные коды МКБ">
               <p className={styles.emptyStateText}>
-                По выбранному МКБ <strong>{normalizedSearchCode}</strong> рекомендации не найдены.
+                По выбранному МКБ <strong>{submittedCode}</strong> рекомендации не найдены.
                 <br />
                 Возможно, вам подойдут следующие коды:
               </p>

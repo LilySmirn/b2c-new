@@ -19,17 +19,17 @@
 .input {
   flex: 1;
   border: none;
+  min-width: 0;
   background: transparent;
-  font-size: 32px;
-  transform: scale(0.42);
-  transform-origin: left center;
-  color: #6e6e6e;
-  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
   margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .input::placeholder {
-  font-size: 30pt;
+  font-size: 14px;
 }
 
 .input:focus {
