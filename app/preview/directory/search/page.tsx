@@ -360,10 +360,7 @@ export default function SearchPreviewPage() {
                 }
                 onItemSelect={
                   recommendedMatches.length > 0
-                    ? (item) => {
-                        setQuery(item);
-                        setIsMatchesOpen(true);
-                      }
+                    ? (item) => handleMatchSelect(item)
                     : undefined
                 }
               />
