@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./PrescriptionChecklist.module.css";
 
 export type ChecklistItem = {
@@ -56,13 +56,39 @@ export default function PrescriptionChecklist({
   initialSections = [],
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(initialSections);
-  const checklistCategories = sections.length > 0
-    ? Array.from(new Map(sections.map((section) => [
+const categoryAvailability = useMemo(() => {
+    const categoryTitles = new Map<string, string>();
+    const availableCategoryIds = new Set<string>();
+
+    sections.forEach((section) => {
+      availableCategoryIds.add(section.categoryId);
+      categoryTitles.set(
         section.categoryId,
-        { id: section.categoryId, label: section.categoryTitle ?? section.groupTitle },
-      ])).values())
-    : defaultChecklistCategories;
-  const [activeCategoryId, setActiveCategoryId] = useState(checklistCategories[0]?.id ?? defaultChecklistCategories[0].id);
+        section.categoryTitle ?? section.groupTitle,
+      );
+    });
+
+    return { availableCategoryIds, categoryTitles };
+  }, [sections]);
+  const checklistCategories = useMemo(() => {
+    const defaultCategoryIds = new Set(
+      defaultChecklistCategories.map((category) => category.id),
+    );
+    const extraCategories = Array.from(categoryAvailability.categoryTitles.entries())
+      .filter(([categoryId]) => !defaultCategoryIds.has(categoryId))
+      .map(([id, label]) => ({ id, label }));
+
+    return [
+      ...defaultChecklistCategories.map((category) => ({
+        ...category,
+        label: categoryAvailability.categoryTitles.get(category.id) ?? category.label,
+      })),
+      ...extraCategories,
+    ];
+  }, [categoryAvailability.categoryTitles]);
+  const [activeCategoryId, setActiveCategoryId] = useState(
+    initialSections[0]?.categoryId ?? defaultChecklistCategories[0].id,
+  );
   const [infoText, setInfoText] = useState<string | null>(null);
   const [commentTarget, setCommentTarget] = useState<{
     id: string;
@@ -84,6 +110,14 @@ export default function PrescriptionChecklist({
     setSections(initialSections);
     setActiveCategoryId(initialSections[0]?.categoryId ?? defaultChecklistCategories[0].id);
   }, [initialSections]);
+
+  useEffect(() => {
+    if (sections.length === 0 || categoryAvailability.availableCategoryIds.has(activeCategoryId)) {
+      return;
+    }
+
+    setActiveCategoryId(sections[0].categoryId);
+  }, [activeCategoryId, categoryAvailability.availableCategoryIds, sections]);
 
   const toggleRequiredDiagnostics = () => {
     setSections((prev) => {
@@ -174,20 +208,31 @@ export default function PrescriptionChecklist({
   return (
     <div className={styles.checklistWrapper}>
       <div className={styles.categoryTabs} role="tablist" aria-label="Раздел назначений">
-        {checklistCategories.map((category) => (
-          <button
-            key={category.id}
-            type="button"
-            role="tab"
-            aria-selected={activeCategoryId === category.id}
-            className={`${styles.categoryTab} ${
-              activeCategoryId === category.id ? styles.categoryTabActive : ""
-            }`}
-            onClick={() => setActiveCategoryId(category.id)}
-          >
-            {category.label}
-          </button>
-        ))}
+        {checklistCategories.map((category) => {
+          const isActive = activeCategoryId === category.id;
+          const isDisabled = !categoryAvailability.availableCategoryIds.has(category.id);
+
+          return (
+            <button
+              key={category.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-disabled={isDisabled}
+              disabled={isDisabled}
+              className={`${styles.categoryTab} ${
+                isActive ? styles.categoryTabActive : ""
+              } ${isDisabled ? styles.categoryTabDisabled : ""}`}
+              onClick={() => {
+                if (!isDisabled) {
+                  setActiveCategoryId(category.id);
+                }
+              }}
+            >
+              {category.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className={styles.checklistScroll}>
