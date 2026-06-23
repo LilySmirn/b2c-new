@@ -60,7 +60,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 0 0 0 10px;
+  padding: 6px 0 6px 10px;
 }
 
 .itemRowAlt {
@@ -68,9 +68,13 @@
 }
 
 .itemTitle {
+  flex: 1 1 auto;
+  min-width: 0;
   color: #000;
   font: 400 12px/1.2 Arial, sans-serif;
   text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .deleteButton {
