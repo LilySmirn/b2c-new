@@ -1,19 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PrescriptionChecklist from "../components/PrescriptionChecklist";
-import type { SelectedPrescription } from "../components/PrescriptionChecklist";
+import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
 import DirectoryPageHeader from "@/app/preview/directory/components/DirectoryPageHeader";
 
-const EXAMPLE_DIAGNOSIS_TITLE =
-  "К26.5 Смешанные и другие расстройства личности и поведения, обусловленные повреждением и дисфункцией головного мозга";
+type StoredCartRecommendation = {
+  diagnosisTitle?: string;
+  recommendation?: {
+    prescriptions?: ChecklistSection[];
+  };
+};
+
+const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
 
 export default function CartPreviewPage() {
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
   const [uncheckItemId, setUncheckItemId] = useState<string | null>(null);
   const [clearSelectionSignal, setClearSelectionSignal] = useState(0);
+  const [diagnosisTitle, setDiagnosisTitle] = useState("");
+  const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
+
+  useEffect(() => {
+    const storedValue = window.sessionStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY);
+    if (!storedValue) return;
+
+    try {
+      const parsed = JSON.parse(storedValue) as StoredCartRecommendation;
+      setDiagnosisTitle(parsed.diagnosisTitle ?? "");
+      setChecklistSections(parsed.recommendation?.prescriptions ?? []);
+    } catch {
+      setDiagnosisTitle("");
+      setChecklistSections([]);
+    }
+  }, []);
 
   const handleDeleteItem = (id: string) => {
     setSelectedItems((prev) => prev.filter((item) => item.id !== id));
@@ -27,7 +49,7 @@ export default function CartPreviewPage() {
 
   return (
     <>
-      <DirectoryPageHeader variant="cart" diagnosisTitle={EXAMPLE_DIAGNOSIS_TITLE} />
+      <DirectoryPageHeader variant="cart" diagnosisTitle={diagnosisTitle} />
       <main className={styles.page}>
       <section className={styles.layout}>
         <PrescriptionChecklist
@@ -35,6 +57,7 @@ export default function CartPreviewPage() {
           uncheckItemId={uncheckItemId}
           onUncheckHandled={() => setUncheckItemId(null)}
           clearSelectionSignal={clearSelectionSignal}
+          initialSections={checklistSections}
         />
         <SideCart
           selectedItems={selectedItems}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./PrescriptionChecklist.module.css";
 
-type ChecklistItem = {
+export type ChecklistItem = {
   id: string;
   checked: boolean;
   qualityControl: boolean;
@@ -13,10 +13,11 @@ type ChecklistItem = {
   comment: string;
 };
 
-type ChecklistSection = {
+export type ChecklistSection = {
   id: string;
   title: string;
   categoryId: string;
+  categoryTitle?: string;
   groupTitle: string;
   items: ChecklistItem[];
 };
@@ -28,46 +29,7 @@ export type SelectedPrescription = {
   title: string;
 };
 
-const baseItems: ChecklistItem[] = [
-  {
-    id: "1",
-    checked: true,
-    qualityControl: true,
-    code: "A1",
-    title: "Общий (клинический) анализ крови",
-    info: "Подробная информация о назначении: общий анализ крови.",
-    comment: "",
-  },
-  {
-    id: "2",
-    checked: false,
-    qualityControl: true,
-    code: "B2",
-    title: "Исследование кала на скрытую кровь",
-    info: "Подробная информация о назначении: исследование кала на скрытую кровь.",
-    comment: "",
-  },
-  {
-    id: "3",
-    checked: false,
-    qualityControl: true,
-    code: "C5",
-    title: "13С-уреазный дыхательный тест на Helicobacter Pylori",
-    info: "Подробная информация о назначении: 13С-уреазный дыхательный тест.",
-    comment: "Комментарий врача",
-  },
-  {
-    id: "4",
-    checked: true,
-    qualityControl: true,
-    code: "A1",
-    title: "Быстрый уреазный тест при проведении ЭГДС",
-    info: "Подробная информация о назначении: быстрый уреазный тест при ЭГДС.",
-    comment: "",
-  },
-];
-
-const checklistCategories = [
+const defaultChecklistCategories = [
   { id: "required-diagnostics", label: "Диагностика обязательная" },
   { id: "indicated-diagnostics", label: "Диагностика по показаниям" },
   { id: "treatment", label: "Лечение" },
@@ -78,68 +40,12 @@ const checklistCategories = [
   { id: "appendix-a3", label: "Приложение А3" },
 ];
 
-const indicatedDiagnosticItems: ChecklistItem[] = [
-  {
-    id: "ultrasound",
-    checked: false,
-    qualityControl: true,
-    code: "A04",
-    title: "Ультразвуковое исследование органов брюшной полости",
-    info: "Назначается при наличии клинических показаний.",
-    comment: "При болевом синдроме",
-  },
-  {
-    id: "biochemistry",
-    checked: true,
-    qualityControl: true,
-    code: "B03",
-    title: "Биохимический анализ крови расширенный",
-    info: "Дополнительное лабораторное исследование по показаниям.",
-    comment: "",
-  },
-  {
-    id: "consultation",
-    checked: false,
-    qualityControl: false,
-    code: "B01",
-    title: "Консультация врача-гастроэнтеролога",
-    info: "Консультация профильного специалиста по показаниям.",
-    comment: "При сохранении симптомов",
-  },
-];
-
-const initialSections: ChecklistSection[] = [
-  {
-    id: "lab",
-    categoryId: "required-diagnostics",
-    title: "Лабораторные исследования",
-    groupTitle: "Диагностика",
-    items: baseItems.map((item) => ({ ...item, id: `lab-${item.id}` })),
-  },
-  {
-    id: "instrumental",
-    categoryId: "required-diagnostics",
-    title: "Инструментальные исследования",
-    groupTitle: "Диагностика",
-    items: baseItems.map((item) => ({ ...item, id: `inst-${item.id}` })),
-  },
-  {
-    id: "indicated-lab",
-    categoryId: "indicated-diagnostics",
-    title: "Дополнительные исследования",
-    groupTitle: "Диагностика по показаниям",
-    items: indicatedDiagnosticItems.map((item) => ({
-      ...item,
-      id: `indicated-${item.id}`,
-    })),
-  },
-];
-
 type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
   uncheckItemId?: string | null;
   onUncheckHandled?: () => void;
   clearSelectionSignal?: number;
+  initialSections?: ChecklistSection[];
 };
 
 export default function PrescriptionChecklist({
@@ -147,9 +53,16 @@ export default function PrescriptionChecklist({
   uncheckItemId,
   onUncheckHandled,
   clearSelectionSignal = 0,
+  initialSections = [],
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(initialSections);
-  const [activeCategoryId, setActiveCategoryId] = useState(checklistCategories[0].id);
+  const checklistCategories = sections.length > 0
+    ? Array.from(new Map(sections.map((section) => [
+        section.categoryId,
+        { id: section.categoryId, label: section.categoryTitle ?? section.groupTitle },
+      ])).values())
+    : defaultChecklistCategories;
+  const [activeCategoryId, setActiveCategoryId] = useState(checklistCategories[0]?.id ?? defaultChecklistCategories[0].id);
   const [infoText, setInfoText] = useState<string | null>(null);
   const [commentTarget, setCommentTarget] = useState<{
     id: string;
@@ -166,6 +79,11 @@ export default function PrescriptionChecklist({
       })),
     );
   };
+
+  useEffect(() => {
+    setSections(initialSections);
+    setActiveCategoryId(initialSections[0]?.categoryId ?? defaultChecklistCategories[0].id);
+  }, [initialSections]);
 
   const toggleRequiredDiagnostics = () => {
     setSections((prev) => {
@@ -271,7 +189,7 @@ export default function PrescriptionChecklist({
           </button>
         ))}
       </div>
-      
+
       <div className={styles.checklistScroll}>
         <div className={styles.tableArea}>
           {visibleSections.map((section) => (

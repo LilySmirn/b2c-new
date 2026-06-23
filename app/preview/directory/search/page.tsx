@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
@@ -26,6 +27,23 @@ type MkbRecommendationsResponse = {
   grownup: MkbSearchResult[];
 };
 
+type ChecklistSection = {
+  id: string;
+  title: string;
+  categoryId: string;
+  categoryTitle?: string;
+  groupTitle: string;
+  items: {
+    id: string;
+    checked: boolean;
+    qualityControl: boolean;
+    code: string;
+    title: string;
+    info: string;
+    comment: string;
+  }[];
+};
+
 type RecommendationStandard = {
   id: string;
   title: string;
@@ -33,6 +51,7 @@ type RecommendationStandard = {
   source: string;
   mkbCodes: string[];
   ageCategory: string;
+  prescriptions: ChecklistSection[];
 };
 
 type StandardsByFilters = Record<AgeGroup, Record<VisitType, RecommendationStandard[]>>;
@@ -72,11 +91,13 @@ const getRecommendationExternalUrl = (source: string, id: string) => {
 };
 
 export default function SearchPreviewPage() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [visitType, setVisitType] = useState<VisitType>("primary");
   const [ageGroup, setAgeGroup] = useState<AgeGroup>("adult");
   const [isMatchesOpen, setIsMatchesOpen] = useState(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
+  const [submittedDiagnosisTitle, setSubmittedDiagnosisTitle] = useState<string | null>(null);
   const [apiMatches, setApiMatches] = useState<MkbSearchResult[]>([]);
   const [filterAvailability, setFilterAvailability] = useState<FilterAvailability | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -100,7 +121,7 @@ export default function SearchPreviewPage() {
 
     return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
   }, [apiMatches, normalizedSearchCode, query]);
-  
+
   useEffect(() => {
     if (search.length < 3) {
       setApiMatches([]);
@@ -241,22 +262,35 @@ export default function SearchPreviewPage() {
       .map((option) => option.id);
   }, [filterAvailability, visitType]);
 
+  const getDiagnosisTitle = (code: string, sourceText = query) => {
+    const formattedMatch = sourceText.trim();
+    if (getCodeFromMatch(formattedMatch).toUpperCase() === code.toUpperCase() && formattedMatch.includes(":")) {
+      return formattedMatch;
+    }
+
+    const apiMatch = apiMatches.find((item) => item.code.toUpperCase() === code.toUpperCase());
+
+    return apiMatch ? formatMkbResult(apiMatch) : code;
+  };
+
   const handleQueryChange = (value: string) => {
     setQuery(value);
     setSubmittedCode(null);
+    setSubmittedDiagnosisTitle(null);
   };
 
-  const submitSearch = (code = selectedCode) => {
+  const submitSearch = (code = selectedCode, diagnosisTitle?: string) => {
     setIsMatchesOpen(false);
 
     if (!code) return;
 
     setSubmittedCode(code);
+    setSubmittedDiagnosisTitle(diagnosisTitle ?? getDiagnosisTitle(code));
   };
-  
+
   const handleMatchSelect = (item: string) => {
     setQuery(item);
-    submitSearch(getCodeFromMatch(item));
+    submitSearch(getCodeFromMatch(item), item);
   };
 
   const recommendationCards = useMemo(
@@ -271,6 +305,17 @@ export default function SearchPreviewPage() {
   const shouldShowRecommendations = Boolean(
     submittedCode && !isCardsLoading && !cardsError && recommendationCards.length === 0,
   );
+
+  const handleCardSelect = (card: RecommendationStandard) => {
+    window.sessionStorage.setItem(
+      "directoryCartRecommendation",
+      JSON.stringify({
+        diagnosisTitle: submittedDiagnosisTitle ?? submittedCode ?? card.title,
+        recommendation: card,
+      }),
+    );
+    router.push("/preview/directory/cart");
+  };
 
   const matchesEmptyText = (() => {
     if (search.length < 3) return "Введите минимум 3 символа";
@@ -320,7 +365,7 @@ export default function SearchPreviewPage() {
           />
 
           <Bookmarks />
-      
+
             {submittedCode ? (
             <section className={styles.recommendationsSection} aria-label="Клинические рекомендации">
               {isCardsLoading ? (
@@ -338,6 +383,7 @@ export default function SearchPreviewPage() {
                       status={card.status}
                       ageCategory={card.ageCategory}
                       classification={card.mkbCodes.length > 0 ? card.mkbCodes.join(", ") : submittedCode}
+                      onSelect={() => handleCardSelect(card)}
                     />
                   ))}
                 </div>
