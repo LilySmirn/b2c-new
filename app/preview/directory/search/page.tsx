@@ -82,6 +82,16 @@ const hasDataForFilters = (
   visit: VisitType,
 ) => availability[age][visit];
 
+const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
+
+const getCartRecommendationKey = (
+  diagnosisTitle: string | null | undefined,
+  card: RecommendationStandard,
+) =>
+  [diagnosisTitle, card.id, card.title, card.mkbCodes.join(",")]
+    .filter(Boolean)
+    .join("|");
+
 const getRecommendationExternalUrl = (source: string, id: string) => {
   if (source.toLowerCase() === "minzdrav" && id !== "—") {
     return `https://cr.minzdrav.gov.ru/schema/${encodeURIComponent(id)}`;
@@ -307,10 +317,13 @@ export default function SearchPreviewPage() {
   );
 
   const handleCardSelect = (card: RecommendationStandard) => {
+    const diagnosisTitle = submittedDiagnosisTitle ?? submittedCode ?? card.title;
+
     window.sessionStorage.setItem(
-      "directoryCartRecommendation",
+      CART_RECOMMENDATION_STORAGE_KEY,
       JSON.stringify({
-        diagnosisTitle: submittedDiagnosisTitle ?? submittedCode ?? card.title,
+        diagnosisTitle,
+        recommendationKey: getCartRecommendationKey(diagnosisTitle, card),
         recommendation: card,
       }),
     );
