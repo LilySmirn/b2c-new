@@ -27,6 +27,7 @@ export type SelectedPrescription = {
   groupTitle: string;
   sectionTitle: string;
   title: string;
+  comment: string;
 };
 
 const defaultChecklistCategories = [
@@ -46,6 +47,7 @@ type PrescriptionChecklistProps = {
   onUncheckHandled?: () => void;
   clearSelectionSignal?: number;
   initialSections?: ChecklistSection[];
+  appliedTemplateItems?: SelectedPrescription[] | null;
 };
 
 export default function PrescriptionChecklist({
@@ -54,6 +56,7 @@ export default function PrescriptionChecklist({
   onUncheckHandled,
   clearSelectionSignal = 0,
   initialSections = [],
+  appliedTemplateItems = null,
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(initialSections);
 const categoryAvailability = useMemo(() => {
@@ -166,10 +169,34 @@ const categoryAvailability = useMemo(() => {
             groupTitle: section.groupTitle,
             sectionTitle: section.title,
             title: item.title,
+            comment: item.comment,
           })),
       ),
     );
   }, [onSelectionChange, sections]);
+
+  useEffect(() => {
+    if (!appliedTemplateItems) return;
+
+    const templateItemMap = new Map(
+      appliedTemplateItems.map((item) => [item.id, item]),
+    );
+
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        items: section.items.map((item) => {
+          const templateItem = templateItemMap.get(item.id);
+
+          return {
+            ...item,
+            checked: Boolean(templateItem),
+            comment: templateItem?.comment ?? item.comment,
+          };
+        }),
+      })),
+    );
+  }, [appliedTemplateItems]);
 
   useEffect(() => {
     if (!uncheckItemId) return;

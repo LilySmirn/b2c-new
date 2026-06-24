@@ -1,8 +1,14 @@
+"use client";
+
+import { useState } from "react";
 import ActionPanel from "./ActionPanel";
 import CartTemplateToggle from "./CartTemplateToggle";
 import Image from "next/image";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import RecommendationField from "./RecommendationField";
+import SaveTemplateModal from "./SaveTemplateModal";
+import SelectTemplateModal from "./SelectTemplateModal";
+import type { CartTemplate } from "@/app/preview/directory/components/cartTemplatesStorage";
 import styles from "./SideCart.module.css";
 import deleteAllIcon from "@/assets/images/delete-all.svg";
 import deleteIcon from "@/assets/images/delete.svg";
@@ -11,13 +17,17 @@ type SideCartProps = {
   selectedItems?: SelectedPrescription[];
   onDeleteItem?: (id: string) => void;
   onDeleteAll?: () => void;
+  onApplyTemplate?: (template: CartTemplate) => void;
 };
 
 export default function SideCart({
   selectedItems = [],
   onDeleteItem,
   onDeleteAll,
+  onApplyTemplate,
 }: SideCartProps) {
+  const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
+  const [isSelectTemplateModalOpen, setIsSelectTemplateModalOpen] = useState(false);
   const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
     (acc, item) => {
       acc[item.groupTitle] = [...(acc[item.groupTitle] ?? []), item];
@@ -28,7 +38,10 @@ export default function SideCart({
 
   return (
     <aside className={styles.sideCart}>
-      <CartTemplateToggle />
+      <CartTemplateToggle
+        onSelectTemplateClick={() => setIsSelectTemplateModalOpen(true)}
+        onSaveTemplateClick={() => setIsSaveTemplateModalOpen(true)}
+      />
 
       <div className={styles.headerRow}>
         <h2 className={styles.title}>Корзина назначений</h2>
@@ -78,6 +91,23 @@ export default function SideCart({
       <div className={styles.actionPanelWrap}>
         <ActionPanel />
       </div>
+
+      {isSelectTemplateModalOpen ? (
+        <SelectTemplateModal
+          onSelectTemplate={(template) => {
+            onApplyTemplate?.(template);
+            setIsSelectTemplateModalOpen(false);
+          }}
+          onClose={() => setIsSelectTemplateModalOpen(false)}
+        />
+      ) : null}
+
+      {isSaveTemplateModalOpen ? (
+        <SaveTemplateModal
+          selectedItems={selectedItems}
+          onClose={() => setIsSaveTemplateModalOpen(false)}
+        />
+      ) : null}
     </aside>
   );
 }

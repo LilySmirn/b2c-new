@@ -5,6 +5,7 @@ import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
+import type { CartTemplate } from "@/app/preview/directory/components/cartTemplatesStorage";
 import DirectoryPageHeader from "@/app/preview/directory/components/DirectoryPageHeader";
 
 type StoredCartRecommendation = {
@@ -91,6 +92,7 @@ export default function CartPreviewPage() {
   const [diagnosisTitle, setDiagnosisTitle] = useState("");
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
+  const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
 
   useEffect(() => {
     const storedValue = window.sessionStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY);
@@ -140,6 +142,16 @@ export default function CartPreviewPage() {
     setSelectedItems([]);
     writeStoredSelectionIds(recommendationKey, []);
     setClearSelectionSignal((prev) => prev + 1);
+    setAppliedTemplateItems(null);
+  };
+
+  const handleApplyTemplate = (template: CartTemplate) => {
+    setSelectedItems(template.items);
+    setAppliedTemplateItems(template.items);
+    writeStoredSelectionIds(
+      recommendationKey,
+      template.items.map((item) => item.id),
+    );
   };
 
   return (
@@ -153,11 +165,13 @@ export default function CartPreviewPage() {
           onUncheckHandled={() => setUncheckItemId(null)}
           clearSelectionSignal={clearSelectionSignal}
           initialSections={checklistSections}
+          appliedTemplateItems={appliedTemplateItems}
         />
         <SideCart
           selectedItems={selectedItems}
           onDeleteItem={handleDeleteItem}
           onDeleteAll={handleDeleteAll}
+          onApplyTemplate={handleApplyTemplate}
         />
       </section>
       </main>

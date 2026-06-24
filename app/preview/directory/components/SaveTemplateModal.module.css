@@ -1,0 +1,195 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: rgba(0, 0, 0, 0.48);
+  box-sizing: border-box;
+}
+
+.modal {
+  position: relative;
+  width: min(500px, 100%);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 32px 34px 30px;
+  box-shadow: 0 24px 60px rgba(0, 24, 47, 0.24);
+  box-sizing: border-box;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.modalTitle {
+  margin: 0;
+  color: #00182f;
+  font: 700 24px/1.2 Arial, sans-serif;
+}
+
+.closeButton {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8b8b8b;
+  font: 300 32px/34px Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  background: #f4f4f4;
+  color: #00182f;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: #00182f;
+  font: 700 15px/1.3 Arial, sans-serif;
+}
+
+.requiredMark {
+  color: #1182ee;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #ccd6e6;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #00182f;
+  font: 400 15px/1.3 Arial, sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.input::placeholder {
+  color: #9c9c9c;
+}
+
+.input:focus {
+  border-color: #1182ee;
+  box-shadow: 0 0 0 3px rgba(17, 130, 238, 0.14);
+}
+
+.inputError {
+  border-color: #e04444;
+}
+
+.helperRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  color: #696969;
+  font: 400 13px/1.35 Arial, sans-serif;
+}
+
+.errorText {
+  color: #e04444;
+}
+
+.mockNotice {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f2f8ff;
+  color: #34506b;
+  font: 400 14px/1.4 Arial, sans-serif;
+}
+
+.modalActions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modalButton {
+  min-width: 128px;
+  height: 44px;
+  border-radius: 8px;
+  padding: 0 18px;
+  font: 700 15px/1 Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.modalButtonPrimary {
+  border: 0;
+  background: #1182ee;
+  color: #ffffff;
+}
+
+.modalButtonPrimary:hover,
+.modalButtonPrimary:focus-visible {
+  background: #0f73d1;
+}
+
+.modalButtonPrimary:disabled {
+  background: #9cc9f4;
+  cursor: not-allowed;
+}
+
+.modalButtonSecondary {
+  border: 1px solid #ccd6e6;
+  background: #ffffff;
+  color: #595959;
+}
+
+.modalButtonSecondary:hover,
+.modalButtonSecondary:focus-visible {
+  border-color: #b9c7d9;
+  background: #f6f7f9;
+  color: #00182f;
+}
+
+@media (max-width: 560px) {
+  .modal {
+    padding: 28px 22px 24px;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .modalButton {
+    width: 100%;
+  }
+}
+
+.templateList {
+  display: grid;
+  gap: 12px;
+  max-height: 360px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.templateCard {
+  width: 100%;
+  border: 1px solid #ccd6e6;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
