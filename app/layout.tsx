@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "./globals.css";
 
-import AuthButtonsServer from './components/AuthButtonsServer';
+//import AuthButtonsServer from './components/AuthButtonsServer';
 // import Header from "./components/Header";
 import ConditionalHeader from './components/ConditionalHeader';
 
@@ -37,7 +37,7 @@ export default async function RootLayout({
                             </ul>
                         </nav>
                         <div className="header-buttons">
-                            <AuthButtonsServer variant="header" />
+                            
                             <Link href="/login" className="btn btn-demo">Демо</Link>
                             <button type="button" className="btn btn-logout-preview">Выйти</button>
                             <Link href="/preview/directory/search" className="btn btn-back-preview">←Назад</Link>
@@ -92,7 +92,7 @@ export default async function RootLayout({
                             </nav>
 
                             <div className="footer-buttons">
-                                <AuthButtonsServer variant="footer" />
+                                
                                 <Link href="/login" className="btn btn-demo footer-btn-demo">Демо</Link>
                             </div>
                         </section>
