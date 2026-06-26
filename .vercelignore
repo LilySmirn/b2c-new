@@ -1,22 +1,23 @@
 # Local/editor files
-.idea
-.vscode
+/.idea
+/.vscode
 
-# Legacy static prototype files not used by the Next.js app build
-assets
-components
-css
-js
-pages
-index.html
-robots.txt
-sitemap.xml
+# Legacy static prototype files at the repository root only.
+# Do not ignore nested Next.js app folders such as app/components.
+/assets
+/components
+/css
+/js
+/pages
+/index.html
+/robots.txt
+/sitemap.xml
 
 # Local database dumps and ad-hoc scripts
-*.sql
-test-smtp.js
+/*.sql
+/test-smtp.js
 
 # Build/dependency artifacts
-.next
-node_modules
-coverage
+/.next
+/node_modules
+/coverage
