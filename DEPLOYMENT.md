@@ -7,12 +7,12 @@ The current `next build` completes successfully. If Vercel shows `Deployment fai
 Use these settings in Vercel:
 
 - Framework Preset: `Next.js`
-- Install Command: `npm install`
+- Install Command: `npm ci`
 - Build Command: `npm run build`
 - Output Directory: leave empty / default (`.next` is handled by Vercel for Next.js)
 - Root Directory: repository root (`/`)
 - Node.js Version: use a runtime compatible with Next.js 15.5.18 and your local setup, for example Node.js `18.18.0` or newer. Do not force `20.x` if the project is developed on Node.js `18.18.0`.
-> Note: `package-lock.json` is intentionally not committed right now because the previous lockfile pinned vulnerable Next.js `15.4.2`. Regenerate it after installing dependencies from a network that can access npm: `npm install`, then commit the new `package-lock.json`.
+> Note: `package-lock.json` is committed and should stay in sync with `package.json`. If dependencies are changed locally, regenerate it with `npm install` and commit the updated lockfile.
 
 
 ## Required environment variables
