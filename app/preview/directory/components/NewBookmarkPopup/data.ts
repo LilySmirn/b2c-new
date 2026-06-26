@@ -20,18 +20,10 @@ export const newBookmarkRecommendationTitles = [
 
 export const newBookmarkRecommendationCardData = {
   externalUrl: "https://cr.minzdrav.gov.ru/",
-  idLabel: "ID:",
-  idValue: "277_2",
-  statusLabel: "Статус:",
-  statusValue: "Действует",
-  ageCategoryLabel: "Возрастная категория:",
-  ageCategoryValue: "Взрослые",
-  publicationDateLabel: "Дата размещения КР:",
-  publicationDateValue: "13.01.2025",
-  approvalYearLabel: "Год утверждения:",
-  approvalYearValue: "2024",
-  classificationLabel:
-    "Кодирование по международной статистической классификации болезней и проблем, связанных со здоровьем:",
-  classificationValue:
-    "K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0",
+  standardId: "277_2",
+  status: "Действует",
+  ageCategory: "Взрослые",
+  publicationDate: "13.01.2025",
+  approvalYear: "2024",
+  classification: "K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0",
 };
