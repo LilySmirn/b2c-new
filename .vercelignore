@@ -2,17 +2,6 @@
 /.idea
 /.vscode
 
-# Legacy static prototype files at the repository root only.
-# Do not ignore nested Next.js app folders such as app/components.
-/assets
-/components
-/css
-/js
-/pages
-/index.html
-/robots.txt
-/sitemap.xml
-
 # Local database dumps and ad-hoc scripts
 /*.sql
 /test-smtp.js
