@@ -1,0 +1,22 @@
+# Local/editor files
+.idea
+.vscode
+
+# Legacy static prototype files not used by the Next.js app build
+assets
+components
+css
+js
+pages
+index.html
+robots.txt
+sitemap.xml
+
+# Local database dumps and ad-hoc scripts
+*.sql
+test-smtp.js
+
+# Build/dependency artifacts
+.next
+node_modules
+coverage
