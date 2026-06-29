@@ -192,6 +192,8 @@
 
 .infoTabs {
   display: flex;
+  width: fit-content;
+  max-width: 100%;
   gap: 0;
   margin: 22px 0 18px;
   border: 1px solid #e4e4e4;
@@ -207,11 +209,11 @@
   min-height: 34px;
   border: 0;
   border-right: 1px solid #e4e4e4;
-  background: transparent;
+  background: #f4f4f4;
   padding: 8px 14px;
-  color: #595959;
+  color: #a3a3a3;
   text-align: center;
-  font: 700 13px/1.25 Arial, sans-serif;
+  font: 400 13px/1.25 Arial, sans-serif;
   cursor: pointer;
   transition: background-color 0.18s ease, color 0.18s ease;
 }
@@ -220,13 +222,19 @@
   border-right: 0;
 }
 
-.infoTabActive {
-  background: #0085ff;
-  color: #ffffff;
+.infoTab:hover {
+  background: #eeeeee;
+}
+
+.infoTabActive,
+.infoTabActive:hover {
+  background: #e8e8e8;
+  color: #515151;
 }
 
 .infoTabPanel {
   margin-bottom: 24px;
+  text-align: left;
 }
 
 .infoSection strong {
@@ -238,6 +246,7 @@
 
 .infoSection p {
   margin: 0;
+  text-align: left;
   white-space: pre-line;
 }
 
