@@ -10,7 +10,10 @@ export type ChecklistItem = {
   code: string;
   title: string;
   info: string;
+  infoComment?: string;
   comment: string;
+  sourceIds?: string[];
+  mergedItems?: ChecklistItem[];
 };
 
 export type ChecklistSection = {
@@ -29,6 +32,96 @@ export type SelectedPrescription = {
   title: string;
   comment: string;
 };
+
+const comparePriorityValues = (left: string, right: string) => {
+  const leftValue = left.trim();
+  const rightValue = right.trim();
+
+  if (!leftValue) return 1;
+  if (!rightValue) return -1;
+
+  const leftNumber = Number(leftValue.replace(",", "."));
+  const rightNumber = Number(rightValue.replace(",", "."));
+  const leftIsNumber = Number.isFinite(leftNumber);
+  const rightIsNumber = Number.isFinite(rightNumber);
+
+  if (leftIsNumber && rightIsNumber && leftNumber !== rightNumber) {
+    return leftNumber - rightNumber;
+  }
+
+  return leftValue.localeCompare(rightValue, "ru", {
+    numeric: true,
+    sensitivity: "base",
+  });
+};
+
+const getPriorityString = (left: string, right: string) =>
+  comparePriorityValues(left, right) <= 0 ? left : right;
+
+const getItemIds = (item: ChecklistItem) => item.sourceIds ?? [item.id];
+
+const itemMatchesId = (item: ChecklistItem, id: string) =>
+  getItemIds(item).includes(id);
+
+const getMergedItems = (item: ChecklistItem) => item.mergedItems ?? [item];
+
+const mergeChecklistItemsByTitle = (items: ChecklistItem[]) => {
+  const mergedItems = new Map<string, ChecklistItem>();
+
+  items.forEach((item) => {
+    const titleKey = item.title.trim().toLocaleLowerCase("ru");
+    const existingItem = mergedItems.get(titleKey);
+
+    if (!existingItem) {
+      mergedItems.set(titleKey, {
+        ...item,
+        sourceIds: getItemIds(item),
+        mergedItems: getMergedItems(item),
+      });
+      return;
+    }
+
+    const nextMergedItems = [
+      ...getMergedItems(existingItem),
+      ...getMergedItems(item),
+    ]
+      .slice()
+      .sort((left, right) => {
+        const codeComparison = comparePriorityValues(left.code, right.code);
+
+        if (codeComparison !== 0) return codeComparison;
+
+        return comparePriorityValues(left.id, right.id);
+      });
+
+    mergedItems.set(titleKey, {
+      ...existingItem,
+      id: getPriorityString(existingItem.id, item.id),
+      checked: existingItem.checked || item.checked,
+      qualityControl: existingItem.qualityControl || item.qualityControl,
+      code: getPriorityString(existingItem.code, item.code),
+      title: getPriorityString(existingItem.title, item.title),
+      info: getPriorityString(existingItem.info, item.info),
+      infoComment: getPriorityString(
+        existingItem.infoComment ?? "",
+        item.infoComment ?? "",
+      ),
+      comment: existingItem.comment || item.comment,
+      sourceIds: Array.from(
+        new Set([...getItemIds(existingItem), ...getItemIds(item)]),
+      ),
+      mergedItems: nextMergedItems,
+    });
+  });
+
+  return Array.from(mergedItems.values());
+};
+
+const mergeChecklistSectionsByTitle = (sections: ChecklistSection[]) =>
+  sections.map((section) => ({
+    ...section,
+    items: mergeChecklistItemsByTitle(section.items),
+  }));
 
 const defaultChecklistCategories = [
   { id: "required-diagnostics", label: "Диагностика обязательная" },
@@ -58,8 +151,10 @@ export default function PrescriptionChecklist({
   initialSections = [],
   appliedTemplateItems = null,
 }: PrescriptionChecklistProps) {
-  const [sections, setSections] = useState(initialSections);
-const categoryAvailability = useMemo(() => {
+  const [sections, setSections] = useState(() =>
+    mergeChecklistSectionsByTitle(initialSections),
+  );
+  const categoryAvailability = useMemo(() => {
     const categoryTitles = new Map<string, string>();
     const availableCategoryIds = new Set<string>();
 
@@ -77,14 +172,18 @@ const categoryAvailability = useMemo(() => {
     const defaultCategoryIds = new Set(
       defaultChecklistCategories.map((category) => category.id),
     );
-    const extraCategories = Array.from(categoryAvailability.categoryTitles.entries())
+    const extraCategories = Array.from(
+      categoryAvailability.categoryTitles.entries(),
+    )
       .filter(([categoryId]) => !defaultCategoryIds.has(categoryId))
       .map(([id, label]) => ({ id, label }));
 
     return [
       ...defaultChecklistCategories.map((category) => ({
         ...category,
-        label: categoryAvailability.categoryTitles.get(category.id) ?? category.label,
+        label:
+          categoryAvailability.categoryTitles.get(category.id) ??
+          category.label,
       })),
       ...extraCategories,
     ];
@@ -92,7 +191,8 @@ const categoryAvailability = useMemo(() => {
   const [activeCategoryId, setActiveCategoryId] = useState(
     initialSections[0]?.categoryId ?? defaultChecklistCategories[0].id,
   );
-  const [infoText, setInfoText] = useState<string | null>(null);
+  const [infoTarget, setInfoTarget] = useState<ChecklistItem | null>(null);
+  const [activeInfoItemId, setActiveInfoItemId] = useState<string | null>(null);
   const [commentTarget, setCommentTarget] = useState<{
     id: string;
     value: string;
@@ -103,19 +203,36 @@ const categoryAvailability = useMemo(() => {
       prev.map((section) => ({
         ...section,
         items: section.items.map((item) =>
-          item.id === id ? { ...item, checked: !item.checked } : item,
+          itemMatchesId(item, id) ? { ...item, checked: !item.checked } : item,
         ),
       })),
     );
   };
 
+  const openInfo = (item: ChecklistItem) => {
+    setInfoTarget(item);
+    setActiveInfoItemId(getMergedItems(item)[0]?.id ?? item.id);
+  };
+
+  const closeInfo = () => {
+    setInfoTarget(null);
+    setActiveInfoItemId(null);
+  };
+
   useEffect(() => {
-    setSections(initialSections);
-    setActiveCategoryId(initialSections[0]?.categoryId ?? defaultChecklistCategories[0].id);
+    const mergedSections = mergeChecklistSectionsByTitle(initialSections);
+
+    setSections(mergedSections);
+    setActiveCategoryId(
+      mergedSections[0]?.categoryId ?? defaultChecklistCategories[0].id,
+    );
   }, [initialSections]);
 
   useEffect(() => {
-    if (sections.length === 0 || categoryAvailability.availableCategoryIds.has(activeCategoryId)) {
+    if (
+      sections.length === 0 ||
+      categoryAvailability.availableCategoryIds.has(activeCategoryId)
+    ) {
       return;
     }
 
@@ -150,7 +267,7 @@ const categoryAvailability = useMemo(() => {
       prev.map((section) => ({
         ...section,
         items: section.items.map((item) =>
-          item.id === commentTarget.id
+          itemMatchesId(item, commentTarget.id)
             ? { ...item, comment: commentTarget.value.trim() }
             : item,
         ),
@@ -186,7 +303,9 @@ const categoryAvailability = useMemo(() => {
       prev.map((section) => ({
         ...section,
         items: section.items.map((item) => {
-          const templateItem = templateItemMap.get(item.id);
+          const templateItem = getItemIds(item)
+            .map((id) => templateItemMap.get(id))
+            .find(Boolean);
 
           return {
             ...item,
@@ -205,7 +324,9 @@ const categoryAvailability = useMemo(() => {
       prev.map((section) => ({
         ...section,
         items: section.items.map((item) =>
-          item.id === uncheckItemId ? { ...item, checked: false } : item,
+          itemMatchesId(item, uncheckItemId)
+            ? { ...item, checked: false }
+            : item,
         ),
       })),
     );
@@ -234,10 +355,16 @@ const categoryAvailability = useMemo(() => {
 
   return (
     <div className={styles.checklistWrapper}>
-      <div className={styles.categoryTabs} role="tablist" aria-label="Раздел назначений">
+      <div
+        className={styles.categoryTabs}
+        role="tablist"
+        aria-label="Раздел назначений"
+      >
         {checklistCategories.map((category) => {
           const isActive = activeCategoryId === category.id;
-          const isDisabled = !categoryAvailability.availableCategoryIds.has(category.id);
+          const isDisabled = !categoryAvailability.availableCategoryIds.has(
+            category.id,
+          );
 
           return (
             <button
@@ -272,7 +399,8 @@ const categoryAvailability = useMemo(() => {
                     ? styles.requiredDiagnosticsSectionRow
                     : ""
                 } ${
-                  activeCategoryId === "required-diagnostics" && section.id !== "lab"
+                  activeCategoryId === "required-diagnostics" &&
+                  section.id !== "lab"
                     ? styles.sectionRowWithoutCheckbox
                     : ""
                 }`}
@@ -281,7 +409,9 @@ const categoryAvailability = useMemo(() => {
                   <button
                     type="button"
                     className={`${styles.checkbox} ${
-                      allRequiredDiagnosticsChecked ? styles.checkboxChecked : ""
+                      allRequiredDiagnosticsChecked
+                        ? styles.checkboxChecked
+                        : ""
                     }`}
                     onClick={toggleRequiredDiagnostics}
                     aria-label="Выбрать всю обязательную диагностику"
@@ -316,7 +446,7 @@ const categoryAvailability = useMemo(() => {
                     <button
                       type="button"
                       className={styles.infoButton}
-                      onClick={() => setInfoText(item.info)}
+                      onClick={() => openInfo(item)}
                       aria-label={`Информация о назначении ${item.title}`}
                     >
                       i
@@ -337,23 +467,77 @@ const categoryAvailability = useMemo(() => {
             </div>
           ))}
           {visibleSections.length === 0 ? (
-            <div className={styles.emptyState}>В этом разделе пока нет назначений</div>
+            <div className={styles.emptyState}>
+              В этом разделе пока нет назначений
+            </div>
           ) : null}
         </div>
       </div>
 
-      {infoText && (
-        <div className={styles.modalOverlay} onClick={() => setInfoText(null)}>
+      {infoTarget && (
+        <div className={styles.modalOverlay} onClick={closeInfo}>
           <div
-            className={styles.modal}
+            className={`${styles.modal} ${styles.infoModal}`}
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Информация о назначении</h3>
-            <p>{infoText}</p>
+            <div className={styles.modalHeader}>
+              <div>
+                <h3>{infoTarget.title}</h3>
+              </div>
+              <button
+                type="button"
+                className={styles.modalCloseButton}
+                onClick={closeInfo}
+                aria-label="Закрыть окно информации"
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.infoTabs} role="tablist">
+              {getMergedItems(infoTarget).map((item) => {
+                const isActive = activeInfoItemId === item.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`${styles.infoTab} ${
+                      isActive ? styles.infoTabActive : ""
+                    }`}
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActiveInfoItemId(item.id)}
+                  >
+                    {[item.qualityControl ? "КК" : "", item.code]
+                      .filter(Boolean)
+                      .join(" · ") || "Без КК"}
+                  </button>
+                );
+              })}
+            </div>
+            {getMergedItems(infoTarget)
+              .filter((item) => item.id === activeInfoItemId)
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className={styles.infoTabPanel}
+                  role="tabpanel"
+                >
+                  <div className={styles.infoSection}>
+                    <strong>Описание:</strong>
+                    <p>{item.info || "Описание отсутствует"}</p>
+                  </div>
+                  <hr className={styles.infoDivider} />
+                  <div className={styles.infoSection}>
+                    <strong>Комментарий:</strong>
+                    <p>{item.infoComment || "Комментарий отсутствует"}</p>
+                  </div>
+                </div>
+              ))}
             <button
               type="button"
               className={`${styles.modalButton} ${styles.modalButtonPrimary}`}
-              onClick={() => setInfoText(null)}
+              onClick={closeInfo}
             >
               Закрыть
             </button>

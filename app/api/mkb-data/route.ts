@@ -79,6 +79,7 @@ type PrescriptionItem = {
   title: string;
   info: string;
   comment: string;
+  infoComment: string;
 };
 
 type PrescriptionSection = {
@@ -160,15 +161,22 @@ const getPersCode = (pers: EasyMedPers | null | undefined) => {
 const getAppointmentInfo = (appointment: EasyMedAppointment, crTextById: CrTextById) => {
   const crDbId = getStringOrEmpty(appointment.cr_db_id);
   const recommendationText = crDbId ? crTextById[crDbId] : undefined;
+  const description = getStringOrEmpty(recommendationText?.text);
+
+  return description || "Описание рекомендации не найдено";
+};
+
+const getAppointmentInfoComment = (appointment: EasyMedAppointment, crTextById: CrTextById) => {
+  const crDbId = getStringOrEmpty(appointment.cr_db_id);
+  const recommendationText = crDbId ? crTextById[crDbId] : undefined;
   const parts = [
-    recommendationText?.text,
     recommendationText?.comment,
     getStringOrEmpty(appointment.comment),
     getStringOrEmpty(appointment.plan),
     getStringOrEmpty(appointment.duration),
   ].filter((part): part is string => Boolean(part));
 
-  return parts.length > 0 ? parts.join("\n\n") : "Описание рекомендации не найдено";
+  return parts.join("\n\n");
 };
 
 const getSectionMeta = (appointment: EasyMedAppointment, source: "examination" | "treatment") => {
@@ -217,6 +225,7 @@ const normalizeAppointment = (
     code: getPersCode(appointment.pers),
     title,
     info: getAppointmentInfo(appointment, crTextById),
+    infoComment: getAppointmentInfoComment(appointment, crTextById),
     comment: "",
   };
 };

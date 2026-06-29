@@ -41,6 +41,7 @@ type ChecklistSection = {
     title: string;
     info: string;
     comment: string;
+    infoComment?: string;
   }[];
 };
 
