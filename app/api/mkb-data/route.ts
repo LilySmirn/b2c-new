@@ -154,7 +154,7 @@ const getPersCode = (pers: EasyMedPers | null | undefined) => {
   const recommendationLevel = getStringOrEmpty(pers?.уур);
   const evidenceLevel = getStringOrEmpty(pers?.удд);
 
-  return recommendationLevel || evidenceLevel ? `${recommendationLevel}${evidenceLevel}` : "—";
+  return recommendationLevel || evidenceLevel ? `${recommendationLevel}${evidenceLevel}` : "";
 };
 
 const getAppointmentInfo = (appointment: EasyMedAppointment, crTextById: CrTextById) => {
