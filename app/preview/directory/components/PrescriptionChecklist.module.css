@@ -237,9 +237,17 @@
   text-align: left;
 }
 
+.infoSection {
+  margin-top: 22px;
+}
+
+.infoSection:first-child {
+  margin-top: 0;
+}
+
 .infoSection strong {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   color: #10253f;
   font: italic 700 15px/1.45 Arial, sans-serif;
 }
@@ -248,13 +256,6 @@
   margin: 0;
   text-align: left;
   white-space: pre-line;
-}
-
-.infoDivider {
-  height: 1px;
-  margin: 20px 0;
-  border: 0;
-  background: #e0e3e7;
 }
 
 .modalCloseButton {

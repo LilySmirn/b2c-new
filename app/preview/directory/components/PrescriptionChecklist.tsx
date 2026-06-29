@@ -527,7 +527,6 @@ export default function PrescriptionChecklist({
                     <strong>Описание:</strong>
                     <p>{item.info || "Описание отсутствует"}</p>
                   </div>
-                  <hr className={styles.infoDivider} />
                   <div className={styles.infoSection}>
                     <strong>Комментарий:</strong>
                     <p>{item.infoComment || "Комментарий отсутствует"}</p>
