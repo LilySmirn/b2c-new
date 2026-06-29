@@ -5,7 +5,7 @@
 }
 
 body, html {
-  /*height: 100%;*/
+  min-height: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -43,14 +43,14 @@ body, html {
 
 body {
   display: flex;
-  /*min-height: 100vh;*/
+  min-height: 100vh;
   font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
   text-align: center;
   flex-direction: column;
 }
 
 html {
-  /*height: 100%;*/
+  min-height: 100%;
   font-size: 16px;
   scroll-behavior: smooth;
 }
@@ -62,6 +62,23 @@ button, input, textarea, select {
 main {
   width: 100%;
   /*max-width: 1400px;*/
+}
+
+.site-main {
+  width: 100%;
+}
+
+body.preview-directory-search-route .site-main,
+body.preview-directory-cart-route .site-main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+body.preview-directory-search-route .site-main > main,
+body.preview-directory-cart-route .site-main > main {
+  flex: 1 0 auto;
+  min-height: auto;
 }
 
 header {
