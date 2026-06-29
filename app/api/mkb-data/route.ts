@@ -71,6 +71,11 @@ type EasyMedCrTextItem = {
 
 type CrTextById = Record<string, { text: string; comment: string }>;
 
+type NormalizedCrTextSource = {
+  cr_db_id?: unknown;
+  value?: unknown;
+};
+
 type PrescriptionItem = {
   id: string;
   checked: boolean;
@@ -161,22 +166,19 @@ const getPersCode = (pers: EasyMedPers | null | undefined) => {
 const getAppointmentInfo = (appointment: EasyMedAppointment, crTextById: CrTextById) => {
   const crDbId = getStringOrEmpty(appointment.cr_db_id);
   const recommendationText = crDbId ? crTextById[crDbId] : undefined;
-  const description = getStringOrEmpty(recommendationText?.text);
-
-  return description || "Описание рекомендации не найдено";
+  
+  return (
+    getStringOrEmpty(recommendationText?.text) ||
+    getStringOrEmpty(appointment.comment) ||
+    "Описание рекомендации не найдено"
+  );
 };
 
 const getAppointmentInfoComment = (appointment: EasyMedAppointment, crTextById: CrTextById) => {
   const crDbId = getStringOrEmpty(appointment.cr_db_id);
   const recommendationText = crDbId ? crTextById[crDbId] : undefined;
-  const parts = [
-    recommendationText?.comment,
-    getStringOrEmpty(appointment.comment),
-    getStringOrEmpty(appointment.plan),
-    getStringOrEmpty(appointment.duration),
-  ].filter((part): part is string => Boolean(part));
-
-  return parts.join("\n\n");
+  
+  return getStringOrEmpty(recommendationText?.comment);
 };
 
 const getSectionMeta = (appointment: EasyMedAppointment, source: "examination" | "treatment") => {
@@ -261,23 +263,50 @@ const normalizePrescriptionSections = (
   return Array.from(sections.values());
 };
 
+const normalizeCrTextSource = (item: unknown, fallbackCrDbId = ""): NormalizedCrTextSource | null => {
+  if (!isRecord(item)) return null;
+
+  const crDbId = getStringOrEmpty(item.cr_db_id) || fallbackCrDbId;
+  const value = isRecord(item.value) ? item.value : item;
+
+  return crDbId && isRecord(value) ? { cr_db_id: crDbId, value } : null;
+};
+
+const setCrText = (acc: CrTextById, source: NormalizedCrTextSource) => {
+  const crDbId = getStringOrEmpty(source.cr_db_id);
+  const value = isRecord(source.value) ? source.value : null;
+  if (!crDbId || !value) return;
+
+  acc[crDbId] = {
+    text: getStringOrEmpty(value.text),
+    comment: getStringOrEmpty(value.comment),
+  };
+};
+
 const normalizeCrTexts = (items: unknown): CrTextById => {
-  if (!Array.isArray(items)) return {};
+  const crTextById: CrTextById = {};
 
-  return items.reduce<CrTextById>((acc, item) => {
-    if (!isRecord(item)) return acc;
+  if (Array.isArray(items)) {
+    items.forEach((item) => {
+      const source = normalizeCrTextSource(item);
+      if (source) setCrText(crTextById, source);
+    });
 
-    const crDbId = getStringOrEmpty(item.cr_db_id);
-    const value = isRecord(item.value) ? item.value : null;
-    if (!crDbId || !value) return acc;
+    return crTextById;
+  }
 
-    acc[crDbId] = {
-      text: getStringOrEmpty(value.text),
-      comment: getStringOrEmpty(value.comment),
-    };
+  if (!isRecord(items)) return crTextById;
 
-    return acc;
-  }, {});
+  Object.entries(items).forEach(([crDbId, value]) => {
+    const values = Array.isArray(value) ? value : [value];
+
+    values.forEach((item) => {
+      const source = normalizeCrTextSource(item, crDbId);
+      if (source) setCrText(crTextById, source);
+    });
+  });
+
+  return crTextById;
 };
 
 const getMkbCodes = (value: unknown) => {
