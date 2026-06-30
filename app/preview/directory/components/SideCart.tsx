@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ActionPanel from "./ActionPanel";
+import CustomCartItemModal from "./CustomCartItemModal";
 import CartTemplateToggle from "./CartTemplateToggle";
 import Image from "next/image";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
@@ -12,6 +13,12 @@ import type { CartTemplate } from "@/app/preview/directory/components/cartTempla
 import styles from "./SideCart.module.css";
 import deleteAllIcon from "@/assets/images/delete-all.svg";
 import deleteIcon from "@/assets/images/delete.svg";
+
+type CustomCartItem = {
+  id: string;
+  name: string;
+  comment: string;
+};
 
 type SideCartProps = {
   selectedItems?: SelectedPrescription[];
@@ -30,7 +37,10 @@ export default function SideCart({
 }: SideCartProps) {
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isSelectTemplateModalOpen, setIsSelectTemplateModalOpen] = useState(false);
-  const hasSelectedItems = selectedItems.length > 0;
+  const [customItems, setCustomItems] = useState<CustomCartItem[]>([]);
+  const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
+  const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
+  const hasSelectedItems = selectedItems.length > 0 || customItems.length > 0;
   const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
     (acc, item) => {
       acc[item.groupTitle] = [...(acc[item.groupTitle] ?? []), item];
@@ -53,7 +63,10 @@ export default function SideCart({
             type="button"
             className={styles.clearButton}
             aria-label="Удалить всё из корзины"
-            onClick={onDeleteAll}
+            onClick={() => {
+              onDeleteAll?.();
+              setCustomItems([]);
+            }}
           >
             <Image src={deleteAllIcon} alt="" width={22} height={22} aria-hidden="true" />
           </button>
@@ -82,9 +95,55 @@ export default function SideCart({
             ))}
           </div>
         ))}
+
+        {customItems.length > 0 ? (
+          <div>
+            <div className={styles.groupRow}>Добавлено прочее</div>
+            {customItems.map((item, index) => (
+              <div
+                key={item.id}
+                className={`${styles.itemRow} ${index % 2 === 1 ? styles.itemRowAlt : ""}`}
+              >
+                <span className={styles.itemTitle}>{item.name}</span>
+                <span className={styles.customItemActions}>
+                  <button
+                    type="button"
+                    className={styles.editButton}
+                    aria-label={`Редактировать ${item.name}`}
+                    onClick={() => {
+                      setEditingCustomItem(item);
+                      setIsCustomItemModalOpen(true);
+                    }}
+                  >
+                    <span aria-hidden="true">✎</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    aria-label={`Удалить ${item.name}`}
+                    onClick={() =>
+                      setCustomItems((prev) =>
+                        prev.filter((customItem) => customItem.id !== item.id),
+                      )
+                    }
+                  >
+                    <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
+                  </button>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
 
-      <button type="button" className={styles.addButton}>
+      <button
+        type="button"
+        className={styles.addButton}
+        onClick={() => {
+          setEditingCustomItem(null);
+          setIsCustomItemModalOpen(true);
+        }}
+      >
         <span className={styles.plus}>+</span>
         <span className={styles.addText}>Добавить услугу/медикамент</span>
       </button>
@@ -96,6 +155,36 @@ export default function SideCart({
       <div className={styles.actionPanelWrap}>
         <ActionPanel selectedItems={selectedItems} />
       </div>
+
+      {isCustomItemModalOpen ? (
+        <CustomCartItemModal
+          mode={editingCustomItem ? "edit" : "add"}
+          initialName={editingCustomItem?.name}
+          initialComment={editingCustomItem?.comment}
+          onClose={() => setIsCustomItemModalOpen(false)}
+          onSubmit={({ name, comment }) => {
+            if (editingCustomItem) {
+              setCustomItems((prev) =>
+                prev.map((item) =>
+                  item.id === editingCustomItem.id ? { ...item, name, comment } : item,
+                ),
+              );
+            } else {
+              setCustomItems((prev) => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  name,
+                  comment,
+                },
+              ]);
+            }
+
+            setEditingCustomItem(null);
+            setIsCustomItemModalOpen(false);
+          }}
+        />
+      ) : null}
 
       {isSelectTemplateModalOpen ? (
         <SelectTemplateModal
