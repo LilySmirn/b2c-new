@@ -8,6 +8,7 @@ const SERVICE_SYMBOLS_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/;
 
 type SaveTemplateModalProps = {
   selectedItems: SelectedPrescription[];
+  diagnosisCode: string;
   onClose: () => void;
 };
 
@@ -31,17 +32,38 @@ const validateTemplateName = (name: string) => {
 
 export default function SaveTemplateModal({
   selectedItems,
+  diagnosisCode,
   onClose,
 }: SaveTemplateModalProps) {
   const inputId = useId();
   const [templateName, setTemplateName] = useState("");
   const [touched, setTouched] = useState(false);
+  const [author, setAuthor] = useState("Врач не указан");
 
   const validationError = useMemo(
     () => validateTemplateName(templateName),
     [templateName],
   );
   const visibleError = touched ? validationError : "";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch("/api/auth/session")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((session) => {
+        const nextAuthor = session?.user?.name || session?.user?.email;
+
+        if (isMounted && nextAuthor) {
+          setAuthor(nextAuthor);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -62,7 +84,12 @@ export default function SaveTemplateModal({
     const savedTemplate = {
       id: crypto.randomUUID(),
       name: templateName.trim(),
+      author,
       createdAt: new Date().toISOString(),
+      diagnosisCode,
+      doctorComments: selectedItems
+        .map((item) => item.comment.trim())
+        .filter(Boolean),
       items: selectedItems,
     };
 

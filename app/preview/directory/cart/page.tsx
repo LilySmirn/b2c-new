@@ -85,11 +85,19 @@ const applyStoredSelections = (
   }));
 };
 
+const getDiagnosisCodeFromTitle = (title: string) => {
+  const trimmedTitle = title.trim();
+  if (!trimmedTitle) return "";
+
+  return trimmedTitle.split(":")[0]?.trim() ?? trimmedTitle;
+};
+
 export default function CartPreviewPage() {
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
   const [uncheckItemId, setUncheckItemId] = useState<string | null>(null);
   const [clearSelectionSignal, setClearSelectionSignal] = useState(0);
   const [diagnosisTitle, setDiagnosisTitle] = useState("");
+  const [diagnosisCode, setDiagnosisCode] = useState("");
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
   const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
@@ -103,7 +111,10 @@ export default function CartPreviewPage() {
       const currentRecommendationKey = getRecommendationStorageKey(parsed);
       const storedSelectedIds = readStoredSelections()[currentRecommendationKey] ?? [];
 
-      setDiagnosisTitle(parsed.diagnosisTitle ?? "");
+      const currentDiagnosisTitle = parsed.diagnosisTitle ?? "";
+
+      setDiagnosisTitle(currentDiagnosisTitle);
+      setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
       setRecommendationKey(currentRecommendationKey);
       setChecklistSections(
         applyStoredSelections(
@@ -113,6 +124,7 @@ export default function CartPreviewPage() {
       );
     } catch {
       setDiagnosisTitle("");
+      setDiagnosisCode("");
       setChecklistSections([]);
       setRecommendationKey("");
     }
@@ -172,6 +184,7 @@ export default function CartPreviewPage() {
           onDeleteItem={handleDeleteItem}
           onDeleteAll={handleDeleteAll}
           onApplyTemplate={handleApplyTemplate}
+          diagnosisCode={diagnosisCode}
         />
       </section>
       </main>

@@ -5,7 +5,10 @@ export const CART_TEMPLATES_STORAGE_KEY = "directoryCartTemplatesDraft";
 export type CartTemplate = {
   id: string;
   name: string;
+  author: string;
   createdAt: string;
+  diagnosisCode: string;
+  doctorComments: string[];
   items: SelectedPrescription[];
 };
 
@@ -26,5 +29,11 @@ export const writeCartTemplates = (templates: CartTemplate[]) => {
   window.localStorage.setItem(
     CART_TEMPLATES_STORAGE_KEY,
     JSON.stringify(templates),
+  );
+};
+
+export const deleteCartTemplate = (templateId: string) => {
+  writeCartTemplates(
+    readCartTemplates().filter((template) => template.id !== templateId),
   );
 };

@@ -1,34 +1,34 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import type { CartTemplate } from "@/app/preview/directory/components/cartTemplatesStorage";
-import { readCartTemplates } from "@/app/preview/directory/components/cartTemplatesStorage";
+import { deleteCartTemplate, readCartTemplates } from "@/app/preview/directory/components/cartTemplatesStorage";
 import styles from "./SaveTemplateModal.module.css";
+import deleteIcon from "@/assets/images/delete-icon.svg";
 
 type SelectTemplateModalProps = {
   onSelectTemplate: (template: CartTemplate) => void;
   onClose: () => void;
 };
 
-const formatTemplateDate = (date: string) => {
-  const parsedDate = new Date(date);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "Дата создания не указана";
-  }
-
-  return parsedDate.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const getTemplateSortValue = (template: CartTemplate) =>
+  `${template.diagnosisCode ?? ""} ${template.name}`.trim();
 
 export default function SelectTemplateModal({
   onSelectTemplate,
   onClose,
 }: SelectTemplateModalProps) {
-  const templates = useMemo(() => readCartTemplates(), []);
+  const [templates, setTemplates] = useState<CartTemplate[]>(() => readCartTemplates());
+
+  const sortedTemplates = useMemo(
+    () =>
+      templates.slice().sort((left, right) =>
+        getTemplateSortValue(left).localeCompare(getTemplateSortValue(right), "ru", {
+          numeric: true,
+          sensitivity: "base",
+        }),
+      ),
+    [templates],
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -41,10 +41,15 @@ export default function SelectTemplateModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  const handleDeleteTemplate = (templateId: string) => {
+    deleteCartTemplate(templateId);
+    setTemplates((prev) => prev.filter((template) => template.id !== templateId));
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div
-        className={styles.modal}
+        className={`${styles.modal} ${styles.selectTemplateModal}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="select-template-title"
@@ -64,19 +69,27 @@ export default function SelectTemplateModal({
           </button>
         </div>
 
-        {templates.length > 0 ? (
+        {sortedTemplates.length > 0 ? (
           <ul className={styles.templateList}>
-            {templates.map((template) => (
-              <li key={template.id}>
+            {sortedTemplates.map((template) => (
+              <li key={template.id} className={styles.templateListItem}>
                 <button
                   type="button"
                   className={styles.templateCard}
                   onClick={() => onSelectTemplate(template)}
                 >
-                  <span className={styles.templateName}>{template.name}</span>
-                  <span className={styles.templateMeta}>
-                    Создан: {formatTemplateDate(template.createdAt)} · Назначений: {template.items.length}
+                  <span className={styles.templateCode}>
+                    {template.diagnosisCode || "Код МКБ не указан"}
                   </span>
+                  <span className={styles.templateName}>{template.name}</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.templateDeleteButton}
+                  onClick={() => handleDeleteTemplate(template.id)}
+                  aria-label={`Удалить шаблон ${template.name}`}
+                >
+                  <Image src={deleteIcon} alt="" width={18} height={20} aria-hidden="true" />
                 </button>
               </li>
             ))}
