@@ -30,6 +30,7 @@ export default function SideCart({
 }: SideCartProps) {
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isSelectTemplateModalOpen, setIsSelectTemplateModalOpen] = useState(false);
+  const hasSelectedItems = selectedItems.length > 0;
   const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
     (acc, item) => {
       acc[item.groupTitle] = [...(acc[item.groupTitle] ?? []), item];
@@ -47,14 +48,16 @@ export default function SideCart({
 
       <div className={styles.headerRow}>
         <h2 className={styles.title}>Корзина назначений</h2>
-        <button
-          type="button"
-          className={styles.clearButton}
-          aria-label="Удалить всё из корзины"
-          onClick={onDeleteAll}
-        >
-          <Image src={deleteAllIcon} alt="" width={22} height={22} aria-hidden="true" />
-        </button>
+        {hasSelectedItems ? (
+          <button
+            type="button"
+            className={styles.clearButton}
+            aria-label="Удалить всё из корзины"
+            onClick={onDeleteAll}
+          >
+            <Image src={deleteAllIcon} alt="" width={22} height={22} aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
 
       <section className={styles.listPlaceholder} aria-label="Список назначений">
