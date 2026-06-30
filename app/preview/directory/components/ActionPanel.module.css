@@ -55,3 +55,91 @@
   align-items: flex-start;
   white-space: nowrap;
 }
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: rgba(0, 0, 0, 0.48);
+  box-sizing: border-box;
+}
+
+.modal {
+  position: relative;
+  width: min(500px, 100%);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 44px 34px 30px;
+  box-shadow: 0 24px 60px rgba(0, 24, 47, 0.24);
+  box-sizing: border-box;
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8b8b8b;
+  font: 300 32px/34px Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  background: #f4f4f4;
+  color: #00182f;
+}
+
+.modalText {
+  margin: 0;
+  color: #00182f;
+  font: 700 22px/1.35 Arial, sans-serif;
+  text-align: center;
+}
+
+.modalActions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.modalButton {
+  min-width: 128px;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 18px;
+  background: #1182ee;
+  color: #ffffff;
+  font: 700 15px/1 Arial, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.modalButton:hover,
+.modalButton:focus-visible {
+  background: #0f73d1;
+}
+
+@media (max-width: 560px) {
+  .modal {
+    padding: 28px 22px 24px;
+  }
+
+  .modalActions {
+    justify-content: stretch;
+  }
+
+  .modalButton {
+    width: 100%;
+  }
+}
