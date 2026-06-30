@@ -27,6 +27,7 @@ export type ChecklistSection = {
 
 export type SelectedPrescription = {
   id: string;
+  categoryTitle?: string;
   groupTitle: string;
   sectionTitle: string;
   title: string;
@@ -283,6 +284,11 @@ export default function PrescriptionChecklist({
           .filter((item) => item.checked)
           .map((item) => ({
             id: item.id,
+            categoryTitle:
+              section.categoryTitle ??
+              checklistCategories.find((category) => category.id === section.categoryId)
+                ?.label ??
+              section.groupTitle,
             groupTitle: section.groupTitle,
             sectionTitle: section.title,
             title: item.title,
@@ -290,7 +296,7 @@ export default function PrescriptionChecklist({
           })),
       ),
     );
-  }, [onSelectionChange, sections]);
+  }, [checklistCategories, onSelectionChange, sections]);
 
   useEffect(() => {
     if (!appliedTemplateItems) return;

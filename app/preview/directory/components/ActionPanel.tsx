@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import chartIcon from "@/assets/images/action-panel-1.svg";
 import copyIcon from "@/assets/images/action-panel-2.svg";
 import documentIcon from "@/assets/images/action-panel-3.svg";
+import type { SelectedPrescription } from "./PrescriptionChecklist";
 import styles from "./ActionPanel.module.css";
 
 const actions = [
@@ -25,8 +26,47 @@ const actions = [
   },
 ];
 
-export default function ActionPanel() {
+type ActionPanelProps = {
+  selectedItems?: SelectedPrescription[];
+};
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const groupSelectedItems = (selectedItems: SelectedPrescription[]) =>
+  selectedItems.reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
+    const categoryTitle = item.categoryTitle ?? item.groupTitle;
+    acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
+    return acc;
+  }, {});
+
+const buildClipboardContent = (selectedItems: SelectedPrescription[]) => {
+  const groupedItems = groupSelectedItems(selectedItems);
+
+  const textLines = Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
+    categoryTitle,
+    ...items.map((item) => item.title),
+  ]);
+  const plainText = textLines.join("\n");
+
+  const htmlLines = Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
+    `<strong>${escapeHtml(categoryTitle)}</strong>`,
+    ...items.map((item) => escapeHtml(item.title)),
+  ]);
+  const html = htmlLines.join("<br>");
+
+  return { plainText, html };
+};
+
+export default function ActionPanel({ selectedItems = [] }: ActionPanelProps) {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+  const [copyNotice, setCopyNotice] = useState("");
+  const copyNoticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isIntegrationModalOpen) return;
@@ -41,6 +81,46 @@ export default function ActionPanel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isIntegrationModalOpen]);
 
+  useEffect(
+    () => () => {
+      if (copyNoticeTimerRef.current) {
+        window.clearTimeout(copyNoticeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const showCopyNotice = (itemsCount: number) => {
+    setCopyNotice(`Скопировано ${itemsCount} услуг`);
+
+    if (copyNoticeTimerRef.current) {
+      window.clearTimeout(copyNoticeTimerRef.current);
+    }
+
+    copyNoticeTimerRef.current = window.setTimeout(() => {
+      setCopyNotice("");
+      copyNoticeTimerRef.current = null;
+    }, 2400);
+  };
+
+  const copySelectedItems = async () => {
+    const { plainText, html } = buildClipboardContent(selectedItems);
+
+    if (navigator.clipboard && "ClipboardItem" in window) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([plainText], { type: "text/plain" }),
+        }),
+      ]);
+    } else {
+      await navigator.clipboard?.writeText(plainText);
+    }
+
+    showCopyNotice(selectedItems.length);
+  };
+
+
   return (
     <>
       <div className={styles.panel}>
@@ -49,7 +129,13 @@ export default function ActionPanel() {
             key={action.id}
             type="button"
             className={styles.actionButton}
-            onClick={action.id === "chart" ? () => setIsIntegrationModalOpen(true) : undefined}
+            onClick={
+              action.id === "chart"
+                ? () => setIsIntegrationModalOpen(true)
+                : action.id === "copy"
+                  ? copySelectedItems
+                  : undefined
+            }
           >
             <Image
               className={styles.icon}
@@ -67,6 +153,12 @@ export default function ActionPanel() {
           </button>
         ))}
       </div>
+
+      {copyNotice ? (
+        <div className={styles.copyNotice} role="status" aria-live="polite">
+          {copyNotice}
+        </div>
+      ) : null}
 
       {isIntegrationModalOpen ? (
         <div className={styles.modalOverlay} onClick={() => setIsIntegrationModalOpen(false)}>

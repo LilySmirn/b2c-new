@@ -94,7 +94,7 @@ export default function SideCart({
       </div>
 
       <div className={styles.actionPanelWrap}>
-        <ActionPanel />
+        <ActionPanel selectedItems={selectedItems} />
       </div>
 
       {isSelectTemplateModalOpen ? (
