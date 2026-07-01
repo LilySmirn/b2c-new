@@ -84,6 +84,15 @@ const hasDataForFilters = (
 ) => availability[age][visit];
 
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
+const SEARCH_STATE_STORAGE_KEY = "directorySearchState";
+
+type StoredSearchState = {
+  query?: string;
+  visitType?: VisitType;
+  ageGroup?: AgeGroup;
+  submittedCode?: string | null;
+  submittedDiagnosisTitle?: string | null;
+};
 
 const getCartRecommendationKey = (
   diagnosisTitle: string | null | undefined,
@@ -92,6 +101,32 @@ const getCartRecommendationKey = (
   [diagnosisTitle, card.id, card.title, card.mkbCodes.join(",")]
     .filter(Boolean)
     .join("|");
+
+    const isVisitType = (value: unknown): value is VisitType =>
+  typeof value === "string" && visitOptions.some((option) => option.id === value);
+
+const isAgeGroup = (value: unknown): value is AgeGroup =>
+  typeof value === "string" && ageOptions.some((option) => option.id === value);
+
+const readStoredSearchState = (): StoredSearchState | null => {
+  if (typeof window === "undefined") return null;
+
+  const storedValue = window.sessionStorage.getItem(SEARCH_STATE_STORAGE_KEY);
+  if (!storedValue) return null;
+
+  try {
+    const parsed = JSON.parse(storedValue);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as StoredSearchState)
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredSearchState = (state: StoredSearchState) => {
+  window.sessionStorage.setItem(SEARCH_STATE_STORAGE_KEY, JSON.stringify(state));
+};
 
 const getRecommendationExternalUrl = (source: string, id: string) => {
   if (source.toLowerCase() === "minzdrav" && id !== "—") {
@@ -117,6 +152,49 @@ export default function SearchPreviewPage() {
   const [cardsError, setCardsError] = useState<string | null>(null);
   const [isCardsLoading, setIsCardsLoading] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const hasRestoredSearchStateRef = useRef(false);
+
+  useEffect(() => {
+    if (hasRestoredSearchStateRef.current) return;
+
+    const storedSearchState = readStoredSearchState();
+
+    if (!storedSearchState) {
+      hasRestoredSearchStateRef.current = true;
+      return;
+    }
+
+    if (typeof storedSearchState.query === "string") {
+      setQuery(storedSearchState.query);
+    }
+
+    if (isVisitType(storedSearchState.visitType)) {
+      setVisitType(storedSearchState.visitType);
+    }
+
+    if (isAgeGroup(storedSearchState.ageGroup)) {
+      setAgeGroup(storedSearchState.ageGroup);
+    }
+
+    setSubmittedCode(storedSearchState.submittedCode ?? null);
+    setSubmittedDiagnosisTitle(storedSearchState.submittedDiagnosisTitle ?? null);
+
+    window.setTimeout(() => {
+      hasRestoredSearchStateRef.current = true;
+    }, 0);
+  }, []);
+
+  useEffect(() => {
+    if (!hasRestoredSearchStateRef.current) return;
+
+    writeStoredSearchState({
+      query,
+      visitType,
+      ageGroup,
+      submittedCode,
+      submittedDiagnosisTitle,
+    });
+  }, [ageGroup, query, submittedCode, submittedDiagnosisTitle, visitType]);
 
   const search = query.trim();
   const matches = useMemo(() => apiMatches.map(formatMkbResult), [apiMatches]);
@@ -319,6 +397,14 @@ export default function SearchPreviewPage() {
 
   const handleCardSelect = (card: RecommendationStandard) => {
     const diagnosisTitle = submittedDiagnosisTitle ?? submittedCode ?? card.title;
+    
+    writeStoredSearchState({
+      query,
+      visitType,
+      ageGroup,
+      submittedCode,
+      submittedDiagnosisTitle,
+    });
 
     window.sessionStorage.setItem(
       CART_RECOMMENDATION_STORAGE_KEY,
