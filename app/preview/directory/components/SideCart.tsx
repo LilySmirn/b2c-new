@@ -30,8 +30,10 @@ type SideCartProps = {
 };
 
 const CUSTOM_ITEMS_STORAGE_KEY = "directoryCartCustomItems";
+const GENERAL_COMMENT_STORAGE_KEY = "directoryCartGeneralComments";
 
 type StoredCustomCartItems = Record<string, CustomCartItem[]>;
+type StoredGeneralComments = Record<string, string>;
 
 const readStoredCustomItems = (): StoredCustomCartItems => {
   const storedValue =
@@ -54,6 +56,47 @@ const getStoredCustomItems = (storageKey: string) => {
   const storedItems = readStoredCustomItems()[storageKey];
 
   return Array.isArray(storedItems) ? storedItems : [];
+};
+
+const readStoredGeneralComments = (): StoredGeneralComments => {
+  const storedValue =
+    window.sessionStorage.getItem(GENERAL_COMMENT_STORAGE_KEY) ??
+    window.localStorage.getItem(GENERAL_COMMENT_STORAGE_KEY);
+
+  if (!storedValue) return {};
+
+  try {
+    const parsed = JSON.parse(storedValue);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as StoredGeneralComments)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+const getStoredGeneralComment = (storageKey: string) => {
+  const storedComment = readStoredGeneralComments()[storageKey];
+
+  return typeof storedComment === "string" ? storedComment : "";
+};
+
+const writeStoredGeneralComment = (storageKey: string, comment: string) => {
+  if (!storageKey) return;
+
+  const storedComments = readStoredGeneralComments();
+  const normalizedComment = comment.trim();
+
+  if (normalizedComment) {
+    storedComments[storageKey] = comment;
+  } else {
+    delete storedComments[storageKey];
+  }
+
+  const serializedComments = JSON.stringify(storedComments);
+
+  window.sessionStorage.setItem(GENERAL_COMMENT_STORAGE_KEY, serializedComments);
+  window.localStorage.setItem(GENERAL_COMMENT_STORAGE_KEY, serializedComments);
 };
 
 const writeStoredCustomItems = (
@@ -90,7 +133,9 @@ export default function SideCart({
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isSelectTemplateModalOpen, setIsSelectTemplateModalOpen] = useState(false);
   const [customItems, setCustomItems] = useState<CustomCartItem[]>([]);
+  const [generalComment, setGeneralComment] = useState("");
   const [loadedCustomItemsStorageKey, setLoadedCustomItemsStorageKey] = useState("");
+  const [loadedGeneralCommentStorageKey, setLoadedGeneralCommentStorageKey] = useState("");
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const hasSelectedItems = selectedItems.length > 0 || customItems.length > 0;
@@ -98,12 +143,16 @@ export default function SideCart({
   useEffect(() => {
     if (!storageKey) {
       setCustomItems([]);
+      setGeneralComment("");
       setLoadedCustomItemsStorageKey("");
+      setLoadedGeneralCommentStorageKey("");
       return;
     }
 
     setCustomItems(getStoredCustomItems(storageKey));
+    setGeneralComment(getStoredGeneralComment(storageKey));
     setLoadedCustomItemsStorageKey(storageKey);
+    setLoadedGeneralCommentStorageKey(storageKey);
   }, [storageKey]);
 
   useEffect(() => {
@@ -111,6 +160,12 @@ export default function SideCart({
 
     writeStoredCustomItems(storageKey, customItems);
   }, [customItems, loadedCustomItemsStorageKey, storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || loadedGeneralCommentStorageKey !== storageKey) return;
+
+    writeStoredGeneralComment(storageKey, generalComment);
+  }, [generalComment, loadedGeneralCommentStorageKey, storageKey]);
 
   const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
     (acc, item) => {
@@ -137,6 +192,7 @@ export default function SideCart({
             onClick={() => {
               onDeleteAll?.();
               setCustomItems([]);
+              setGeneralComment("");
             }}
           >
             <Image src={deleteAllIcon} alt="" width={22} height={22} aria-hidden="true" />
@@ -220,11 +276,18 @@ export default function SideCart({
       </button>
 
       <div className={styles.recommendationWrap}>
-        <RecommendationField />
+        <RecommendationField
+          value={generalComment}
+          onChange={(event) => setGeneralComment(event.target.value)}
+        />
       </div>
 
       <div className={styles.actionPanelWrap}>
-        <ActionPanel selectedItems={selectedItems} customItems={customItems} />
+        <ActionPanel
+          selectedItems={selectedItems}
+          customItems={customItems}
+          generalComment={generalComment}
+        />
       </div>
 
       {isCustomItemModalOpen ? (

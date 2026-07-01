@@ -8,8 +8,12 @@
   font: 400 14px/1.35 Arial, sans-serif;
   text-align: left;
   padding: 14px 12px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  cursor: pointer;
+  display: block;
+  resize: none;
+  outline: none;
+}
+
+.field::placeholder {
+  color: #8590a2;
+  opacity: 1;
 }

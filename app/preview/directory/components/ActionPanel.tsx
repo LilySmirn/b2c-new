@@ -30,6 +30,7 @@ const actions = [
 type ActionPanelProps = {
   selectedItems?: SelectedPrescription[];
   customItems?: CustomCartItem[];
+  generalComment?: string;
 };
 
 const escapeHtml = (value: string) =>
@@ -46,9 +47,6 @@ const groupSelectedItems = (selectedItems: SelectedPrescription[]) =>
     acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
     return acc;
   }, {});
-
-const formatCustomItem = (item: CustomCartItem) =>
-  item.comment ? `${item.name} — ${item.comment}` : item.name;
 
 const formatItemTextLines = ({
   title,
@@ -72,8 +70,10 @@ const formatItemHtmlLines = ({
 const buildClipboardContent = (
   selectedItems: SelectedPrescription[],
   customItems: CustomCartItem[],
+  generalComment: string,
 ) => {
   const groupedItems = groupSelectedItems(selectedItems);
+  const trimmedGeneralComment = generalComment.trim();
 
   const textLines = [
     ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
@@ -96,6 +96,9 @@ const buildClipboardContent = (
             "",
           ]),
         ]
+      : []),
+      ...(trimmedGeneralComment
+      ? ["", "Общий комментарий:", trimmedGeneralComment]
       : []),
   ];
   const plainText = textLines.join("\n");
@@ -122,6 +125,13 @@ const buildClipboardContent = (
           ]),
         ]
       : []),
+      ...(trimmedGeneralComment
+      ? [
+          "",
+          "<strong>Общий комментарий:</strong>",
+          escapeHtml(trimmedGeneralComment),
+        ]
+      : []),
   ];
   const html = htmlLines.join("<br>");
 
@@ -131,6 +141,7 @@ const buildClipboardContent = (
 export default function ActionPanel({
   selectedItems = [],
   customItems = [],
+  generalComment = "",
 }: ActionPanelProps) {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
@@ -172,7 +183,11 @@ export default function ActionPanel({
   };
 
   const copySelectedItems = async () => {
-    const { plainText, html } = buildClipboardContent(selectedItems, customItems);
+    const { plainText, html } = buildClipboardContent(
+      selectedItems,
+      customItems,
+      generalComment,
+    );
 
     if (navigator.clipboard && "ClipboardItem" in window) {
       await navigator.clipboard.write([

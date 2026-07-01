@@ -1,17 +1,25 @@
+import type { TextareaHTMLAttributes } from "react";
 import styles from "./RecommendationField.module.css";
 
-type RecommendationFieldProps = {
-  placeholder?: string;
-  onClick?: () => void;
-};
+type RecommendationFieldProps = Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "className"
+>;
 
 export default function RecommendationField({
+  value = "",
   placeholder = "Напишите общую рекомендацию для пациента...",
-  onClick,
+  onChange,
+  ...props
 }: RecommendationFieldProps) {
   return (
-    <button type="button" className={styles.field} onClick={onClick}>
-      <span>{placeholder}</span>
-    </button>
+    <textarea
+      className={styles.field}
+      value={value}
+      placeholder={placeholder}
+      onChange={onChange}
+      aria-label="Общая рекомендация для пациента"
+      {...props}
+    />
   );
 }
