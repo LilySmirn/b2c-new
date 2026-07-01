@@ -37,14 +37,14 @@ export default function SaveTemplateModal({
 }: SaveTemplateModalProps) {
   const inputId = useId();
   const [templateName, setTemplateName] = useState("");
-  const [touched, setTouched] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [author, setAuthor] = useState("Врач не указан");
 
   const validationError = useMemo(
     () => validateTemplateName(templateName),
     [templateName],
   );
-  const visibleError = touched ? validationError : "";
+  const visibleError = submitAttempted ? validationError : "";
 
   useEffect(() => {
     let isMounted = true;
@@ -77,7 +77,7 @@ export default function SaveTemplateModal({
   }, [onClose]);
 
   const handleSubmit = () => {
-    setTouched(true);
+     setSubmitAttempted(true);
 
     if (validationError) return;
 
@@ -128,7 +128,6 @@ export default function SaveTemplateModal({
           className={`${styles.input} ${visibleError ? styles.inputError : ""}`}
           value={templateName}
           onChange={(event) => setTemplateName(event.target.value)}
-          onBlur={() => setTouched(true)}
           placeholder="Например, Контроль гипертонии"
           maxLength={TEMPLATE_NAME_MAX_LENGTH}
           aria-invalid={Boolean(visibleError)}
@@ -160,7 +159,6 @@ export default function SaveTemplateModal({
             type="button"
             className={`${styles.modalButton} ${styles.modalButtonPrimary}`}
             onClick={handleSubmit}
-            disabled={Boolean(validationError)}
           >
             Сохранить
           </button>
