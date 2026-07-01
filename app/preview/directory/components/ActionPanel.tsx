@@ -50,6 +50,25 @@ const groupSelectedItems = (selectedItems: SelectedPrescription[]) =>
 const formatCustomItem = (item: CustomCartItem) =>
   item.comment ? `${item.name} — ${item.comment}` : item.name;
 
+const formatItemTextLines = ({
+  title,
+  comment,
+}: {
+  title: string;
+  comment: string;
+}) => [title, ...(comment ? [`Комментарий: ${comment}`] : [])];
+
+const formatItemHtmlLines = ({
+  title,
+  comment,
+}: {
+  title: string;
+  comment: string;
+}) => [
+  escapeHtml(title),
+  ...(comment ? [`<em>Комментарий: ${escapeHtml(comment)}</em>`] : []),
+];
+
 const buildClipboardContent = (
   selectedItems: SelectedPrescription[],
   customItems: CustomCartItem[],
@@ -59,10 +78,24 @@ const buildClipboardContent = (
   const textLines = [
     ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
       categoryTitle,
-      ...items.map((item) => item.title),
+      "",
+      ...items.flatMap((item) => [
+        ...formatItemTextLines({ title: item.title, comment: item.comment }),
+        "",
+      ]),
     ]),
     ...(customItems.length > 0
-      ? ["Добавлено прочее", ...customItems.map(formatCustomItem)]
+      ? [
+          "Добавлено прочее",
+          "",
+          ...customItems.flatMap((item) => [
+            ...formatItemTextLines({
+              title: item.name,
+              comment: item.comment,
+            }),
+            "",
+          ]),
+        ]
       : []),
   ];
   const plainText = textLines.join("\n");
@@ -70,12 +103,23 @@ const buildClipboardContent = (
   const htmlLines = [
     ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
       `<strong>${escapeHtml(categoryTitle)}</strong>`,
-      ...items.map((item) => escapeHtml(item.title)),
+      "",
+      ...items.flatMap((item) => [
+        ...formatItemHtmlLines({ title: item.title, comment: item.comment }),
+        "",
+      ]),
     ]),
     ...(customItems.length > 0
       ? [
           "<strong>Добавлено прочее</strong>",
-          ...customItems.map((item) => escapeHtml(formatCustomItem(item))),
+          "",
+          ...customItems.flatMap((item) => [
+            ...formatItemHtmlLines({
+              title: item.name,
+              comment: item.comment,
+            }),
+            "",
+          ]),
         ]
       : []),
   ];
