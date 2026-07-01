@@ -14,7 +14,7 @@ import styles from "./SideCart.module.css";
 import deleteAllIcon from "@/assets/images/delete-all.svg";
 import deleteIcon from "@/assets/images/delete.svg";
 
-type CustomCartItem = {
+export type CustomCartItem = {
   id: string;
   name: string;
   comment: string;
@@ -153,7 +153,7 @@ export default function SideCart({
       </div>
 
       <div className={styles.actionPanelWrap}>
-        <ActionPanel selectedItems={selectedItems} />
+        <ActionPanel selectedItems={selectedItems} customItems={customItems} />
       </div>
 
       {isCustomItemModalOpen ? (

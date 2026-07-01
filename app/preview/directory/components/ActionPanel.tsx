@@ -6,6 +6,7 @@ import chartIcon from "@/assets/images/action-panel-1.svg";
 import copyIcon from "@/assets/images/action-panel-2.svg";
 import documentIcon from "@/assets/images/action-panel-3.svg";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
+import type { CustomCartItem } from "./SideCart";
 import styles from "./ActionPanel.module.css";
 
 const actions = [
@@ -28,6 +29,7 @@ const actions = [
 
 type ActionPanelProps = {
   selectedItems?: SelectedPrescription[];
+  customItems?: CustomCartItem[];
 };
 
 const escapeHtml = (value: string) =>
@@ -45,25 +47,47 @@ const groupSelectedItems = (selectedItems: SelectedPrescription[]) =>
     return acc;
   }, {});
 
-const buildClipboardContent = (selectedItems: SelectedPrescription[]) => {
+const formatCustomItem = (item: CustomCartItem) =>
+  item.comment ? `${item.name} — ${item.comment}` : item.name;
+
+const buildClipboardContent = (
+  selectedItems: SelectedPrescription[],
+  customItems: CustomCartItem[],
+) => {
   const groupedItems = groupSelectedItems(selectedItems);
 
-  const textLines = Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
-    categoryTitle,
-    ...items.map((item) => item.title),
-  ]);
+  const textLines = [
+    ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
+      categoryTitle,
+      ...items.map((item) => item.title),
+    ]),
+    ...(customItems.length > 0
+      ? ["Добавлено прочее", ...customItems.map(formatCustomItem)]
+      : []),
+  ];
   const plainText = textLines.join("\n");
 
-  const htmlLines = Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
-    `<strong>${escapeHtml(categoryTitle)}</strong>`,
-    ...items.map((item) => escapeHtml(item.title)),
-  ]);
+  const htmlLines = [
+    ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
+      `<strong>${escapeHtml(categoryTitle)}</strong>`,
+      ...items.map((item) => escapeHtml(item.title)),
+    ]),
+    ...(customItems.length > 0
+      ? [
+          "<strong>Добавлено прочее</strong>",
+          ...customItems.map((item) => escapeHtml(formatCustomItem(item))),
+        ]
+      : []),
+  ];
   const html = htmlLines.join("<br>");
 
   return { plainText, html };
 };
 
-export default function ActionPanel({ selectedItems = [] }: ActionPanelProps) {
+export default function ActionPanel({
+  selectedItems = [],
+  customItems = [],
+}: ActionPanelProps) {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
   const copyNoticeTimerRef = useRef<number | null>(null);
@@ -104,7 +128,7 @@ export default function ActionPanel({ selectedItems = [] }: ActionPanelProps) {
   };
 
   const copySelectedItems = async () => {
-    const { plainText, html } = buildClipboardContent(selectedItems);
+    const { plainText, html } = buildClipboardContent(selectedItems, customItems);
 
     if (navigator.clipboard && "ClipboardItem" in window) {
       await navigator.clipboard.write([
@@ -117,7 +141,7 @@ export default function ActionPanel({ selectedItems = [] }: ActionPanelProps) {
       await navigator.clipboard?.writeText(plainText);
     }
 
-    showCopyNotice(selectedItems.length);
+    showCopyNotice(selectedItems.length + customItems.length);
   };
 
 
