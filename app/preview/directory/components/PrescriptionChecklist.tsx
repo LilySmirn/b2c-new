@@ -264,12 +264,18 @@ export default function PrescriptionChecklist({
   const saveComment = () => {
     if (!commentTarget) return;
 
+    const trimmedComment = commentTarget.value.trim();
+
     setSections((prev) =>
       prev.map((section) => ({
         ...section,
         items: section.items.map((item) =>
           itemMatchesId(item, commentTarget.id)
-            ? { ...item, comment: commentTarget.value.trim() }
+            ? {
+                ...item,
+                checked: trimmedComment ? true : item.checked,
+                comment: trimmedComment,
+              }
             : item,
         ),
       })),
