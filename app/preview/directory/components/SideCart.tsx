@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ActionPanel from "./ActionPanel";
 import CustomCartItemModal from "./CustomCartItemModal";
 import CartTemplateToggle from "./CartTemplateToggle";
@@ -26,6 +26,57 @@ type SideCartProps = {
   onDeleteAll?: () => void;
   onApplyTemplate?: (template: CartTemplate) => void;
   diagnosisCode?: string;
+  storageKey?: string;
+};
+
+const CUSTOM_ITEMS_STORAGE_KEY = "directoryCartCustomItems";
+
+type StoredCustomCartItems = Record<string, CustomCartItem[]>;
+
+const readStoredCustomItems = (): StoredCustomCartItems => {
+  const storedValue =
+    window.sessionStorage.getItem(CUSTOM_ITEMS_STORAGE_KEY) ??
+    window.localStorage.getItem(CUSTOM_ITEMS_STORAGE_KEY);
+
+  if (!storedValue) return {};
+
+  try {
+    const parsed = JSON.parse(storedValue);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as StoredCustomCartItems)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+const getStoredCustomItems = (storageKey: string) => {
+  const storedItems = readStoredCustomItems()[storageKey];
+
+  return Array.isArray(storedItems) ? storedItems : [];
+};
+
+const writeStoredCustomItems = (
+  storageKey: string,
+  customItems: CustomCartItem[],
+) => {
+  if (!storageKey) return;
+
+  const storedCustomItems = readStoredCustomItems();
+
+  if (customItems.length > 0) {
+    storedCustomItems[storageKey] = customItems;
+  } else {
+    delete storedCustomItems[storageKey];
+  }
+
+  const serializedCustomItems = JSON.stringify(storedCustomItems);
+
+  window.sessionStorage.setItem(
+    CUSTOM_ITEMS_STORAGE_KEY,
+    serializedCustomItems,
+  );
+  window.localStorage.setItem(CUSTOM_ITEMS_STORAGE_KEY, serializedCustomItems);
 };
 
 export default function SideCart({
@@ -34,13 +85,33 @@ export default function SideCart({
   onDeleteAll,
   onApplyTemplate,
   diagnosisCode = "",
+  storageKey = "",
 }: SideCartProps) {
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isSelectTemplateModalOpen, setIsSelectTemplateModalOpen] = useState(false);
   const [customItems, setCustomItems] = useState<CustomCartItem[]>([]);
+  const [loadedCustomItemsStorageKey, setLoadedCustomItemsStorageKey] = useState("");
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const hasSelectedItems = selectedItems.length > 0 || customItems.length > 0;
+
+  useEffect(() => {
+    if (!storageKey) {
+      setCustomItems([]);
+      setLoadedCustomItemsStorageKey("");
+      return;
+    }
+
+    setCustomItems(getStoredCustomItems(storageKey));
+    setLoadedCustomItemsStorageKey(storageKey);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || loadedCustomItemsStorageKey !== storageKey) return;
+
+    writeStoredCustomItems(storageKey, customItems);
+  }, [customItems, loadedCustomItemsStorageKey, storageKey]);
+
   const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
     (acc, item) => {
       acc[item.groupTitle] = [...(acc[item.groupTitle] ?? []), item];

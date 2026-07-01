@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
@@ -19,7 +19,7 @@ type StoredCartRecommendation = {
   };
 };
 
-type StoredCartSelections = Record<string, string[]>;
+type StoredCartSelections = Record<string, SelectedPrescription[]>;
 
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
 const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
@@ -40,7 +40,9 @@ const getRecommendationStorageKey = (data: StoredCartRecommendation) => {
 };
 
 const readStoredSelections = (): StoredCartSelections => {
-  const storedValue = window.sessionStorage.getItem(CART_SELECTIONS_STORAGE_KEY);
+  const storedValue =
+    window.sessionStorage.getItem(CART_SELECTIONS_STORAGE_KEY) ??
+    window.localStorage.getItem(CART_SELECTIONS_STORAGE_KEY);
   if (!storedValue) return {};
 
   try {
@@ -53,35 +55,73 @@ const readStoredSelections = (): StoredCartSelections => {
   }
 };
 
-const writeStoredSelectionIds = (recommendationKey: string, selectedIds: string[]) => {
+const normalizeStoredSelectionItems = (
+  storedSelection: unknown,
+): SelectedPrescription[] => {
+  if (!Array.isArray(storedSelection)) return [];
+
+  return storedSelection
+    .map((item) => {
+      if (typeof item === "string") {
+        return { id: item, comment: "" } as SelectedPrescription;
+      }
+
+      if (item && typeof item === "object" && "id" in item) {
+        return {
+          ...(item as SelectedPrescription),
+          id: String((item as { id: unknown }).id),
+          comment:
+            typeof (item as { comment?: unknown }).comment === "string"
+              ? (item as { comment: string }).comment
+              : "",
+        };
+      }
+
+      return null;
+    })
+    .filter((item): item is SelectedPrescription => Boolean(item?.id));
+};
+
+const writeStoredSelections = (
+  recommendationKey: string,
+  selectedItems: SelectedPrescription[],
+) => {
   if (!recommendationKey) return;
 
   const storedSelections = readStoredSelections();
 
-  if (selectedIds.length > 0) {
-    storedSelections[recommendationKey] = selectedIds;
+  if (selectedItems.length > 0) {
+    storedSelections[recommendationKey] = selectedItems;
   } else {
     delete storedSelections[recommendationKey];
   }
 
+  const serializedSelections = JSON.stringify(storedSelections);
+
   window.sessionStorage.setItem(
     CART_SELECTIONS_STORAGE_KEY,
-    JSON.stringify(storedSelections),
+    serializedSelections,
   );
+  window.localStorage.setItem(CART_SELECTIONS_STORAGE_KEY, serializedSelections);
 };
 
 const applyStoredSelections = (
   sections: ChecklistSection[],
-  selectedIds: string[],
+  selectedItems: SelectedPrescription[],
 ) => {
-  const selectedIdSet = new Set(selectedIds);
+  const selectedItemMap = new Map(selectedItems.map((item) => [item.id, item]));
 
   return sections.map((section) => ({
     ...section,
-    items: section.items.map((item) => ({
-      ...item,
-      checked: selectedIdSet.has(item.id),
-    })),
+    items: section.items.map((item) => {
+      const storedItem = selectedItemMap.get(item.id);
+
+      return {
+        ...item,
+        checked: Boolean(storedItem),
+        comment: storedItem?.comment ?? item.comment,
+      };
+    }),
   }));
 };
 
@@ -101,6 +141,7 @@ export default function CartPreviewPage() {
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
   const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
+  const isRestoringStoredSelectionsRef = useRef(false);
 
   useEffect(() => {
     const storedValue = window.sessionStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY);
@@ -109,17 +150,20 @@ export default function CartPreviewPage() {
     try {
       const parsed = JSON.parse(storedValue) as StoredCartRecommendation;
       const currentRecommendationKey = getRecommendationStorageKey(parsed);
-      const storedSelectedIds = readStoredSelections()[currentRecommendationKey] ?? [];
+      const storedSelectedItems = normalizeStoredSelectionItems(
+        readStoredSelections()[currentRecommendationKey],
+      );
 
       const currentDiagnosisTitle = parsed.diagnosisTitle ?? "";
 
       setDiagnosisTitle(currentDiagnosisTitle);
       setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
+      isRestoringStoredSelectionsRef.current = true;
       setRecommendationKey(currentRecommendationKey);
       setChecklistSections(
         applyStoredSelections(
           parsed.recommendation?.prescriptions ?? [],
-          storedSelectedIds,
+          storedSelectedItems,
         ),
       );
     } catch {
@@ -131,20 +175,20 @@ export default function CartPreviewPage() {
   }, []);
 
   const handleSelectionChange = useCallback((items: SelectedPrescription[]) => {
+    if (isRestoringStoredSelectionsRef.current && items.length === 0) {
+      isRestoringStoredSelectionsRef.current = false;
+      return;
+    }
+
+    isRestoringStoredSelectionsRef.current = false;
     setSelectedItems(items);
-    writeStoredSelectionIds(
-      recommendationKey,
-      items.map((item) => item.id),
-    );
+    writeStoredSelections(recommendationKey, items);
   }, [recommendationKey]);
 
   const handleDeleteItem = (id: string) => {
     setSelectedItems((prev) => {
       const nextItems = prev.filter((item) => item.id !== id);
-      writeStoredSelectionIds(
-        recommendationKey,
-        nextItems.map((item) => item.id),
-      );
+      writeStoredSelections(recommendationKey, nextItems);
       return nextItems;
     });
     setUncheckItemId(id);
@@ -152,7 +196,7 @@ export default function CartPreviewPage() {
 
   const handleDeleteAll = () => {
     setSelectedItems([]);
-    writeStoredSelectionIds(recommendationKey, []);
+    writeStoredSelections(recommendationKey, []);
     setClearSelectionSignal((prev) => prev + 1);
     setAppliedTemplateItems(null);
   };
@@ -160,10 +204,7 @@ export default function CartPreviewPage() {
   const handleApplyTemplate = (template: CartTemplate) => {
     setSelectedItems(template.items);
     setAppliedTemplateItems(template.items);
-    writeStoredSelectionIds(
-      recommendationKey,
-      template.items.map((item) => item.id),
-    );
+    writeStoredSelections(recommendationKey, template.items);
   };
 
   return (
@@ -185,6 +226,7 @@ export default function CartPreviewPage() {
           onDeleteAll={handleDeleteAll}
           onApplyTemplate={handleApplyTemplate}
           diagnosisCode={diagnosisCode}
+          storageKey={recommendationKey}
         />
       </section>
       </main>
