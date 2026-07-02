@@ -119,7 +119,7 @@ export default function CustomCartItemModal({
           className={`${styles.input} ${styles.textarea} ${styles.commentInput}`}
           value={comment}
           onChange={(event) => setComment(event.target.value)}
-          placeholder="Комментарий"
+          placeholder="Комментарий..."
           maxLength={CUSTOM_ITEM_COMMENT_MAX_LENGTH}
           aria-label="Комментарий"
         />
