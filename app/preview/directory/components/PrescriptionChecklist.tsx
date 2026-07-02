@@ -205,9 +205,17 @@ export default function PrescriptionChecklist({
     setSections((prev) =>
       prev.map((section) => ({
         ...section,
-        items: section.items.map((item) =>
-          itemMatchesId(item, id) ? { ...item, checked: !item.checked } : item,
-        ),
+        items: section.items.map((item) => {
+          if (!itemMatchesId(item, id)) return item;
+
+          const checked = !item.checked;
+
+          return {
+            ...item,
+            checked,
+            comment: checked ? item.comment : "",
+          };
+        }),
       })),
     );
   };
@@ -256,6 +264,7 @@ export default function PrescriptionChecklist({
               items: section.items.map((item) => ({
                 ...item,
                 checked: shouldCheckAll,
+                comment: shouldCheckAll ? item.comment : "",
               })),
             }
           : section,
@@ -346,7 +355,7 @@ export default function PrescriptionChecklist({
         ...section,
         items: section.items.map((item) =>
           itemMatchesId(item, uncheckItemId)
-            ? { ...item, checked: false }
+            ? { ...item, checked: false, comment: "" }
             : item,
         ),
       })),
@@ -360,7 +369,11 @@ export default function PrescriptionChecklist({
     setSections((prev) =>
       prev.map((section) => ({
         ...section,
-        items: section.items.map((item) => ({ ...item, checked: false })),
+        items: section.items.map((item) => ({
+          ...item,
+          checked: false,
+          comment: "",
+        })),
       })),
     );
   }, [clearSelectionSignal]);
