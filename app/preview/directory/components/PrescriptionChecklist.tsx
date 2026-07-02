@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./PrescriptionChecklist.module.css";
 
 export type ChecklistItem = {
@@ -198,6 +198,7 @@ export default function PrescriptionChecklist({
     id: string;
     value: string;
   } | null>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   const toggleChecked = (id: string) => {
     setSections((prev) =>
@@ -282,6 +283,12 @@ export default function PrescriptionChecklist({
     );
     setCommentTarget(null);
   };
+
+  useEffect(() => {
+    if (!commentTarget) return;
+
+    commentInputRef.current?.focus();
+  }, [commentTarget]);
 
   useEffect(() => {
     onSelectionChange?.(
@@ -475,7 +482,9 @@ export default function PrescriptionChecklist({
 
                   <button
                     type="button"
-                    className={styles.commentCol}
+                    className={`${styles.commentCol} ${
+                      item.comment ? styles.commentColFilled : ""
+                    }`}
                     onClick={() =>
                       setCommentTarget({ id: item.id, value: item.comment })
                     }
@@ -585,6 +594,7 @@ export default function PrescriptionChecklist({
               </button>
             </div>
             <textarea
+              ref={commentInputRef}
               className={styles.commentInput}
               value={commentTarget.value}
               onChange={(event) =>
@@ -592,6 +602,12 @@ export default function PrescriptionChecklist({
                   prev ? { ...prev, value: event.target.value } : null,
                 )
               }
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  saveComment();
+                }
+              }}
               placeholder="Комментарий..."
             />
             <div className={styles.modalActions}>

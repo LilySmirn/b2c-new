@@ -101,6 +101,10 @@
   cursor: pointer;
 }
 
+.commentColFilled {
+  color: #10253f;
+}
+
 .checkbox {
   width: 21px;
   height: 21px;
@@ -167,7 +171,11 @@
 }
 
 .infoModal {
-  width: min(860px, 100%);
+  width: 860px;
+  height: 620px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 
 .modalHeader {
@@ -288,14 +296,17 @@
 
 .commentInput {
   width: 100%;
+  height: 150px;
   min-height: 150px;
+  max-height: 150px;
   padding: 14px 16px;
   border: 1px solid #ccd6e6;
   border-radius: 8px;
   background: #ffffff;
   color: #00182f;
   font: 400 15px/1.45 Arial, sans-serif;
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
