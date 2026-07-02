@@ -369,11 +369,16 @@ export default function PrescriptionChecklist({
     (section) => section.categoryId === activeCategoryId,
   );
 
-  const allRequiredDiagnosticsChecked = sections
-    .filter((section) => section.categoryId === "required-diagnostics")
-    .flatMap((section) => section.items)
-    .every((item) => item.checked);
-
+  const requiredDiagnosticsSections = sections.filter(
+    (section) => section.categoryId === "required-diagnostics",
+  );
+  const firstRequiredDiagnosticsSectionId = requiredDiagnosticsSections[0]?.id;
+  const requiredDiagnosticsItems = requiredDiagnosticsSections.flatMap(
+    (section) => section.items,
+  );
+  const allRequiredDiagnosticsChecked =
+    requiredDiagnosticsItems.length > 0 &&
+    requiredDiagnosticsItems.every((item) => item.checked);
   return (
     <div className={styles.checklistWrapper}>
       <div
@@ -421,12 +426,13 @@ export default function PrescriptionChecklist({
                     : ""
                 } ${
                   activeCategoryId === "required-diagnostics" &&
-                  section.id !== "lab"
+                  section.id !== firstRequiredDiagnosticsSectionId
                     ? styles.sectionRowWithoutCheckbox
                     : ""
                 }`}
               >
-                {section.id === "lab" ? (
+                {activeCategoryId === "required-diagnostics" &&
+                section.id === firstRequiredDiagnosticsSectionId ? (
                   <button
                     type="button"
                     className={`${styles.checkbox} ${
