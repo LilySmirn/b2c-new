@@ -24,6 +24,10 @@ type StoredCartSelections = Record<string, SelectedPrescription[]>;
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
 const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
 
+const getStoredCartRecommendation = () =>
+  window.sessionStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY) ??
+  window.localStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY);
+
 const getRecommendationStorageKey = (data: StoredCartRecommendation) => {
   if (data.recommendationKey) return data.recommendationKey;
 
@@ -144,7 +148,7 @@ export default function CartPreviewPage() {
   const isRestoringStoredSelectionsRef = useRef(false);
 
   useEffect(() => {
-    const storedValue = window.sessionStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY);
+    const storedValue = getStoredCartRecommendation();
     if (!storedValue) return;
 
     try {

@@ -12,11 +12,26 @@ type DirectoryPageHeaderProps = {
 
 const SEARCH_STATE_STORAGE_KEY = "directorySearchState";
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
+const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
+const CART_CUSTOM_ITEMS_STORAGE_KEY = "directoryCartCustomItems";
+const CART_GENERAL_COMMENT_STORAGE_KEY = "directoryCartGeneralComments";
+
+const clearCartState = () => {
+  [
+    CART_RECOMMENDATION_STORAGE_KEY,
+    CART_SELECTIONS_STORAGE_KEY,
+    CART_CUSTOM_ITEMS_STORAGE_KEY,
+    CART_GENERAL_COMMENT_STORAGE_KEY,
+  ].forEach((storageKey) => {
+    window.sessionStorage.removeItem(storageKey);
+    window.localStorage.removeItem(storageKey);
+  });
+};
 
 export default function DirectoryPageHeader({ variant, diagnosisTitle }: DirectoryPageHeaderProps) {
   const handleBackToSearch = () => {
     window.sessionStorage.removeItem(SEARCH_STATE_STORAGE_KEY);
-    window.sessionStorage.removeItem(CART_RECOMMENDATION_STORAGE_KEY);
+    clearCartState();
   };
 
   const action =

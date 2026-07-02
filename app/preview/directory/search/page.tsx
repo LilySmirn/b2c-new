@@ -406,13 +406,19 @@ export default function SearchPreviewPage() {
       submittedDiagnosisTitle,
     });
 
+    const serializedCartRecommendation = JSON.stringify({
+      diagnosisTitle,
+      recommendationKey: getCartRecommendationKey(diagnosisTitle, card),
+      recommendation: card,
+    });
+
     window.sessionStorage.setItem(
       CART_RECOMMENDATION_STORAGE_KEY,
-      JSON.stringify({
-        diagnosisTitle,
-        recommendationKey: getCartRecommendationKey(diagnosisTitle, card),
-        recommendation: card,
-      }),
+      serializedCartRecommendation,
+    );
+    window.localStorage.setItem(
+      CART_RECOMMENDATION_STORAGE_KEY,
+      serializedCartRecommendation,
     );
     router.push("/preview/directory/cart");
   };
