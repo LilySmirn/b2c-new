@@ -452,7 +452,15 @@ export default function PrescriptionChecklist({
                     <span className={styles.codeValue}>{item.code}</span>
                   </div>
 
-                  <div className={styles.secondCol}>{item.title}</div>
+                  <button
+                    type="button"
+                    className={styles.secondCol}
+                    onClick={() => toggleChecked(item.id)}
+                    aria-pressed={item.checked}
+                    aria-label={`Выбрать ${item.title}`}
+                  >
+                    {item.title}
+                  </button>
 
                   <div className={styles.thirdCol}>
                     <button

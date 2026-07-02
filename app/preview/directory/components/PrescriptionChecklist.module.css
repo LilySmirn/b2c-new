@@ -43,6 +43,11 @@
   display: grid;
   grid-template-columns: 103px minmax(0, 1fr) 42px 241px;
   align-items: stretch;
+  transition: background-color 0.15s ease;
+}
+
+.row:hover {
+  background: rgba(0, 133, 255, 0.04);
 }
 
 .firstCol,
@@ -65,8 +70,12 @@
   justify-content: flex-start;
   text-align: left;
   padding: 6px 8px;
+  border: 0;
+  background: transparent;
   color: #10253f;
   font: 400 13px/1.25 Arial, sans-serif;
+  outline: none;
+  appearance: none;
 }
 
 .thirdCol {
