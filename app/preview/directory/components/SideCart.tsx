@@ -99,6 +99,27 @@ const writeStoredGeneralComment = (storageKey: string, comment: string) => {
   window.localStorage.setItem(GENERAL_COMMENT_STORAGE_KEY, serializedComments);
 };
 
+const getCartCategoryTitle = (item: SelectedPrescription) => {
+  const title = item.categoryTitle ?? item.groupTitle;
+
+  if (title.toLocaleLowerCase("ru").includes("диагност")) {
+    return "Диагностика";
+  }
+
+  if (title === "Лечение" || title === "Препараты") {
+    return "Лечение";
+  }
+
+  return title;
+};
+
+const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[]) =>
+  selectedItems.reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
+    const categoryTitle = getCartCategoryTitle(item);
+    acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
+    return acc;
+  }, {});
+
 const writeStoredCustomItems = (
   storageKey: string,
   customItems: CustomCartItem[],
@@ -139,6 +160,7 @@ export default function SideCart({
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const hasSelectedItems = selectedItems.length > 0 || customItems.length > 0;
+  const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
 
   useEffect(() => {
     if (!storageKey) {
@@ -166,14 +188,6 @@ export default function SideCart({
 
     writeStoredGeneralComment(storageKey, generalComment);
   }, [generalComment, loadedGeneralCommentStorageKey, storageKey]);
-
-  const groupedItems = selectedItems.reduce<Record<string, SelectedPrescription[]>>(
-    (acc, item) => {
-      acc[item.groupTitle] = [...(acc[item.groupTitle] ?? []), item];
-      return acc;
-    },
-    {},
-  );
 
   return (
     <aside className={styles.sideCart}>
@@ -223,44 +237,41 @@ export default function SideCart({
           </div>
         ))}
 
-        {customItems.length > 0 ? (
-          <div>
-            <div className={styles.groupRow}>Добавлено прочее</div>
-            {customItems.map((item, index) => (
-              <div
-                key={item.id}
-                className={`${styles.itemRow} ${index % 2 === 1 ? styles.itemRowAlt : ""}`}
+        {customItems.map((item, index) => (
+          <div
+            key={item.id}
+            className={`${styles.itemRow} ${
+              (selectedItems.length + index) % 2 === 1 ? styles.itemRowAlt : ""
+            }`}
+          >
+            <span className={styles.itemTitle}>{item.name}</span>
+            <span className={styles.customItemActions}>
+              <button
+                type="button"
+                className={styles.editButton}
+                aria-label={`Редактировать ${item.name}`}
+                onClick={() => {
+                  setEditingCustomItem(item);
+                  setIsCustomItemModalOpen(true);
+                }}
               >
-                <span className={styles.itemTitle}>{item.name}</span>
-                <span className={styles.customItemActions}>
-                  <button
-                    type="button"
-                    className={styles.editButton}
-                    aria-label={`Редактировать ${item.name}`}
-                    onClick={() => {
-                      setEditingCustomItem(item);
-                      setIsCustomItemModalOpen(true);
-                    }}
-                  >
-                    <span aria-hidden="true">✎</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.deleteButton}
-                    aria-label={`Удалить ${item.name}`}
-                    onClick={() =>
-                      setCustomItems((prev) =>
-                        prev.filter((customItem) => customItem.id !== item.id),
-                      )
-                    }
-                  >
-                    <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
-                  </button>
-                </span>
-              </div>
-            ))}
+                <span aria-hidden="true">✎</span>
+              </button>
+              <button
+                type="button"
+                className={styles.deleteButton}
+                aria-label={`Удалить ${item.name}`}
+                onClick={() =>
+                  setCustomItems((prev) =>
+                    prev.filter((customItem) => customItem.id !== item.id),
+                  )
+                }
+              >
+                <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
+              </button>
+            </span>
           </div>
-        ) : null}
+        ))}
       </section>
 
       <button

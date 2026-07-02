@@ -41,9 +41,23 @@ const escapeHtml = (value: string) =>
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-const groupSelectedItems = (selectedItems: SelectedPrescription[]) =>
+const getCartCategoryTitle = (item: SelectedPrescription) => {
+  const title = item.categoryTitle ?? item.groupTitle;
+
+  if (title.toLocaleLowerCase("ru").includes("диагност")) {
+    return "Диагностика";
+  }
+
+  if (title === "Лечение" || title === "Препараты") {
+    return "Лечение";
+  }
+
+  return title;
+};
+
+const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[]) =>
   selectedItems.reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
-    const categoryTitle = item.categoryTitle ?? item.groupTitle;
+    const categoryTitle = getCartCategoryTitle(item);
     acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
     return acc;
   }, {});
@@ -72,7 +86,7 @@ const buildClipboardContent = (
   customItems: CustomCartItem[],
   generalComment: string,
 ) => {
-  const groupedItems = groupSelectedItems(selectedItems);
+  const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
   const trimmedGeneralComment = generalComment.trim();
 
   const textLines = [
@@ -84,20 +98,14 @@ const buildClipboardContent = (
         "",
       ]),
     ]),
-    ...(customItems.length > 0
-      ? [
-          "Добавлено прочее",
-          "",
-          ...customItems.flatMap((item) => [
-            ...formatItemTextLines({
-              title: item.name,
-              comment: item.comment,
-            }),
-            "",
-          ]),
-        ]
-      : []),
-      ...(trimmedGeneralComment
+    ...customItems.flatMap((item) => [
+      ...formatItemTextLines({
+        title: item.name,
+        comment: item.comment,
+      }),
+      "",
+    ]),
+    ...(trimmedGeneralComment
       ? ["", "Общий комментарий:", trimmedGeneralComment]
       : []),
   ];
@@ -112,20 +120,14 @@ const buildClipboardContent = (
         "",
       ]),
     ]),
-    ...(customItems.length > 0
-      ? [
-          "<strong>Добавлено прочее</strong>",
-          "",
-          ...customItems.flatMap((item) => [
-            ...formatItemHtmlLines({
-              title: item.name,
-              comment: item.comment,
-            }),
-            "",
-          ]),
-        ]
-      : []),
-      ...(trimmedGeneralComment
+    ...customItems.flatMap((item) => [
+      ...formatItemHtmlLines({
+        title: item.name,
+        comment: item.comment,
+      }),
+      "",
+    ]),
+    ...(trimmedGeneralComment
       ? [
           "",
           "<strong>Общий комментарий:</strong>",
