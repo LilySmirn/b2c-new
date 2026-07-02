@@ -41,6 +41,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .groupRow {
@@ -60,7 +61,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 0 6px 10px;
+  padding: 6px 14px 6px 10px;
 }
 
 .itemRowAlt {
