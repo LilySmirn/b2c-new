@@ -336,6 +336,7 @@ export default function SideCart({
           diagnosisCode={diagnosisCode}
           onSelectTemplate={(template) => {
             onApplyTemplate?.(template);
+            setCustomItems(template.customItems ?? []);
             setIsSelectTemplateModalOpen(false);
           }}
           onClose={() => setIsSelectTemplateModalOpen(false)}
@@ -345,6 +346,7 @@ export default function SideCart({
       {isSaveTemplateModalOpen ? (
         <SaveTemplateModal
           selectedItems={selectedItems}
+          customItems={customItems}
           diagnosisCode={diagnosisCode}
           onClose={() => setIsSaveTemplateModalOpen(false)}
         />

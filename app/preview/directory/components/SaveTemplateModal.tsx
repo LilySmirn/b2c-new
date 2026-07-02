@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
+import type { CustomCartItem } from "./SideCart";
 import { readCartTemplates, writeCartTemplates } from "@/app/preview/directory/components/cartTemplatesStorage";
 import styles from "./SaveTemplateModal.module.css";
 
@@ -8,6 +9,7 @@ const SERVICE_SYMBOLS_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/;
 
 type SaveTemplateModalProps = {
   selectedItems: SelectedPrescription[];
+  customItems: CustomCartItem[];
   diagnosisCode: string;
   onClose: () => void;
 };
@@ -32,6 +34,7 @@ const validateTemplateName = (name: string) => {
 
 export default function SaveTemplateModal({
   selectedItems,
+  customItems,
   diagnosisCode,
   onClose,
 }: SaveTemplateModalProps) {
@@ -77,7 +80,7 @@ export default function SaveTemplateModal({
   }, [onClose]);
 
   const handleSubmit = () => {
-     setSubmitAttempted(true);
+    setSubmitAttempted(true);
 
     if (validationError) return;
 
@@ -87,10 +90,11 @@ export default function SaveTemplateModal({
       author,
       createdAt: new Date().toISOString(),
       diagnosisCode,
-      doctorComments: selectedItems
+      doctorComments: [...selectedItems, ...customItems]
         .map((item) => item.comment.trim())
         .filter(Boolean),
       items: selectedItems,
+      customItems,
     };
 
     writeCartTemplates([...readCartTemplates(), savedTemplate]);

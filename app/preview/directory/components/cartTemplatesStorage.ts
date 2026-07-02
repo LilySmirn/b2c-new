@@ -2,6 +2,12 @@ import type { SelectedPrescription } from "./PrescriptionChecklist";
 
 export const CART_TEMPLATES_STORAGE_KEY = "directoryCartTemplatesDraft";
 
+export type CartTemplateCustomItem = {
+  id: string;
+  name: string;
+  comment: string;
+};
+
 export type CartTemplate = {
   id: string;
   name: string;
@@ -10,6 +16,7 @@ export type CartTemplate = {
   diagnosisCode: string;
   doctorComments: string[];
   items: SelectedPrescription[];
+  customItems?: CartTemplateCustomItem[];
 };
 
 export const readCartTemplates = (): CartTemplate[] => {
