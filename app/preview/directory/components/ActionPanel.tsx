@@ -41,23 +41,34 @@ const escapeHtml = (value: string) =>
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-const getCartCategoryTitle = (item: SelectedPrescription) => {
+const getClipboardCategoryTitle = (item: SelectedPrescription) => {
+  const categoryId = item.categoryId ?? "";
   const title = item.categoryTitle ?? item.groupTitle;
 
-  if (title.toLocaleLowerCase("ru").includes("диагност")) {
-    return "Диагностика";
+  const normalizedTitle = title.toLocaleLowerCase("ru");
+  if (
+    categoryId === "required-diagnostics" ||
+    categoryId === "indicated-diagnostics" ||
+    normalizedTitle.includes("диагност")
+  ) {
+    return "Диагностические мероприятия";
   }
 
-  if (title === "Лечение" || title === "Препараты") {
+  if (
+    categoryId === "treatment" ||
+    categoryId === "medications" ||
+    title === "Лечение" ||
+    title === "Препараты"
+  ) {
     return "Лечение";
   }
 
   return title;
 };
 
-const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[]) =>
+const groupSelectedItemsByClipboardCategory = (selectedItems: SelectedPrescription[]) =>
   selectedItems.reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
-    const categoryTitle = getCartCategoryTitle(item);
+    const categoryTitle = getClipboardCategoryTitle(item);
     acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
     return acc;
   }, {});
@@ -86,7 +97,7 @@ const buildClipboardContent = (
   customItems: CustomCartItem[],
   generalComment: string,
 ) => {
-  const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
+  const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
   const trimmedGeneralComment = generalComment.trim();
 
   const textLines = [

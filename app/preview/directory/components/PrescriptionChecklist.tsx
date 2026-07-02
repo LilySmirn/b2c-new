@@ -27,6 +27,7 @@ export type ChecklistSection = {
 
 export type SelectedPrescription = {
   id: string;
+  categoryId?: string;
   categoryTitle?: string;
   groupTitle: string;
   sectionTitle: string;
@@ -297,6 +298,7 @@ export default function PrescriptionChecklist({
           .filter((item) => item.checked)
           .map((item) => ({
             id: item.id,
+            categoryId: section.categoryId,
             categoryTitle:
               section.categoryTitle ??
               checklistCategories.find((category) => category.id === section.categoryId)
