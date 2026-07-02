@@ -4,6 +4,12 @@ import styles from "./SideCart.module.css";
 const CUSTOM_ITEM_NAME_MAX_LENGTH = 160;
 const CUSTOM_ITEM_COMMENT_MAX_LENGTH = 500;
 
+const capitalizeFirstLetter = (value: string) => {
+  const [firstLetter = "", ...restLetters] = Array.from(value);
+
+  return `${firstLetter.toLocaleUpperCase("ru")}${restLetters.join("")}`;
+};
+
 type CustomCartItemModalProps = {
   mode: "add" | "edit";
   initialName?: string;
@@ -54,7 +60,7 @@ export default function CustomCartItemModal({
     if (validationError) return;
 
     onSubmit({
-      name: name.trim(),
+      name: capitalizeFirstLetter(name.trim()),
       comment: comment.trim(),
     });
   };
