@@ -79,7 +79,7 @@ const formatItemTextLines = ({
 }: {
   title: string;
   comment: string;
-}) => [title, ...(comment ? [`Комментарий: ${comment}`] : [])];
+}) => [comment ? `${title} - ${comment}` : title];
 
 const formatItemHtmlLines = ({
   title,
@@ -88,8 +88,9 @@ const formatItemHtmlLines = ({
   title: string;
   comment: string;
 }) => [
-  escapeHtml(title),
-  ...(comment ? [`<em>Комментарий: ${escapeHtml(comment)}</em>`] : []),
+  comment
+    ? `${escapeHtml(title)} - ${escapeHtml(comment)}`
+    : escapeHtml(title),
 ];
 
 const buildClipboardContent = (
@@ -104,48 +105,54 @@ const buildClipboardContent = (
     ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
       categoryTitle,
       "",
-      ...items.flatMap((item) => [
-        ...formatItemTextLines({ title: item.title, comment: item.comment }),
-        "",
-      ]),
+      ...items.flatMap((item) =>
+        formatItemTextLines({ title: item.title, comment: item.comment }),
+      ),
     ]),
-    ...customItems.flatMap((item) => [
-      ...formatItemTextLines({
+    ...customItems.flatMap((item) =>
+      formatItemTextLines({
         title: item.name,
         comment: item.comment,
       }),
       "",
-    ]),
-    ...(trimmedGeneralComment
-      ? ["", "Общий комментарий:", trimmedGeneralComment]
-      : []),
+    ),
   ];
+
+  if (trimmedGeneralComment) {
+    if (textLines.length > 0) {
+      textLines.push("");
+    }
+
+    textLines.push("Общая рекомендация:", trimmedGeneralComment);
+  }
   const plainText = textLines.join("\n");
 
   const htmlLines = [
     ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
       `<strong>${escapeHtml(categoryTitle)}</strong>`,
       "",
-      ...items.flatMap((item) => [
-        ...formatItemHtmlLines({ title: item.title, comment: item.comment }),
-        "",
-      ]),
+      ...items.flatMap((item) =>
+        formatItemHtmlLines({ title: item.title, comment: item.comment }),
+      ),
     ]),
-    ...customItems.flatMap((item) => [
-      ...formatItemHtmlLines({
+    ...customItems.flatMap((item) =>
+      formatItemHtmlLines({
         title: item.name,
         comment: item.comment,
       }),
-      "",
-    ]),
-    ...(trimmedGeneralComment
-      ? [
-          "",
-          "<strong>Общий комментарий:</strong>",
-          escapeHtml(trimmedGeneralComment),
-        ]
-      : []),
+      ),
   ];
+  
+  if (trimmedGeneralComment) {
+    if (htmlLines.length > 0) {
+      htmlLines.push("");
+    }
+
+    htmlLines.push(
+      "<strong>Общая рекомендация:</strong>",
+      escapeHtml(trimmedGeneralComment),
+    );
+  }
   const html = htmlLines.join("<br>");
 
   return { plainText, html };
