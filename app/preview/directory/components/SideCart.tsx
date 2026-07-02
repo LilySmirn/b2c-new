@@ -333,6 +333,7 @@ export default function SideCart({
 
       {isSelectTemplateModalOpen ? (
         <SelectTemplateModal
+          diagnosisCode={diagnosisCode}
           onSelectTemplate={(template) => {
             onApplyTemplate?.(template);
             setIsSelectTemplateModalOpen(false);

@@ -6,28 +6,42 @@ import styles from "./SaveTemplateModal.module.css";
 import deleteIcon from "@/assets/images/delete-icon.svg";
 
 type SelectTemplateModalProps = {
+  diagnosisCode?: string;
   onSelectTemplate: (template: CartTemplate) => void;
   onClose: () => void;
 };
+
+const normalizeDiagnosisCode = (code?: string) => code?.trim().toLocaleLowerCase("ru") ?? "";
 
 const getTemplateSortValue = (template: CartTemplate) =>
   `${template.diagnosisCode ?? ""} ${template.name}`.trim();
 
 export default function SelectTemplateModal({
+  diagnosisCode = "",
   onSelectTemplate,
   onClose,
 }: SelectTemplateModalProps) {
   const [templates, setTemplates] = useState<CartTemplate[]>(() => readCartTemplates());
 
+const currentDiagnosisCode = normalizeDiagnosisCode(diagnosisCode);
+
+  const filteredTemplates = useMemo(
+    () =>
+      templates.filter(
+        (template) => normalizeDiagnosisCode(template.diagnosisCode) === currentDiagnosisCode,
+      ),
+    [currentDiagnosisCode, templates],
+  );
+
   const sortedTemplates = useMemo(
     () =>
-      templates.slice().sort((left, right) =>
+      filteredTemplates.slice().sort((left, right) =>
         getTemplateSortValue(left).localeCompare(getTemplateSortValue(right), "ru", {
           numeric: true,
           sensitivity: "base",
         }),
       ),
-    [templates],
+    [filteredTemplates],
   );
 
   useEffect(() => {
@@ -96,7 +110,7 @@ export default function SelectTemplateModal({
           </ul>
         ) : (
           <p className={styles.emptyTemplates}>
-            Сохраненных шаблонов пока нет. Создайте шаблон из текущей корзины назначений.
+            Для текущего кода МКБ сохраненных шаблонов пока нет. Создайте шаблон из текущей корзины назначений.
           </p>
         )}
 
