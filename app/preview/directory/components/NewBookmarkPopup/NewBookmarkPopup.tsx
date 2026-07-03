@@ -1,27 +1,102 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "../SearchBar";
 import Filters from "../Filters";
+import MatchesList from "../MatchesList";
 import NosologyNameField from "./NosologyNameField";
 import PopupShell from "./PopupShell";
-import RecommendationPicker from "./RecommendationPicker";
+import RecommendationCard from "../RecommendationCard";
 import { newBookmarkAgeOptions, newBookmarkVisitOptions } from "./data";
 import styles from "./NewBookmarkPopup.module.css";
+import type { BookmarkItem } from "../Bookmarks";
+
+type MkbSearchResult = {
+  code: string;
+  name: string;
+};
+
+type AgeGroup = "adult" | "child";
+type VisitType = "primary" | "repeat" | "inpatient";
+type FilterAvailability = Record<AgeGroup, Record<VisitType, boolean>>;
+
+type RecommendationStandard = {
+  id: string;
+  title: string;
+  status: string;
+  source: string;
+  mkbCodes: string[];
+  ageCategory: string;
+};
+
+type StandardsByFilters = Record<AgeGroup, Record<VisitType, RecommendationStandard[]>>;
+
+type MkbDataResponse = {
+  availability: FilterAvailability;
+  standards: StandardsByFilters;
+};
 
 type NewBookmarkPopupProps = {
   isOpen: boolean;
   onClose: () => void;
+  onAddBookmark: (bookmark: BookmarkItem) => void;
 };
 
-export default function NewBookmarkPopup({ isOpen, onClose }: NewBookmarkPopupProps) {
+const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
+const getCodeFromMatch = (item: string) => item.split(":")[0]?.trim() ?? item.trim();
+const isVisitType = (value: string): value is VisitType =>
+  newBookmarkVisitOptions.some((option) => option.id === value);
+const isAgeGroup = (value: string): value is AgeGroup =>
+  newBookmarkAgeOptions.some((option) => option.id === value);
+
+const hasDataForFilters = (
+  availability: FilterAvailability,
+  age: AgeGroup,
+  visit: VisitType,
+) => availability[age][visit];
+
+const fullWidthGridItemStyle = { gridColumn: "1 / -1" };
+
+const getRecommendationExternalUrl = (source: string, id: string) => {
+  if (source.toLowerCase() === "minzdrav" && id !== "—") {
+    return `https://cr.minzdrav.gov.ru/schema/${encodeURIComponent(id)}`;
+  }
+
+  return "https://cr.minzdrav.gov.ru/";
+};
+
+export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: NewBookmarkPopupProps) {
   const [query, setQuery] = useState("");
   const [visitType, setVisitType] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
-  const [selectedRecommendationTitle, setSelectedRecommendationTitle] = useState("");
+  const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationStandard | null>(null);
   const [nosologyTitle, setNosologyTitle] = useState("");
+  const [submittedCode, setSubmittedCode] = useState<string | null>(null);
+  const [apiMatches, setApiMatches] = useState<MkbSearchResult[]>([]);
+  const [filterAvailability, setFilterAvailability] = useState<FilterAvailability | null>(null);
+  const [mkbData, setMkbData] = useState<MkbDataResponse | null>(null);
+  const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [isCardsLoading, setIsCardsLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [cardsError, setCardsError] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
-  const canAddBookmark = selectedRecommendationTitle.trim().length > 0;
+  const searchDropdownRef = useRef<HTMLDivElement | null>(null);
+  const canAddBookmark = Boolean(selectedRecommendation && submittedCode && nosologyTitle.trim());
+
+  const search = query.trim();
+  const matches = useMemo(() => apiMatches.map(formatMkbResult), [apiMatches]);
+  const normalizedSearchCode = useMemo(() => {
+    const code = search.match(/^[A-ZА-Я]\d{2}(?:\.\d+)?/i)?.[0];
+
+    return code ? code.toUpperCase() : null;
+  }, [search]);
+  const selectedCode = useMemo(() => {
+    const exactMatch = apiMatches.find((item) => formatMkbResult(item) === query);
+    if (exactMatch) return exactMatch.code;
+
+    return normalizedSearchCode ? getCodeFromMatch(normalizedSearchCode) : null;
+  }, [apiMatches, normalizedSearchCode, query]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -48,15 +123,203 @@ export default function NewBookmarkPopup({ isOpen, onClose }: NewBookmarkPopupPr
     setQuery("");
     setVisitType("");
     setAgeGroup("");
-    setSelectedRecommendationTitle("");
+    setSelectedRecommendation(null);
     setNosologyTitle("");
+    setSubmittedCode(null);
+    setApiMatches([]);
+    setFilterAvailability(null);
+    setMkbData(null);
+    setIsMatchesOpen(false);
+    setSearchError(null);
+    setCardsError(null);
   }, [isOpen]);
 
-  const handleRecommendationSelect = (title: string) => {
-    setSelectedRecommendationTitle(title);
-    setNosologyTitle(title);
+  useEffect(() => {
+    if (search.length < 3) {
+      setApiMatches([]);
+      setIsSearchLoading(false);
+      setSearchError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setIsSearchLoading(true);
+      setSearchError(null);
+
+      try {
+        const response = await fetch(`/api/search?search=${encodeURIComponent(search)}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Не удалось получить данные поиска");
+
+        const data = (await response.json()) as MkbSearchResult[];
+        setApiMatches(data);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setApiMatches([]);
+        setSearchError("Не удалось загрузить подсказки. Попробуйте позже.");
+      } finally {
+        setIsSearchLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [search]);
+
+  useEffect(() => {
+    if (!submittedCode) {
+      setMkbData(null);
+      setFilterAvailability(null);
+      setCardsError(null);
+      setIsCardsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadMkbData = async () => {
+      setIsCardsLoading(true);
+      setCardsError(null);
+
+      try {
+        const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(submittedCode)}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Не удалось получить данные по коду МКБ");
+
+        const data = (await response.json()) as MkbDataResponse;
+        setMkbData(data);
+        setFilterAvailability(data.availability);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setMkbData(null);
+        setFilterAvailability(null);
+        setCardsError("Не удалось загрузить данные по коду МКБ. Попробуйте позже.");
+      } finally {
+        setIsCardsLoading(false);
+      }
+    };
+
+    loadMkbData();
+
+    return () => controller.abort();
+  }, [submittedCode]);
+
+  useEffect(() => {
+    if (!isMatchesOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!searchDropdownRef.current?.contains(event.target as Node)) {
+        setIsMatchesOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isMatchesOpen]);
+
+  const hasAnyRecommendationCards = useMemo(() => {
+    if (!mkbData) return false;
+
+    return Object.values(mkbData.standards).some((standardsByVisit) =>
+      Object.values(standardsByVisit).some((standards) => standards.length > 0),
+    );
+  }, [mkbData]);
+
+  const hasNoRecommendationsForSubmittedCode = Boolean(
+    submittedCode && mkbData && !isCardsLoading && !cardsError && !hasAnyRecommendationCards,
+  );
+
+  useEffect(() => {
+    if (!hasNoRecommendationsForSubmittedCode) return;
+
+    setVisitType("");
+    setAgeGroup("");
+    setSelectedRecommendation(null);
+  }, [hasNoRecommendationsForSubmittedCode]);
+
+  const disabledVisitIds = useMemo(() => {
+    if (hasNoRecommendationsForSubmittedCode) {
+      return newBookmarkVisitOptions.map((option) => option.id);
+    }
+
+    if (!filterAvailability || !ageGroup) return [];
+
+    return newBookmarkVisitOptions
+      .filter((option) => !hasDataForFilters(filterAvailability, ageGroup as AgeGroup, option.id as VisitType))
+      .map((option) => option.id);
+  }, [ageGroup, filterAvailability, hasNoRecommendationsForSubmittedCode]);
+
+  const disabledAgeIds = useMemo(() => {
+    if (hasNoRecommendationsForSubmittedCode) {
+      return newBookmarkAgeOptions.map((option) => option.id);
+    }
+
+    if (!filterAvailability || !visitType) return [];
+
+    return newBookmarkAgeOptions
+      .filter((option) => !hasDataForFilters(filterAvailability, option.id as AgeGroup, visitType as VisitType))
+      .map((option) => option.id);
+  }, [filterAvailability, hasNoRecommendationsForSubmittedCode, visitType]);
+
+  const recommendationCards = useMemo(() => {
+    if (!mkbData || !isAgeGroup(ageGroup) || !isVisitType(visitType)) return [];
+
+    return mkbData.standards[ageGroup][visitType] ?? [];
+  }, [ageGroup, mkbData, visitType]);
+
+  const submitSearch = (code = selectedCode, sourceText = query) => {
+    setIsMatchesOpen(false);
+    setSelectedRecommendation(null);
+
+    if (!code) return;
+
+    setSubmittedCode(code);
+    setNosologyTitle(sourceText.includes(":") ? sourceText : code);
+  };
+
+  const handleMatchSelect = (item: string) => {
+    setQuery(item);
+    submitSearch(getCodeFromMatch(item), item);
+  };
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    setSubmittedCode(null);
+    setSelectedRecommendation(null);
+    setNosologyTitle("");
+  };
+
+  const handleRecommendationSelect = (recommendation: RecommendationStandard) => {
+    setSelectedRecommendation(recommendation);
     requestAnimationFrame(() => titleInputRef.current?.focus());
   };
+
+  const handleSubmit = () => {
+    if (!selectedRecommendation || !submittedCode) return;
+
+    onAddBookmark({
+      id: `${submittedCode}-${selectedRecommendation.id}-${Date.now()}`,
+      code: submittedCode,
+      title: nosologyTitle.trim() || selectedRecommendation.title,
+      visitType: isVisitType(visitType) ? visitType : undefined,
+      ageGroup: isAgeGroup(ageGroup) ? ageGroup : undefined,
+    });
+    onClose();
+  };
+
+  const matchesEmptyText = (() => {
+    if (search.length < 3) return "Введите минимум 3 символа";
+    if (isSearchLoading) return "Ищем в базе МКБ...";
+    return "Ничего не найдено";
+  })();
 
   if (!isOpen) return null;
 
@@ -67,33 +330,82 @@ export default function NewBookmarkPopup({ isOpen, onClose }: NewBookmarkPopupPr
       </h2>
 
       <div className={styles.searchBlock}>
-        <SearchBar value={query} onChange={setQuery} placeholder="Введите код МКБ..." />
+        <div ref={searchDropdownRef}>
+          <SearchBar
+            value={query}
+            onChange={handleQueryChange}
+            onFocus={() => setIsMatchesOpen(true)}
+            onSearch={() => submitSearch()}
+          />
+
+          {isMatchesOpen ? (
+            <MatchesList
+              items={matches}
+              emptyText={matchesEmptyText}
+              footerText={searchError}
+              onItemSelect={handleMatchSelect}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className={styles.filtersArea}>
-
         <Filters
           visitOptions={newBookmarkVisitOptions}
           visitValue={visitType}
-          onVisitChange={setVisitType}
+          onVisitChange={(value) => {
+            setVisitType(value);
+            setSelectedRecommendation(null);
+          }}
           ageOptions={newBookmarkAgeOptions}
           ageValue={ageGroup}
-          onAgeChange={setAgeGroup}
+          onAgeChange={(value) => {
+            setAgeGroup(value);
+            setSelectedRecommendation(null);
+          }}
+          disabledVisitIds={disabledVisitIds}
+          disabledAgeIds={disabledAgeIds}
         />
       </div>
 
-      <RecommendationPicker
-        selectedTitle={selectedRecommendationTitle}
-        onSelect={handleRecommendationSelect}
-      />
+      <section className={styles.cardsGrid} aria-label="Рекомендации для закладки">
+        {submittedCode ? (
+          isCardsLoading ? (
+            <p style={fullWidthGridItemStyle}>Загружаем клинические рекомендации...</p>
+          ) : cardsError ? (
+            <p style={fullWidthGridItemStyle}>{cardsError}</p>
+          ) : hasNoRecommendationsForSubmittedCode ? (
+            <p style={fullWidthGridItemStyle}>По выбранному МКБ {submittedCode} рекомендации не найдены.<br />Введите другой код в строку поиска</p>
+          ) : !visitType || !ageGroup ? (
+            <p style={fullWidthGridItemStyle}>Выберите фильтры, чтобы увидеть рекомендации.</p>
+          ) : recommendationCards.length > 0 ? (
+            recommendationCards.map((recommendation) => (
+              <RecommendationCard
+                key={`${recommendation.id}-${recommendation.title}`}
+                title={recommendation.title}
+                externalUrl={getRecommendationExternalUrl(recommendation.source, recommendation.id)}
+                standardId={recommendation.id}
+                status={recommendation.status}
+                ageCategory={recommendation.ageCategory}
+                classification={recommendation.mkbCodes.length > 0 ? recommendation.mkbCodes.join(", ") : submittedCode}
+                selected={selectedRecommendation?.id === recommendation.id}
+                onSelect={() => handleRecommendationSelect(recommendation)}
+              />
+            ))
+          ) : (
+            <p style={fullWidthGridItemStyle}>По выбранным фильтрам рекомендации не найдены.</p>
+          )
+        ) : null}
+      </section>
 
-      <NosologyNameField
-        inputRef={titleInputRef}
-        value={nosologyTitle}
-        onChange={setNosologyTitle}
-      />
+      <NosologyNameField inputRef={titleInputRef} value={nosologyTitle} onChange={setNosologyTitle} />
 
-      <button type="button" className={styles.submitButton} disabled={!canAddBookmark}>
+      <button
+        type="button"
+        className={styles.submitButton}
+        disabled={!canAddBookmark}
+        onClick={handleSubmit}
+      >
         Добавить закладку
       </button>
     </PopupShell>

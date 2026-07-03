@@ -16,6 +16,8 @@ export type BookmarkItem = {
   ageGroup?: string;
 };
 
+const BOOKMARKS_STORAGE_KEY = "directoryBookmarks";
+
 export const initialBookmarks: BookmarkItem[] = [
   {
     id: "k26-duodenal-ulcer",
@@ -41,10 +43,37 @@ type BookmarksProps = {
   items?: BookmarkItem[];
 };
 
+const readStoredBookmarks = () => {
+  if (typeof window === "undefined") return initialBookmarks;
+
+  const storedValue = window.localStorage.getItem(BOOKMARKS_STORAGE_KEY);
+  if (!storedValue) return initialBookmarks;
+
+  try {
+    const parsed = JSON.parse(storedValue);
+    return Array.isArray(parsed) ? (parsed as BookmarkItem[]) : initialBookmarks;
+  } catch {
+    return initialBookmarks;
+  }
+};
+
 export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) {
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>(items);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const activeCardRef = useRef<HTMLElement | null>(null);
+  const hasLoadedStoredBookmarksRef = useRef(false);
+
+  useEffect(() => {
+    setBookmarks(readStoredBookmarks());
+    hasLoadedStoredBookmarksRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStoredBookmarksRef.current) return;
+
+    window.localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarks));
+  }, [bookmarks]);
 
   useEffect(() => {
     if (!openMenuId) return;
@@ -66,7 +95,7 @@ export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) 
   return (
     <>
       <section className={styles.bookmarks} aria-label="Закладки нозологий">
-        {items.map((bookmark) => {
+        {bookmarks.map((bookmark) => {
           const isMenuOpen = openMenuId === bookmark.id;
 
           const visitIcon = visitIcons[bookmark.visitType ?? "primary"] ?? stethoscopeIcon;
@@ -112,7 +141,17 @@ export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) 
 
               {isMenuOpen ? (
                 <div className={styles.menu} role="menu">
-                  <button type="button" role="menuitem" className={styles.menuItem}>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.menuItem}
+                    onClick={() => {
+                      setBookmarks((currentBookmarks) =>
+                        currentBookmarks.filter((item) => item.id !== bookmark.id),
+                      );
+                      setOpenMenuId(null);
+                    }}
+                  >
                     Удалить
                   </button>
                   <button type="button" role="menuitem" className={styles.menuItem}>
@@ -137,7 +176,13 @@ export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) 
         </button>
       </section>
 
-      <NewBookmarkPopup isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <NewBookmarkPopup
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAddBookmark={(bookmark) => {
+          setBookmarks((currentBookmarks) => [...currentBookmarks, bookmark]);
+        }}
+      />
     </>
   );
 }
