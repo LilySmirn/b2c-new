@@ -41,6 +41,7 @@ const ageBadges: Record<string, string> = {
 
 type BookmarksProps = {
   items?: BookmarkItem[];
+  onBookmarkSelect?: (bookmark: BookmarkItem) => void;
 };
 
 const readStoredBookmarks = () => {
@@ -57,23 +58,23 @@ const readStoredBookmarks = () => {
   }
 };
 
-export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) {
+export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }: BookmarksProps) {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>(items);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const activeCardRef = useRef<HTMLElement | null>(null);
-  const hasLoadedStoredBookmarksRef = useRef(false);
+  const [hasLoadedStoredBookmarks, setHasLoadedStoredBookmarks] = useState(false);
 
   useEffect(() => {
     setBookmarks(readStoredBookmarks());
-    hasLoadedStoredBookmarksRef.current = true;
+    setHasLoadedStoredBookmarks(true);
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedStoredBookmarksRef.current) return;
+    if (!hasLoadedStoredBookmarks) return;
 
     window.localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarks));
-  }, [bookmarks]);
+  }, [bookmarks, hasLoadedStoredBookmarks]);
 
   useEffect(() => {
     if (!openMenuId) return;
@@ -107,6 +108,7 @@ export default function Bookmarks({ items = initialBookmarks }: BookmarksProps) 
                 type="button"
                 className={styles.bookmarkButton}
                 aria-label={`Открыть ${bookmark.title}`}
+                onClick={() => onBookmarkSelect?.(bookmark)}
               >
                 <span className={styles.codeCircle}>{bookmark.code}</span>
                 <span className={styles.bookmarkTitle}>{bookmark.title}</span>

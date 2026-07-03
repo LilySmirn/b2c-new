@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
-import Bookmarks from "../components/Bookmarks";
+import Bookmarks, { type BookmarkItem } from "../components/Bookmarks";
 import styles from "./search.module.css";
 import Image from "next/image";
 import DirectoryPageHeader from "../components/DirectoryPageHeader";
@@ -82,6 +82,34 @@ const hasDataForFilters = (
   age: AgeGroup,
   visit: VisitType,
 ) => availability[age][visit];
+
+const getAvailableFilters = (
+  availability: FilterAvailability,
+  preferredAge: AgeGroup,
+  preferredVisit: VisitType,
+) => {
+  if (hasDataForFilters(availability, preferredAge, preferredVisit)) {
+    return { age: preferredAge, visit: preferredVisit };
+  }
+
+  const fallbackCandidates = [
+    { age: preferredAge === "adult" ? "child" : "adult", visit: preferredVisit },
+    ...visitOptions.map((visitOption) => ({
+      age: preferredAge,
+      visit: visitOption.id as VisitType,
+    })),
+    ...(ageOptions as { id: AgeGroup; label: string }[]).flatMap((ageOption) =>
+      (visitOptions as { id: VisitType; label: string }[]).map((visitOption) => ({
+        age: ageOption.id,
+        visit: visitOption.id,
+      })),
+    ),
+  ] as { age: AgeGroup; visit: VisitType }[];
+
+  return fallbackCandidates.find(({ age, visit }) =>
+    hasDataForFilters(availability, age, visit),
+  );
+};
 
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
 const SEARCH_STATE_STORAGE_KEY = "directorySearchState";
@@ -295,23 +323,7 @@ export default function SearchPreviewPage() {
   useEffect(() => {
     if (!filterAvailability || hasDataForFilters(filterAvailability, ageGroup, visitType)) return;
 
-    const fallbackCandidates = [
-      { age: ageGroup === "adult" ? "child" : "adult", visit: visitType },
-      ...visitOptions.map((visitOption) => ({
-        age: ageGroup,
-        visit: visitOption.id as VisitType,
-      })),
-      ...(ageOptions as { id: AgeGroup; label: string }[]).flatMap((ageOption) =>
-        (visitOptions as { id: VisitType; label: string }[]).map((visitOption) => ({
-          age: ageOption.id,
-          visit: visitOption.id,
-        })),
-      ),
-    ] as { age: AgeGroup; visit: VisitType }[];
-
-    const fallback = fallbackCandidates.find(({ age, visit }) =>
-      hasDataForFilters(filterAvailability, age, visit),
-    );
+    const fallback = getAvailableFilters(filterAvailability, ageGroup, visitType);
 
     if (fallback) {
       setAgeGroup(fallback.age);
@@ -395,6 +407,63 @@ export default function SearchPreviewPage() {
     submittedCode && !isCardsLoading && !cardsError && recommendationCards.length === 0,
   );
 
+  const getBookmarkDiagnosisTitle = (bookmark: BookmarkItem) => {
+    const bookmarkTitle = bookmark.title.trim();
+
+    return getCodeFromMatch(bookmarkTitle).toUpperCase() === bookmark.code.toUpperCase() &&
+      bookmarkTitle.includes(":")
+      ? bookmarkTitle
+      : `${bookmark.code}: ${bookmarkTitle}`;
+  };
+
+  const handleBookmarkSelect = async (bookmark: BookmarkItem) => {
+    const bookmarkVisitType = isVisitType(bookmark.visitType) ? bookmark.visitType : visitType;
+    const bookmarkAgeGroup = isAgeGroup(bookmark.ageGroup) ? bookmark.ageGroup : ageGroup;
+    const diagnosisTitle = getBookmarkDiagnosisTitle(bookmark);
+
+    try {
+      const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`);
+
+      if (!response.ok) throw new Error("Не удалось получить данные по коду МКБ");
+
+      const data = (await response.json()) as MkbDataResponse;
+      const availableFilters = getAvailableFilters(
+        data.availability,
+        bookmarkAgeGroup,
+        bookmarkVisitType,
+      );
+      if (!availableFilters) {
+        setCardsError("По выбранной закладке клинические рекомендации не найдены.");
+        return;
+      }
+
+      const selectedCard = data.standards[availableFilters.age][availableFilters.visit][0];
+
+      if (!selectedCard) {
+        setCardsError("По выбранной закладке клинические рекомендации не найдены.");
+        return;
+      }
+
+      const serializedCartRecommendation = JSON.stringify({
+        diagnosisTitle,
+        recommendationKey: getCartRecommendationKey(diagnosisTitle, selectedCard),
+        recommendation: selectedCard,
+      });
+
+      window.sessionStorage.setItem(
+        CART_RECOMMENDATION_STORAGE_KEY,
+        serializedCartRecommendation,
+      );
+      window.localStorage.setItem(
+        CART_RECOMMENDATION_STORAGE_KEY,
+        serializedCartRecommendation,
+      );
+      router.push("/preview/directory/cart");
+    } catch (error) {
+      setCardsError("Не удалось открыть закладку. Попробуйте позже.");
+    }
+  };
+
   const handleCardSelect = (card: RecommendationStandard) => {
     const diagnosisTitle = submittedDiagnosisTitle ?? submittedCode ?? card.title;
     
@@ -470,7 +539,7 @@ export default function SearchPreviewPage() {
             disabledAgeIds={disabledAgeIds}
           />
 
-          <Bookmarks />
+          <Bookmarks onBookmarkSelect={handleBookmarkSelect} />
 
             {submittedCode ? (
             <section className={styles.recommendationsSection} aria-label="Клинические рекомендации">
