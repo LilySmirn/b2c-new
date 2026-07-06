@@ -136,6 +136,18 @@ const defaultChecklistCategories = [
   { id: "appendix-a3", label: "Приложение А3" },
 ];
 
+const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
+  const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
+
+  return (
+    defaultChecklistCategories.find((category) =>
+      availableCategoryIds.has(category.id),
+    )?.id ??
+    sections[0]?.categoryId ??
+    defaultChecklistCategories[0].id
+  );
+};
+
 type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
   uncheckItemId?: string | null;
@@ -188,10 +200,20 @@ export default function PrescriptionChecklist({
           category.label,
       })),
       ...extraCategories,
-    ];
-  }, [categoryAvailability.categoryTitles]);
-  const [activeCategoryId, setActiveCategoryId] = useState(
-    initialSections[0]?.categoryId ?? defaultChecklistCategories[0].id,
+    ].sort((left, right) => {
+      const leftIsAvailable = categoryAvailability.availableCategoryIds.has(left.id);
+      const rightIsAvailable = categoryAvailability.availableCategoryIds.has(right.id);
+
+      if (leftIsAvailable === rightIsAvailable) return 0;
+
+      return leftIsAvailable ? -1 : 1;
+    });
+  }, [
+    categoryAvailability.availableCategoryIds,
+    categoryAvailability.categoryTitles,
+  ]);
+  const [activeCategoryId, setActiveCategoryId] = useState(() =>
+    getFirstAvailableCategoryId(initialSections),
   );
   const [infoTarget, setInfoTarget] = useState<ChecklistItem | null>(null);
   const [activeInfoItemId, setActiveInfoItemId] = useState<string | null>(null);
@@ -234,9 +256,7 @@ export default function PrescriptionChecklist({
     const mergedSections = mergeChecklistSectionsByTitle(initialSections);
 
     setSections(mergedSections);
-    setActiveCategoryId(
-      mergedSections[0]?.categoryId ?? defaultChecklistCategories[0].id,
-    );
+    setActiveCategoryId(getFirstAvailableCategoryId(mergedSections));
   }, [initialSections]);
 
   useEffect(() => {
@@ -247,8 +267,13 @@ export default function PrescriptionChecklist({
       return;
     }
 
-    setActiveCategoryId(sections[0].categoryId);
-  }, [activeCategoryId, categoryAvailability.availableCategoryIds, sections]);
+    setActiveCategoryId(checklistCategories[0]?.id ?? defaultChecklistCategories[0].id);
+  }, [
+    activeCategoryId,
+    categoryAvailability.availableCategoryIds,
+    checklistCategories,
+    sections.length,
+  ]);
 
   const toggleRequiredDiagnostics = () => {
     setSections((prev) => {

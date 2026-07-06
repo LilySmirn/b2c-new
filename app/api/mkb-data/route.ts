@@ -118,19 +118,28 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const toNumber = (value: number | string | null | undefined) => Number(value ?? 0);
 
-const appointmentMatchesVisit = (appointment: EasyMedAppointment, visit: VisitType) => {
+const appointmentMatchesVisit = (
+  appointment: EasyMedAppointment,
+  visit: VisitType,
+  source: "examination" | "treatment" = "examination",
+) => {
   const isStationary = toNumber(appointment.is_stationary) === 1;
 
   if (visit === "inpatient") return isStationary;
   if (isStationary) return false;
 
-  return toNumber(appointment.stage) === (visit === "primary" ? 1 : 2);
+  const stage = toNumber(appointment.stage);
+
+  if (stage === 1 || stage === 2) return stage === (visit === "primary" ? 1 : 2);
+
+  return source === "treatment";
 };
 
 const standardMatchesVisit = (standard: EasyMedStandard, visit: VisitType) =>
-  [...(standard.examinations ?? []), ...(standard.treatments ?? [])].some((appointment) =>
-    appointmentMatchesVisit(appointment, visit),
-  );
+  [
+    ...(standard.examinations ?? []).map((appointment) => ({ appointment, source: "examination" as const })),
+    ...(standard.treatments ?? []).map((appointment) => ({ appointment, source: "treatment" as const })),
+  ].some(({ appointment, source }) => appointmentMatchesVisit(appointment, visit, source));
 
 const getStandards = (branch: unknown): EasyMedStandard[] => {
   if (!isRecord(branch) || !Array.isArray((branch as EasyMedBranch).standards)) return [];
@@ -181,33 +190,71 @@ const getAppointmentInfoComment = (appointment: EasyMedAppointment, crTextById: 
   return getStringOrEmpty(recommendationText?.comment);
 };
 
+type CategoryMeta = {
+  categoryId: string;
+  categoryTitle: string;
+};
+
+const prescriptionCategories = {
+  requiredDiagnostics: {
+    categoryId: "required-diagnostics",
+    categoryTitle: "Диагностика обязательная",
+  },
+  indicatedDiagnostics: {
+    categoryId: "indicated-diagnostics",
+    categoryTitle: "Диагностика по показаниям",
+  },
+  treatment: { categoryId: "treatment", categoryTitle: "Лечение" },
+  scales: { categoryId: "scales", categoryTitle: "Шкалы и опросники" },
+  lifestyle: { categoryId: "lifestyle", categoryTitle: "Образ жизни" },
+  vaccination: { categoryId: "vaccination", categoryTitle: "Вакцинация" },
+} satisfies Record<string, CategoryMeta>;
+
+const examinationCategoryByTitle = new Map<string, CategoryMeta>([
+  ["шкалы и опросники", prescriptionCategories.scales],
+  ["образ жизни", prescriptionCategories.lifestyle],
+  ["вакцинация", prescriptionCategories.vaccination],
+]);
+
+const normalizeCategoryTitle = (value: string) =>
+  value
+    .trim()
+    .toLocaleLowerCase("ru")
+    .replace(/ё/g, "е")
+    .replace(/\s+/g, " ");
+
+const getExaminationCategoryMeta = (appointment: EasyMedAppointment): CategoryMeta => {
+  const categoryName = getStringOrEmpty(appointment.category_name);
+  const knownCategory = categoryName
+    ? examinationCategoryByTitle.get(normalizeCategoryTitle(categoryName))
+    : undefined;
+
+  if (knownCategory) return knownCategory;
+
+  return toNumber(appointment.is_required) === 1
+    ? prescriptionCategories.requiredDiagnostics
+    : prescriptionCategories.indicatedDiagnostics;
+};
+
+
 const getSectionMeta = (appointment: EasyMedAppointment, source: "examination" | "treatment") => {
   if (source === "examination") {
-    const isRequired = toNumber(appointment.is_required) === 1;
-    const categoryTitle = isRequired ? "Диагностика обязательная" : "Диагностика по показаниям";
+    const { categoryId, categoryTitle } = getExaminationCategoryMeta(appointment);
 
     return {
-      categoryId: isRequired ? "required-diagnostics" : "indicated-diagnostics",
+      categoryId,
       categoryTitle,
       sectionTitle: getString(appointment.category_name, categoryTitle),
       groupTitle: categoryTitle,
     };
   }
 
-  if (getStringOrEmpty(appointment.type) === "drug") {
-    return {
-      categoryId: "medications",
-      categoryTitle: "Препараты",
-      sectionTitle: "Лекарственные назначения",
-      groupTitle: "Препараты",
-    };
-  }
+  const isDrug = getStringOrEmpty(appointment.type) === "drug";
 
   return {
-    categoryId: "treatment",
-    categoryTitle: "Лечение",
-    sectionTitle: "Лечебные назначения",
-    groupTitle: "Лечение",
+    ...prescriptionCategories.treatment,
+    sectionTitle: isDrug ? "Медикаментозное лечение" : "Немедикаментозное лечение",
+    groupTitle: prescriptionCategories.treatment.categoryTitle,
   };
 };
 
@@ -240,7 +287,7 @@ const normalizePrescriptionSections = (
   const sourceItems = [
     ...(standard.examinations ?? []).map((item) => ({ item, source: "examination" as const })),
     ...(standard.treatments ?? []).map((item) => ({ item, source: "treatment" as const })),
-  ].filter(({ item }) => appointmentMatchesVisit(item, visit));
+  ].filter(({ item, source }) => appointmentMatchesVisit(item, visit, source));
 
   const sections = new Map<string, PrescriptionSection>();
 
