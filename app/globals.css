@@ -874,23 +874,24 @@ footer {
 }
 
 .footer-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  position: relative;
+  display: grid;
+  grid-template-rows: 60px 42px;
   align-items: center;
   max-width: 1400px;
   width: 100%;
-  min-height: 300px;
+  min-height: 102px;
   background-color: #0085FF;
 }
 
 .footer-nav {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  height: 120px;
+  width: 100%;
+  min-height: 60px;
   position: relative;
-  padding: 0 20px;
+  padding: 0;
 }
 
 html, body {
@@ -915,24 +916,29 @@ html, body {
   align-items: center;
 }
 
+.footer-logo-link img {
+  display: block;
+  width: 101px;
+  height: auto;
+}
+
 .footer-menu {
-  position: absolute;
-  left: 50%;
+  position: static;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   list-style: none;
-  padding-left: 0;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  padding-left: 88px;
+  top: auto;
+  transform: none;
 }
 
 .footer-menu a {
   text-decoration: none;
   color: white;
   font-size: 20px;
-  margin: 0 16px;
-  position: relative;
+  font-size: 18px;
+  margin: 0;
 }
 
 .footer-menu a::after {
@@ -960,6 +966,13 @@ html, body {
 /*  padding: 24px;*/
 /*}*/
 
+.footer-btn-login {
+  color: #ffffff;
+  font-size: 18px;
+  padding: 0 20px;
+  background: transparent;
+}
+
 .footer-btn-login:hover {
   text-decoration: none;
   color: #D8EDFF;
@@ -967,24 +980,29 @@ html, body {
 
 .footer-btn-demo {
   font-family: sans-serif, "Segoe UI Semibold";
-  font-size: 20px;
-  color: #0085FF;
-  background-color: white;
-  width: 90px;
-  height: 50px;
-  padding: 15px 70px;
-  border-radius: 5px;
+  font-size: 18px;
+  color: #ffffff;
+  background-color: transparent;
+  width: auto;
+  height: auto;
+  padding: 0 20px;
+  border-radius: 0;
 }
 
 .footer-btn-demo:hover {
   text-decoration: none;
-  background-color: #D8EDFF;
+  color: #D8EDFF;
+  background-color: transparent;
 }
 
 .footer-contact-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
   list-style: none;
   padding: 0;
-  margin-bottom: 40px;
+  margin: 0;
 }
 
 .footer-contact-list li {
@@ -996,8 +1014,18 @@ html, body {
 }
 
 .footer-contact-list li a {
-  text-decoration: none;
+  font-family: "Segoe UI", sans-serif;
   color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding-bottom: 0;
+  white-space: nowrap;
+}
+
+.footer-contact-list li + li::before {
+  content: '|';
+  margin-right: 28px;
+  color: #BADEFF;
 }
 
 .footer-contact-list li a:hover {
@@ -1005,20 +1033,33 @@ html, body {
 }
 
 .footer-contacts {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+}
+
+.footer-contacts hr {
+  display: none;
 }
 
 #contact {
-  min-height: 114px;
+  min-height: 60px;
 }
 
 .footer-legal {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 15px 20px 15px 20px;
+  width: 100%;
+  min-height: 42px;
+  padding: 0;
   color: white;
   font-size: 14px;
+  border-top: 1px solid #BADEFF;
 }
 
 .legal-link a {
@@ -1032,18 +1073,28 @@ html, body {
 
 .legal-link {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 4px;
+  ustify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.legal-link a + a::before {
+  content: '|';
+  margin-right: 16px;
+  color: #BADEFF;
 }
 
 .inn {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  flex-direction: column;
+  gap: 16px;
   text-align: right;
+  white-space: nowrap;
+}
+
+.inn br {
+  display: none;
 }
 
 .copyright {
