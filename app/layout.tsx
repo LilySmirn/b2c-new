@@ -92,11 +92,6 @@ export default async function RootLayout({
                                     <li><Link href="/#pricing">Тарифы</Link></li>
                                 </ul>
                             </nav>
-
-                            <div className="footer-buttons">
-                                <AuthButtonsServer variant="footer" />
-                                <Link href="/login" className="btn btn-demo footer-btn-demo">Демо</Link>
-                            </div>
                         </section>
 
                         <section className="footer-contacts" id="contact" aria-labelledby="footer-contacts-heading">
@@ -107,6 +102,11 @@ export default async function RootLayout({
                             </ul>
                             <hr />
                         </section>
+
+                        <div className="footer-buttons">
+                            <AuthButtonsServer variant="footer" />
+                            <Link href="/login" className="btn btn-demo footer-btn-demo">Демо</Link>
+                        </div>
 
                         <section className="footer-legal" aria-labelledby="footer-legal-heading">
                             <h2 id="footer-legal-heading" className="visually-hidden">Правовая информация</h2>

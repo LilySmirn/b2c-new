@@ -871,11 +871,13 @@ footer {
   justify-content: center;
   align-items: center;
   background-color: #0085FF;
+  font-family: Arial, sans-serif;
 }
 
 .footer-container {
   position: relative;
   display: grid;
+  grid-template-columns: auto auto 1fr auto;
   grid-template-rows: 60px 42px;
   align-items: center;
   max-width: 1400px;
@@ -885,10 +887,11 @@ footer {
 }
 
 .footer-nav {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-column: 1 / 3;
+  grid-row: 1;
+  display: flex;
   align-items: center;
-  width: 100%;
+  width: auto;
   min-height: 60px;
   position: relative;
   padding: 0;
@@ -916,6 +919,13 @@ html, body {
   align-items: center;
 }
 
+.footer-buttons {
+  grid-column: 4;
+  grid-row: 1;
+  justify-self: end;
+  justify-content: flex-end;
+}
+
 .footer-logo-link img {
   display: block;
   width: 101px;
@@ -928,7 +938,10 @@ html, body {
   justify-content: flex-start;
   align-items: center;
   list-style: none;
-  padding-left: 88px;
+  gap: 32px;
+  margin-left: 88px;
+  padding-left: 0;
+  padding-right: 48px;
   top: auto;
   transform: none;
 }
@@ -936,9 +949,10 @@ html, body {
 .footer-menu a {
   text-decoration: none;
   color: white;
-  font-size: 20px;
+  font-family: Arial, sans-serif;
   font-size: 18px;
   margin: 0;
+  position: relative;
 }
 
 .footer-menu a::after {
@@ -979,7 +993,7 @@ html, body {
 }
 
 .footer-btn-demo {
-  font-family: sans-serif, "Segoe UI Semibold";
+  font-family: Arial, sans-serif;
   font-size: 18px;
   color: #ffffff;
   background-color: transparent;
@@ -1006,7 +1020,7 @@ html, body {
 }
 
 .footer-contact-list li {
-  font-family: "Segoe UI", sans-serif;
+  font-family: Arial, sans-serif;
   color: white;
   text-decoration: none;
   font-size: 20px;
@@ -1014,7 +1028,7 @@ html, body {
 }
 
 .footer-contact-list li a {
-  font-family: "Segoe UI", sans-serif;
+  font-family: Arial, sans-serif;
   color: white;
   text-decoration: none;
   font-size: 16px;
@@ -1033,10 +1047,13 @@ html, body {
 }
 
 .footer-contacts {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+ grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: center;
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
   display: flex;
   align-items: center;
   min-height: 60px;
@@ -1051,6 +1068,8 @@ html, body {
 }
 
 .footer-legal {
+  grid-column: 1 / -1;
+  grid-row: 2;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -1682,6 +1701,8 @@ body.noscroll {
 
   .footer-container {
     height: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   .footer-menu {
@@ -1708,6 +1729,8 @@ body.noscroll {
   }
 
   .footer-contacts {
+    position: static;
+    transform: none;
     margin-top: 10px;
     border-bottom: 1px solid #ffffff;
 
