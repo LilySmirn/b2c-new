@@ -877,7 +877,7 @@ footer {
 .footer-container {
   position: relative;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   grid-template-rows: 60px 42px;
   align-items: center;
   max-width: 1400px;
@@ -887,7 +887,7 @@ footer {
 }
 
 .footer-nav {
-  grid-column: 1 / 3;
+  grid-column: 1;
   grid-row: 1;
   display: flex;
   align-items: center;
@@ -920,10 +920,11 @@ html, body {
 }
 
 .footer-buttons {
-  grid-column: 4;
+  grid-column: 3;
   grid-row: 1;
   justify-self: end;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .footer-logo-link img {
@@ -1024,7 +1025,7 @@ html, body {
   color: white;
   text-decoration: none;
   font-size: 20px;
-  padding-bottom: 10px;
+  padding-bottom: 0;
 }
 
 .footer-contact-list li a {
