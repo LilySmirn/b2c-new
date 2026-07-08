@@ -120,8 +120,8 @@ export default async function RootLayout({
                             </div>
                             <div className="copyright">© 2025 easymed.pro</div>
                             <div className="inn">
-                                ИП Васильцов Давыд Юрьевич<br />
-                                ОГРНИП 324784700301501<br />
+                                ИП Васильцов Давыд Юрьевич  <br />
+                                ОГРНИП 324784700301501  <br />
                                 ИНН 781304344630
                             </div>
                         </section>
