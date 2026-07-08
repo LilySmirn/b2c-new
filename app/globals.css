@@ -899,6 +899,14 @@ footer {
   padding: 0;
 }
 
+@media (min-width: 769px) {
+  .footer-container > .footer-nav {
+    margin-left: 0;
+    margin-right: 0;
+    justify-self: start;
+  }
+}
+
 html, body {
   overflow-x: hidden;
 }
