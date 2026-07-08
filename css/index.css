@@ -812,7 +812,7 @@ footer {
 .footer-container {
     position: relative;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     grid-template-rows: 60px 42px;
     align-items: center;
     max-width: 1400px;
@@ -825,6 +825,8 @@ footer {
     grid-column: 1;
     grid-row: 1;
     display: flex;
+    justify-self: start;
+    justify-content: flex-start;
     align-items: center;
     width: auto;
     min-height: 60px;
@@ -868,7 +870,7 @@ html, body {
     justify-content: flex-start;
     align-items: center;
     list-style: none;
-    margin-left: 88px;
+    margin-left: 20px;
     padding-left: 0;
     top: auto;
     transform: none;
@@ -943,7 +945,7 @@ html, body {
     font-family: Arial, sans-serif;
     color: white;
     text-decoration: none;
-    font-size: 20px;
+    font-size: 16px;
     padding-bottom: 0;
 }
 
@@ -954,7 +956,7 @@ html, body {
 }
 
 .footer-contacts {
-    grid-column: 1 / -1;
+    grid-column: 2;
     grid-row: 1;
     justify-self: center;
     position: relative;

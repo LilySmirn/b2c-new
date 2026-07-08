@@ -891,6 +891,8 @@ footer {
   grid-row: 1;
   display: flex;
   align-items: center;
+  justify-self: start;
+  justify-content: flex-start;
   width: auto;
   min-height: 60px;
   position: relative;
@@ -940,7 +942,7 @@ html, body {
   align-items: center;
   list-style: none;
   gap: 32px;
-  margin-left: 88px;
+  margin-left: 20px;
   padding-left: 0;
   padding-right: 48px;
   top: auto;
@@ -982,6 +984,7 @@ html, body {
 /*}*/
 
 .footer-btn-login {
+  font-family: Arial, sans-serif;
   color: #ffffff;
   font-size: 18px;
   padding: 0 20px;
@@ -1024,7 +1027,7 @@ html, body {
   font-family: Arial, sans-serif;
   color: white;
   text-decoration: none;
-  font-size: 20px;
+  font-size: 16px;
   padding-bottom: 0;
 }
 
@@ -1048,7 +1051,7 @@ html, body {
 }
 
 .footer-contacts {
- grid-column: 1 / -1;
+  grid-column: 2;
   grid-row: 1;
   justify-self: center;
   position: relative;
