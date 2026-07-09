@@ -47,6 +47,7 @@
   display: grid;
   grid-template-columns: 103px minmax(0, 1fr) 42px 241px;
   align-items: stretch;
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
@@ -148,6 +149,12 @@
   line-height: 1;
   padding: 0;
   cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.infoButton:hover {
+  border-color: #0085ff;
+  color: #0085ff;
 }
 
 .modalOverlay {

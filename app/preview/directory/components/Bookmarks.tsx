@@ -62,6 +62,7 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>(items);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingBookmark, setEditingBookmark] = useState<BookmarkItem | null>(null);
   const activeCardRef = useRef<HTMLElement | null>(null);
   const [hasLoadedStoredBookmarks, setHasLoadedStoredBookmarks] = useState(false);
 
@@ -156,7 +157,15 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
                   >
                     Удалить
                   </button>
-                  <button type="button" role="menuitem" className={styles.menuItem}>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.menuItem}
+                    onClick={() => {
+                      setEditingBookmark(bookmark);
+                      setOpenMenuId(null);
+                    }}
+                  >
                     Изменить
                   </button>
                 </div>
@@ -179,10 +188,21 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
       </section>
 
       <NewBookmarkPopup
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        isOpen={isAddModalOpen || Boolean(editingBookmark)}
+        editingBookmark={editingBookmark}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingBookmark(null);
+        }}
         onAddBookmark={(bookmark) => {
           setBookmarks((currentBookmarks) => [...currentBookmarks, bookmark]);
+        }}
+        onUpdateBookmark={(updatedBookmark) => {
+          setBookmarks((currentBookmarks) =>
+            currentBookmarks.map((bookmark) =>
+              bookmark.id === updatedBookmark.id ? updatedBookmark : bookmark,
+            ),
+          );
         }}
       />
     </>

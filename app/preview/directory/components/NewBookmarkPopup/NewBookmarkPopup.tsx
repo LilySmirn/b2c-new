@@ -40,6 +40,8 @@ type NewBookmarkPopupProps = {
   isOpen: boolean;
   onClose: () => void;
   onAddBookmark: (bookmark: BookmarkItem) => void;
+  editingBookmark?: BookmarkItem | null;
+  onUpdateBookmark?: (bookmark: BookmarkItem) => void;
 };
 
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
@@ -65,7 +67,13 @@ const getRecommendationExternalUrl = (source: string, id: string) => {
   return "https://cr.minzdrav.gov.ru/";
 };
 
-export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: NewBookmarkPopupProps) {
+export default function NewBookmarkPopup({
+  isOpen,
+  onClose,
+  onAddBookmark,
+  editingBookmark = null,
+  onUpdateBookmark,
+}: NewBookmarkPopupProps) {
   const [query, setQuery] = useState("");
   const [visitType, setVisitType] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
@@ -82,7 +90,8 @@ export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: New
   const [cardsError, setCardsError] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const searchDropdownRef = useRef<HTMLDivElement | null>(null);
-  const canAddBookmark = Boolean(selectedRecommendation && submittedCode && nosologyTitle.trim());
+  const isEditMode = Boolean(editingBookmark);
+  const canSubmitBookmark = Boolean((selectedRecommendation || isEditMode) && submittedCode && nosologyTitle.trim());
 
   const search = query.trim();
   const matches = useMemo(() => apiMatches.map(formatMkbResult), [apiMatches]);
@@ -120,19 +129,19 @@ export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: New
   useEffect(() => {
     if (!isOpen) return;
 
-    setQuery("");
-    setVisitType("");
-    setAgeGroup("");
+    setQuery(editingBookmark ? `${editingBookmark.code}: ${editingBookmark.title}` : "");
+    setVisitType(editingBookmark?.visitType ?? "");
+    setAgeGroup(editingBookmark?.ageGroup ?? "");
     setSelectedRecommendation(null);
-    setNosologyTitle("");
-    setSubmittedCode(null);
+    setNosologyTitle(editingBookmark?.title ?? "");
+    setSubmittedCode(editingBookmark?.code ?? null);
     setApiMatches([]);
     setFilterAvailability(null);
     setMkbData(null);
     setIsMatchesOpen(false);
     setSearchError(null);
     setCardsError(null);
-  }, [isOpen]);
+}, [editingBookmark, isOpen]);
 
   useEffect(() => {
     if (search.length < 3) {
@@ -303,15 +312,22 @@ export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: New
   };
 
   const handleSubmit = () => {
-    if (!selectedRecommendation || !submittedCode) return;
+    if (!submittedCode || !nosologyTitle.trim()) return;
 
-    onAddBookmark({
-      id: `${submittedCode}-${selectedRecommendation.id}-${Date.now()}`,
+    const nextBookmark: BookmarkItem = {
+      id: editingBookmark?.id ?? `${submittedCode}-${selectedRecommendation?.id ?? "custom"}-${Date.now()}`,
       code: submittedCode,
-      title: nosologyTitle.trim() || selectedRecommendation.title,
+      title: nosologyTitle.trim() || selectedRecommendation?.title || submittedCode,
       visitType: isVisitType(visitType) ? visitType : undefined,
       ageGroup: isAgeGroup(ageGroup) ? ageGroup : undefined,
-    });
+    };
+
+    if (editingBookmark) {
+      onUpdateBookmark?.(nextBookmark);
+    } else if (selectedRecommendation) {
+      onAddBookmark(nextBookmark);
+    }
+
     onClose();
   };
 
@@ -326,7 +342,7 @@ export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: New
   return (
     <PopupShell onClose={onClose}>
       <h2 id="new-bookmark-title" className={styles.title}>
-        Новая закладка
+        {isEditMode ? "Изменить закладку" : "Новая закладка"}
       </h2>
 
       <div className={styles.searchBlock}>
@@ -403,10 +419,10 @@ export default function NewBookmarkPopup({ isOpen, onClose, onAddBookmark }: New
       <button
         type="button"
         className={styles.submitButton}
-        disabled={!canAddBookmark}
+        disabled={!canSubmitBookmark}
         onClick={handleSubmit}
       >
-        Добавить закладку
+        {isEditMode ? "Сохранить изменения" : "Добавить закладку"}
       </button>
     </PopupShell>
   );
