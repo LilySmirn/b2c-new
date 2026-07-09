@@ -35,6 +35,12 @@ export type SelectedPrescription = {
   comment: string;
 };
 
+export type AppendixA3Table = {
+  name: string | null;
+  html: string;
+  comment: string | null;
+};
+
 const comparePriorityValues = (left: string, right: string) => {
   const leftValue = left.trim();
   const rightValue = right.trim();
@@ -172,6 +178,9 @@ type PrescriptionChecklistProps = {
   clearSelectionSignal?: number;
   initialSections?: ChecklistSection[];
   appliedTemplateItems?: SelectedPrescription[] | null;
+  appendixA3Tables?: AppendixA3Table[];
+  isAppendixA3Loading?: boolean;
+  appendixA3Error?: string;
 };
 
 export default function PrescriptionChecklist({
@@ -181,6 +190,9 @@ export default function PrescriptionChecklist({
   clearSelectionSignal = 0,
   initialSections = [],
   appliedTemplateItems = null,
+  appendixA3Tables = [],
+  isAppendixA3Loading = false,
+  appendixA3Error = "",
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(() =>
     mergeChecklistSectionsByTitle(initialSections),
@@ -197,8 +209,12 @@ export default function PrescriptionChecklist({
       );
     });
 
+    if (isAppendixA3Loading || appendixA3Error || appendixA3Tables.length > 0) {
+      availableCategoryIds.add("appendix-a3");
+    }
+
     return { availableCategoryIds, categoryTitles };
-  }, [sections]);
+  }, [appendixA3Error, appendixA3Tables.length, isAppendixA3Loading, sections]);
   const checklistCategories = useMemo(() => {
     const defaultCategoryIds = new Set(
       defaultChecklistCategories.map((category) => category.id),
@@ -472,7 +488,32 @@ export default function PrescriptionChecklist({
 
       <div className={styles.checklistScroll}>
         <div className={styles.tableArea}>
-          {visibleSections.map((section) => (
+          {activeCategoryId === "appendix-a3" ? (
+            <div className={styles.appendixA3Panel}>
+              {isAppendixA3Loading ? (
+                <p className={styles.appendixA3Message}>Загружаем таблицы приложения А3...</p>
+              ) : appendixA3Error ? (
+                <p className={styles.appendixA3Error}>{appendixA3Error}</p>
+              ) : appendixA3Tables.length === 0 ? (
+                <p className={styles.appendixA3Message}>
+                  Для выбранной клинической рекомендации таблицы приложения А3 не найдены.
+                </p>
+              ) : (
+                appendixA3Tables.map((table, index) => (
+                  <section key={`${table.name ?? "appendix-a3"}-${index}`} className={styles.appendixA3TableBlock}>
+                    {table.name ? <h3 className={styles.appendixA3Title}>{table.name}</h3> : null}
+                    <div
+                      className={styles.appendixA3TableHtml}
+                      dangerouslySetInnerHTML={{ __html: table.html }}
+                    />
+                    {table.comment ? <p className={styles.appendixA3Comment}>{table.comment}</p> : null}
+                  </section>
+                ))
+              )}
+            </div>
+          ) : null}
+
+          {activeCategoryId !== "appendix-a3" && visibleSections.map((section) => (
             <div key={section.id} className={styles.sectionBlock}>
               {shouldShowSectionTitle(section) ? (
                 <div
@@ -574,7 +615,7 @@ export default function PrescriptionChecklist({
               ))}
             </div>
           ))}
-          {visibleSections.length === 0 ? (
+          {activeCategoryId !== "appendix-a3" && visibleSections.length === 0 ? (
             <div className={styles.emptyState}>
               В этом разделе пока нет назначений
             </div>

@@ -21,6 +21,12 @@ type StoredCartRecommendation = {
 
 type StoredCartSelections = Record<string, SelectedPrescription[]>;
 
+type AppendixA3Table = {
+  name: string | null;
+  html: string;
+  comment: string | null;
+};
+
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
 const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
 
@@ -145,6 +151,9 @@ export default function CartPreviewPage() {
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
   const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
+  const [appendixA3Tables, setAppendixA3Tables] = useState<AppendixA3Table[]>([]);
+  const [isAppendixA3Loading, setIsAppendixA3Loading] = useState(false);
+  const [appendixA3Error, setAppendixA3Error] = useState("");
   const isRestoringStoredSelectionsRef = useRef(false);
 
   useEffect(() => {
@@ -164,6 +173,32 @@ export default function CartPreviewPage() {
       setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
       isRestoringStoredSelectionsRef.current = true;
       setRecommendationKey(currentRecommendationKey);
+
+      const crMId = parsed.recommendation?.id?.trim();
+      if (crMId) {
+        setIsAppendixA3Loading(true);
+        setAppendixA3Error("");
+        fetch(`/api/cr-tables?cr_m_id=${encodeURIComponent(crMId)}`)
+          .then(async (response) => {
+            if (!response.ok) {
+              throw new Error("Failed to load Appendix A3 tables");
+            }
+
+            return response.json() as Promise<{ tables?: AppendixA3Table[] }>;
+          })
+          .then((data) => {
+            setAppendixA3Tables(Array.isArray(data.tables) ? data.tables : []);
+          })
+          .catch(() => {
+            setAppendixA3Tables([]);
+            setAppendixA3Error("Не удалось загрузить таблицы приложения А3. Попробуйте позже.");
+          })
+          .finally(() => setIsAppendixA3Loading(false));
+      } else {
+        setAppendixA3Tables([]);
+        setAppendixA3Error("Для выбранной рекомендации не найден идентификатор приложения А3.");
+      }
+
       setChecklistSections(
         applyStoredSelections(
           parsed.recommendation?.prescriptions ?? [],
@@ -175,6 +210,9 @@ export default function CartPreviewPage() {
       setDiagnosisCode("");
       setChecklistSections([]);
       setRecommendationKey("");
+      setAppendixA3Tables([]);
+      setIsAppendixA3Loading(false);
+      setAppendixA3Error("");
     }
   }, []);
 
@@ -223,6 +261,9 @@ export default function CartPreviewPage() {
           clearSelectionSignal={clearSelectionSignal}
           initialSections={checklistSections}
           appliedTemplateItems={appliedTemplateItems}
+          appendixA3Tables={appendixA3Tables}
+          isAppendixA3Loading={isAppendixA3Loading}
+          appendixA3Error={appendixA3Error}
         />
         <SideCart
           selectedItems={selectedItems}
