@@ -10,7 +10,6 @@ type DirectoryPageHeaderProps = {
   diagnosisTitle?: string;
 };
 
-const SEARCH_STATE_STORAGE_KEY = "directorySearchState";
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
 const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
 const CART_CUSTOM_ITEMS_STORAGE_KEY = "directoryCartCustomItems";
@@ -30,7 +29,6 @@ const clearCartState = () => {
 
 export default function DirectoryPageHeader({ variant, diagnosisTitle }: DirectoryPageHeaderProps) {
   const handleBackToSearch = () => {
-    window.sessionStorage.removeItem(SEARCH_STATE_STORAGE_KEY);
     clearCartState();
   };
 
