@@ -99,61 +99,57 @@ const buildClipboardContent = (
   generalComment: string,
 ) => {
   const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
-  const trimmedGeneralComment = generalComment.trim();
 
-  const textLines = [
-    ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
-      categoryTitle,
-      "",
-      ...items.flatMap((item) =>
-        formatItemTextLines({ title: item.title, comment: item.comment }),
-      ),
-    ]),
-    ...customItems.flatMap((item) =>
-      formatItemTextLines({
+  if (customItems.length > 0) {
+    groupedItems["Лечение"] = [
+      ...(groupedItems["Лечение"] ?? []),
+      ...customItems.map((item) => ({
+        id: item.id,
+        groupTitle: "Лечение",
+        sectionTitle: "Лечение",
         title: item.name,
         comment: item.comment,
-      }),
-      "",
-    ),
-  ];
-
-  if (trimmedGeneralComment) {
-    if (textLines.length > 0) {
-      textLines.push("");
-    }
-
-    textLines.push("Общая рекомендация:", trimmedGeneralComment);
+      })),
+    ];
   }
-  const plainText = textLines.join("\n");
 
-  const htmlLines = [
-    ...Object.entries(groupedItems).flatMap(([categoryTitle, items]) => [
-      `<strong>${escapeHtml(categoryTitle)}</strong>`,
-      "",
-      ...items.flatMap((item) =>
-        formatItemHtmlLines({ title: item.title, comment: item.comment }),
-      ),
-    ]),
-    ...customItems.flatMap((item) =>
-      formatItemHtmlLines({
-        title: item.name,
-        comment: item.comment,
-      }),
-      ),
-  ];
-  
+  const trimmedGeneralComment = generalComment.trim();
+  const categoryGroups = Object.entries(groupedItems);
+
+  const textBlocks = categoryGroups.map(([categoryTitle, items]) => {
+    const itemLines = items.flatMap((item) =>
+      formatItemTextLines({ title: item.title, comment: item.comment }),
+    );
+
+    return [`${categoryTitle}:`, ...itemLines].join("\n");
+  });
+
   if (trimmedGeneralComment) {
-    if (htmlLines.length > 0) {
-      htmlLines.push("");
-    }
+    textBlocks.push(["Общая рекомендация:", trimmedGeneralComment].join("\n"));
+  }
 
-    htmlLines.push(
-      "<strong>Общая рекомендация:</strong>",
-      escapeHtml(trimmedGeneralComment),
+  const plainText = textBlocks.join("\n\n");
+
+  const htmlBlocks = categoryGroups.map(([categoryTitle, items]) => {
+    const itemLines = items.flatMap((item) =>
+      formatItemHtmlLines({ title: item.title, comment: item.comment }),
+    );
+
+    return [`<strong>${escapeHtml(categoryTitle)}:</strong>`, ...itemLines].join(
+      "<br>",
+    );
+  });
+
+  if (trimmedGeneralComment) {
+    htmlBlocks.push(
+      [
+        "<strong>Общая рекомендация:</strong>",
+        escapeHtml(trimmedGeneralComment),
+      ].join("<br>"),
     );
   }
-  const html = htmlLines.join("<br>");
+
+  const html = htmlBlocks.join("<br><br>");
 
   return { plainText, html };
 };
