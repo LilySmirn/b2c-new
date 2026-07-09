@@ -159,6 +159,7 @@ export default function SideCart({
   const [loadedGeneralCommentStorageKey, setLoadedGeneralCommentStorageKey] = useState("");
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
+  const [saveTemplateError, setSaveTemplateError] = useState("");
   const hasSelectedItems = selectedItems.length > 0 || customItems.length > 0;
   const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
 
@@ -189,12 +190,33 @@ export default function SideCart({
     writeStoredGeneralComment(storageKey, generalComment);
   }, [generalComment, loadedGeneralCommentStorageKey, storageKey]);
 
+  useEffect(() => {
+    if (hasSelectedItems) {
+      setSaveTemplateError("");
+    }
+  }, [hasSelectedItems]);
+
+  const handleSaveTemplateClick = () => {
+    if (!hasSelectedItems) {
+      setSaveTemplateError("Сперва добавьте назначения в корзину");
+      return;
+    }
+
+    setSaveTemplateError("");
+    setIsSaveTemplateModalOpen(true);
+  };
+
   return (
     <aside className={styles.sideCart}>
       <CartTemplateToggle
         onSelectTemplateClick={() => setIsSelectTemplateModalOpen(true)}
-        onSaveTemplateClick={() => setIsSaveTemplateModalOpen(true)}
+        onSaveTemplateClick={handleSaveTemplateClick}
       />
+      {saveTemplateError ? (
+        <p className={styles.saveTemplateError} role="alert">
+          {saveTemplateError}
+        </p>
+      ) : null}
 
       <div className={styles.headerRow}>
         <h2 className={styles.title}>Корзина назначений</h2>

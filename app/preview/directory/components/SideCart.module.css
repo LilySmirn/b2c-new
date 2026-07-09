@@ -8,6 +8,13 @@
   overflow: hidden;
 }
 
+.saveTemplateError {
+  width: calc(100% - 40px);
+  margin: 8px auto 0;
+  color: #e04444;
+  font: 400 13px/1.25 Arial, sans-serif;
+}
+
 .headerRow {
   width: calc(100% - 40px);
   margin: 19px auto 0;
