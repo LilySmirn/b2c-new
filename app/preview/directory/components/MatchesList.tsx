@@ -1,11 +1,13 @@
+import type { ReactNode } from "react";
+
 import styles from "./MatchesList.module.css";
 
 type MatchesListProps = {
   items: string[];
   listClassName?: string;
   itemClassName?: string;
-  emptyText?: string;
-  footerText?: string | null;
+  emptyText?: ReactNode;
+  footerText?: ReactNode | null;
   onItemSelect?: (item: string) => void;
 };
 

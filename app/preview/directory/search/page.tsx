@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SearchBar from "../components/SearchBar";
+import LoadingSpinner from "../components/LoadingSpinner";
 import Filters from "../components/Filters";
 import MatchesList from "../components/MatchesList";
 import Bookmarks, { type BookmarkItem } from "../components/Bookmarks";
@@ -494,7 +495,7 @@ export default function SearchPreviewPage() {
 
   const matchesEmptyText = (() => {
     if (search.length < 3) return "Введите минимум 3 символа";
-    if (isSearchLoading) return "Ищем в базе МКБ...";
+    if (isSearchLoading) return <LoadingSpinner>Ищем в базе МКБ...</LoadingSpinner>;
     return "Ничего не найдено";
   })();
 
@@ -544,7 +545,9 @@ export default function SearchPreviewPage() {
             {submittedCode ? (
             <section className={styles.recommendationsSection} aria-label="Клинические рекомендации">
               {isCardsLoading ? (
-                <p className={styles.recommendationsMessage}>Загружаем клинические рекомендации...</p>
+                <p className={styles.recommendationsMessage}>
+                  <LoadingSpinner>Загружаем клинические рекомендации...</LoadingSpinner>
+                </p>
               ) : cardsError ? (
                 <p className={styles.recommendationsMessage}>{cardsError}</p>
               ) : recommendationCards.length > 0 ? (

@@ -7,6 +7,7 @@ import MatchesList from "../MatchesList";
 import NosologyNameField from "./NosologyNameField";
 import PopupShell from "./PopupShell";
 import RecommendationCard from "../RecommendationCard";
+import LoadingSpinner from "../LoadingSpinner";
 import { newBookmarkAgeOptions, newBookmarkVisitOptions } from "./data";
 import styles from "./NewBookmarkPopup.module.css";
 import type { BookmarkItem } from "../Bookmarks";
@@ -333,7 +334,7 @@ export default function NewBookmarkPopup({
 
   const matchesEmptyText = (() => {
     if (search.length < 3) return "Введите минимум 3 символа";
-    if (isSearchLoading) return "Ищем в базе МКБ...";
+    if (isSearchLoading) return <LoadingSpinner>Ищем в базе МКБ...</LoadingSpinner>;
     return "Ничего не найдено";
   })();
 
@@ -387,7 +388,9 @@ export default function NewBookmarkPopup({
       <section className={styles.cardsGrid} aria-label="Рекомендации для закладки">
         {submittedCode ? (
           isCardsLoading ? (
-            <p style={fullWidthGridItemStyle}>Загружаем клинические рекомендации...</p>
+            <p style={fullWidthGridItemStyle}>
+              <LoadingSpinner>Загружаем клинические рекомендации...</LoadingSpinner>
+            </p>
           ) : cardsError ? (
             <p style={fullWidthGridItemStyle}>{cardsError}</p>
           ) : hasNoRecommendationsForSubmittedCode ? (
