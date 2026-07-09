@@ -136,6 +136,23 @@ const defaultChecklistCategories = [
   { id: "appendix-a3", label: "Приложение А3" },
 ];
 
+const normalizeSectionTitle = (value: string) =>
+  value
+    .trim()
+    .toLocaleLowerCase("ru")
+    .replace(/ё/g, "е")
+    .replace(/\s+/g, " ");
+
+const genericHiddenSectionTitlesByCategory = new Map<string, Set<string>>([
+  ["treatment", new Set(["немедикаментозное лечение"])],
+  ["medications", new Set(["медикаментозное лечение"])],
+]);
+
+const shouldShowSectionTitle = (section: ChecklistSection) =>
+  !genericHiddenSectionTitlesByCategory
+    .get(section.categoryId)
+    ?.has(normalizeSectionTitle(section.title));
+
 const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
   const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
 
@@ -457,36 +474,38 @@ export default function PrescriptionChecklist({
         <div className={styles.tableArea}>
           {visibleSections.map((section) => (
             <div key={section.id} className={styles.sectionBlock}>
-              <div
-                className={`${styles.sectionRow} ${
-                  activeCategoryId === "required-diagnostics"
-                    ? styles.requiredDiagnosticsSectionRow
-                    : ""
-                } ${
-                  activeCategoryId === "required-diagnostics" &&
-                  section.id !== firstRequiredDiagnosticsSectionId
-                    ? styles.sectionRowWithoutCheckbox
-                    : ""
-                }`}
-              >
-                {activeCategoryId === "required-diagnostics" &&
-                section.id === firstRequiredDiagnosticsSectionId ? (
-                  <button
-                    type="button"
-                    className={`${styles.checkbox} ${
-                      allRequiredDiagnosticsChecked
-                        ? styles.checkboxChecked
-                        : ""
-                    }`}
-                    onClick={toggleRequiredDiagnostics}
-                    aria-label="Выбрать всю обязательную диагностику"
-                    aria-pressed={allRequiredDiagnosticsChecked}
-                  >
-                    {allRequiredDiagnosticsChecked ? "✓" : ""}
-                  </button>
-                ) : null}
-                <span>{section.title}</span>
-              </div>
+              {shouldShowSectionTitle(section) ? (
+                <div
+                  className={`${styles.sectionRow} ${
+                    activeCategoryId === "required-diagnostics"
+                      ? styles.requiredDiagnosticsSectionRow
+                      : ""
+                  } ${
+                    activeCategoryId === "required-diagnostics" &&
+                    section.id !== firstRequiredDiagnosticsSectionId
+                      ? styles.sectionRowWithoutCheckbox
+                      : ""
+                  }`}
+                >
+                  {activeCategoryId === "required-diagnostics" &&
+                  section.id === firstRequiredDiagnosticsSectionId ? (
+                    <button
+                      type="button"
+                      className={`${styles.checkbox} ${
+                        allRequiredDiagnosticsChecked
+                          ? styles.checkboxChecked
+                          : ""
+                      }`}
+                      onClick={toggleRequiredDiagnostics}
+                      aria-label="Выбрать всю обязательную диагностику"
+                      aria-pressed={allRequiredDiagnosticsChecked}
+                    >
+                      {allRequiredDiagnosticsChecked ? "✓" : ""}
+                    </button>
+                  ) : null}
+                  <span>{section.title}</span>
+                </div>
+              ) : null}
 
               {section.items.map((item) => (
                 <article

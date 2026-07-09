@@ -205,6 +205,7 @@ const prescriptionCategories = {
     categoryTitle: "Диагностика по показаниям",
   },
   treatment: { categoryId: "treatment", categoryTitle: "Лечение" },
+  medications: { categoryId: "medications", categoryTitle: "Препараты" },
   scales: { categoryId: "scales", categoryTitle: "Шкалы и опросники" },
   lifestyle: { categoryId: "lifestyle", categoryTitle: "Образ жизни" },
   vaccination: { categoryId: "vaccination", categoryTitle: "Вакцинация" },
@@ -213,6 +214,8 @@ const prescriptionCategories = {
 const examinationCategoryByTitle = new Map<string, CategoryMeta>([
   ["шкалы и опросники", prescriptionCategories.scales],
   ["образ жизни", prescriptionCategories.lifestyle],
+  ["физическая активность", prescriptionCategories.lifestyle],
+  ["диета", prescriptionCategories.lifestyle],
   ["вакцинация", prescriptionCategories.vaccination],
 ]);
 
@@ -250,11 +253,14 @@ const getSectionMeta = (appointment: EasyMedAppointment, source: "examination" |
   }
 
   const isDrug = getStringOrEmpty(appointment.type) === "drug";
+  const category = isDrug
+    ? prescriptionCategories.medications
+    : prescriptionCategories.treatment;
 
   return {
-    ...prescriptionCategories.treatment,
+    ...category,
     sectionTitle: isDrug ? "Медикаментозное лечение" : "Немедикаментозное лечение",
-    groupTitle: prescriptionCategories.treatment.categoryTitle,
+    groupTitle: category.categoryTitle,
   };
 };
 
