@@ -489,12 +489,19 @@ export default function PrescriptionChecklist({
               </div>
 
               {section.items.map((item) => (
-                <article key={item.id} className={styles.row}>
+                <article
+                  key={item.id}
+                  className={styles.row}
+                  onClick={() => toggleChecked(item.id)}
+                >
                   <div className={styles.firstCol}>
                     <button
                       type="button"
                       className={`${styles.checkbox} ${item.checked ? styles.checkboxChecked : ""}`}
-                      onClick={() => toggleChecked(item.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleChecked(item.id);
+                      }}
                       aria-label={`Выбрать ${item.title}`}
                     >
                       {item.checked ? "✓" : ""}
@@ -508,7 +515,10 @@ export default function PrescriptionChecklist({
                   <button
                     type="button"
                     className={styles.secondCol}
-                    onClick={() => toggleChecked(item.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleChecked(item.id);
+                    }}
                     aria-pressed={item.checked}
                     aria-label={`Выбрать ${item.title}`}
                   >
@@ -519,7 +529,10 @@ export default function PrescriptionChecklist({
                     <button
                       type="button"
                       className={styles.infoButton}
-                      onClick={() => openInfo(item)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openInfo(item);
+                      }}
                       aria-label={`Информация о назначении ${item.title}`}
                     >
                       i
@@ -531,9 +544,10 @@ export default function PrescriptionChecklist({
                     className={`${styles.commentCol} ${
                       item.comment ? styles.commentColFilled : ""
                     }`}
-                    onClick={() =>
-                      setCommentTarget({ id: item.id, value: item.comment })
-                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setCommentTarget({ id: item.id, value: item.comment });
+                    }}
                   >
                     {item.comment || "Комментарий..."}
                   </button>
