@@ -545,7 +545,7 @@ h2 {
   width: 100%;
 }
 
-tr {
+.pricing-table tr {
   font-family: "Segoe UI", sans-serif;
   font-size: 25px;
   height: 110px;
@@ -553,7 +553,7 @@ tr {
   width: auto;
 }
 
-table {
+.pricing-table {
   margin-top: 44px;
   width: 100%;
   border-collapse: collapse;
