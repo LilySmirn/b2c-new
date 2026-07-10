@@ -508,14 +508,14 @@
   width: 100%;
   overflow-x: auto;
   color: #10253f;
-  font: 400 12px/1.35 Arial, sans-serif;
+  font: 400 12px/1.2 Arial, sans-serif;
 }
 
 .appendixA3TableHtml :where(*) {
   color: inherit !important;
   font-family: Arial, sans-serif !important;
   font-size: 12px !important;
-  line-height: 1.35 !important;
+  line-height: 1.2 !important;
   font-weight: 400 !important;
 }
 
