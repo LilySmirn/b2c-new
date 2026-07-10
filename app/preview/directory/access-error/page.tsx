@@ -25,8 +25,8 @@ export default function AccessErrorPreviewPage() {
 
           <div className={styles.imageBlock}>
             <Image
-              src="/images/hero-img.png"
-              alt="Иллюстрация поиска клинических рекомендаций"
+              src="/images/404.png"
+              alt="Иллюстрация ошибки 404"
               width={638}
               height={442}
               className={styles.image}
