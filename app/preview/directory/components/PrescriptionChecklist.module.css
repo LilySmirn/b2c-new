@@ -536,6 +536,7 @@
   height: auto !important;
   min-height: 0 !important;
   padding: 3px 6px !important;
+  text-align: left !important;
   vertical-align: top !important;
 }
 
