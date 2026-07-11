@@ -233,18 +233,8 @@ export default function PrescriptionChecklist({
           category.label,
       })),
       ...extraCategories,
-    ].sort((left, right) => {
-      const leftIsAvailable = categoryAvailability.availableCategoryIds.has(left.id);
-      const rightIsAvailable = categoryAvailability.availableCategoryIds.has(right.id);
-
-      if (leftIsAvailable === rightIsAvailable) return 0;
-
-      return leftIsAvailable ? -1 : 1;
-    });
-  }, [
-    categoryAvailability.availableCategoryIds,
-    categoryAvailability.categoryTitles,
-  ]);
+    ];
+  }, [categoryAvailability.categoryTitles]);
   const [activeCategoryId, setActiveCategoryId] = useState(() =>
     getFirstAvailableCategoryId(initialSections),
   );
