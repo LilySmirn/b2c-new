@@ -9,6 +9,8 @@ import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
 import styles from "./ActionPanel.module.css";
 
+const documentTemplates = ["Шаблон 1", "Шаблон 2", "Шаблон 3", "Шаблон 4"];
+
 const actions = [
   {
     id: "chart",
@@ -160,21 +162,23 @@ export default function ActionPanel({
   generalComment = "",
 }: ActionPanelProps) {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
   const copyNoticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isIntegrationModalOpen) return;
+    if (!isIntegrationModalOpen && !isTemplateModalOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsIntegrationModalOpen(false);
+        setIsTemplateModalOpen(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isIntegrationModalOpen]);
+  }, [isIntegrationModalOpen, isTemplateModalOpen]);
 
   useEffect(
     () => () => {
@@ -233,7 +237,9 @@ export default function ActionPanel({
                 ? () => setIsIntegrationModalOpen(true)
                 : action.id === "copy"
                   ? copySelectedItems
-                  : undefined
+                  : action.id === "doc"
+                    ? () => setIsTemplateModalOpen(true)
+                    : undefined
             }
           >
             <Image
@@ -256,6 +262,44 @@ export default function ActionPanel({
       {copyNotice ? (
         <div className={styles.copyNotice} role="status" aria-live="polite">
           {copyNotice}
+        </div>
+      ) : null}
+
+      {isTemplateModalOpen ? (
+        <div className={styles.modalOverlay} onClick={() => setIsTemplateModalOpen(false)}>
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="template-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={() => setIsTemplateModalOpen(false)}
+              aria-label="Закрыть выбор шаблона"
+            >
+              ×
+            </button>
+
+            <h2 id="template-modal-title" className={styles.modalTitle}>
+              Выберите шаблон
+            </h2>
+
+            <div className={styles.templateList}>
+              {documentTemplates.map((template) => (
+                <button
+                  key={template}
+                  type="button"
+                  className={styles.templateItem}
+                  onClick={() => setIsTemplateModalOpen(false)}
+                >
+                  {template}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       ) : null}
 
