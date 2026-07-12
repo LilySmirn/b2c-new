@@ -7,22 +7,8 @@ import copyIcon from "@/assets/images/action-panel-2.svg";
 import documentIcon from "@/assets/images/action-panel-3.svg";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
+import DocumentTemplateModal from "@/app/preview/directory/components/DocumentTemplateModal";
 import styles from "./ActionPanel.module.css";
-
-const documentTemplates = [
-  {
-    id: "default-recommendations",
-    title: "Рекомендации пациенту",
-    formats: ["docx", "pdf"],
-    enabled: true,
-  },
-  {
-    id: "doctor-summary",
-    title: "Выписка для врача",
-    formats: ["docx", "pdf"],
-    enabled: false,
-  },
-] as const;
 
 const actions = [
   {
@@ -236,7 +222,6 @@ export default function ActionPanel({
     showCopyNotice(selectedItems.length + customItems.length);
   };
 
-
   return (
     <>
       <div className={styles.panel}>
@@ -279,47 +264,12 @@ export default function ActionPanel({
       ) : null}
 
       {isTemplateModalOpen ? (
-        <div className={styles.modalOverlay} onClick={() => setIsTemplateModalOpen(false)}>
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="template-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className={styles.closeButton}
-              onClick={() => setIsTemplateModalOpen(false)}
-              aria-label="Закрыть выбор шаблона"
-            >
-              ×
-            </button>
-
-            <h2 id="template-modal-title" className={styles.modalTitle}>
-              Выберите шаблон
-            </h2>
-
-            <div className={styles.templateList}>
-              {documentTemplates.map((template) => (
-                <button
-                  key={template.id}
-                  type="button"
-                  className={styles.templateItem}
-                  onClick={() => setIsTemplateModalOpen(false)}
-                  disabled={!template.enabled}
-                >
-                  <span>{template.title}</span>
-                  <span className={styles.templateMeta}>
-                    {template.enabled
-                      ? `Доступные форматы: ${template.formats.join(", ").toUpperCase()}`
-                      : "Скоро будет доступен"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <DocumentTemplateModal
+          selectedItems={selectedItems}
+          customItems={customItems}
+          generalComment={generalComment}
+          onClose={() => setIsTemplateModalOpen(false)}
+        />
       ) : null}
 
       {isIntegrationModalOpen ? (
