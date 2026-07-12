@@ -9,7 +9,20 @@ import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
 import styles from "./ActionPanel.module.css";
 
-const documentTemplates = ["Шаблон 1", "Шаблон 2", "Шаблон 3", "Шаблон 4"];
+const documentTemplates = [
+  {
+    id: "default-recommendations",
+    title: "Рекомендации пациенту",
+    formats: ["docx", "pdf"],
+    enabled: true,
+  },
+  {
+    id: "doctor-summary",
+    title: "Выписка для врача",
+    formats: ["docx", "pdf"],
+    enabled: false,
+  },
+] as const;
 
 const actions = [
   {
@@ -290,12 +303,18 @@ export default function ActionPanel({
             <div className={styles.templateList}>
               {documentTemplates.map((template) => (
                 <button
-                  key={template}
+                  key={template.id}
                   type="button"
                   className={styles.templateItem}
                   onClick={() => setIsTemplateModalOpen(false)}
+                  disabled={!template.enabled}
                 >
-                  {template}
+                  <span>{template.title}</span>
+                  <span className={styles.templateMeta}>
+                    {template.enabled
+                      ? `Доступные форматы: ${template.formats.join(", ").toUpperCase()}`
+                      : "Скоро будет доступен"}
+                  </span>
                 </button>
               ))}
             </div>
