@@ -201,6 +201,23 @@
   color: #b42318;
 }
 
+.openPdfButton {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 12px;
+  border: 1px solid #1182ee;
+  border-radius: 8px;
+  background: #eef7ff;
+  color: #0f73d1;
+  font: 700 14px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.openPdfButton:hover,
+.openPdfButton:focus-visible {
+  background: #dcedff;
+}
+
 @media (max-width: 560px) {
   .modal {
     padding: 28px 22px 24px;

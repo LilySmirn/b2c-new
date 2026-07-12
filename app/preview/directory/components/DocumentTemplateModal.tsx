@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 import type {
   DocumentFormat,
-  DocumentGenerationPayload,
   DocumentTemplate,
 } from "@/app/types/DocumentGeneration";
 import { documentTemplates } from "./documentTemplates";
+import { useDocumentGeneration } from "./useDocumentGeneration";
 import type { CustomCartItem } from "./SideCart";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import styles from "./DocumentTemplateModal.module.css";
@@ -24,24 +24,35 @@ type DocumentTemplateModalProps = {
   customItems: CustomCartItem[];
   generalComment: string;
   onClose: () => void;
-  onGenerate?: (params: {
-    template: DocumentTemplate;
-    format: DocumentFormat;
-    payload: DocumentGenerationPayload;
-  }) => void | Promise<void>;
 };
 
-const uiStatusText: Record<GenerationUiStatus, string> = {
-  idle: "Выберите шаблон и формат документа.",
-  init: "Отправляем запрос на формирование документа...",
-  processing: "Документ формируется. Это может занять несколько секунд.",
-  ready: "Документ готов.",
-  error: "Не удалось сформировать документ. Попробуйте еще раз.",
-  timeout: "Превышено время ожидания формирования документа.",
-};
+const getStatusText = ({
+  status,
+  stage,
+  error,
+}: {
+  status: GenerationUiStatus;
+  stage: string | null;
+  error: string | null;
+}) => {
+  if (error) return error;
+  if (stage) return stage;
 
-const isActionInProgress = (status: GenerationUiStatus) =>
-  status === "init" || status === "processing";
+  switch (status) {
+    case "idle":
+      return "Выберите шаблон и формат документа.";
+    case "init":
+      return "Отправляем запрос на формирование документа...";
+    case "processing":
+      return "Документ формируется. Это может занять несколько секунд.";
+    case "ready":
+      return "Документ готов.";
+    case "error":
+      return "Не удалось сформировать документ. Попробуйте еще раз.";
+    case "timeout":
+      return "Превышено время ожидания формирования документа.";
+  }
+};
 
 const getDefaultFormat = (template: DocumentTemplate | undefined) =>
   template?.formats[0] ?? "docx";
@@ -51,7 +62,6 @@ export default function DocumentTemplateModal({
   customItems,
   generalComment,
   onClose,
-  onGenerate,
 }: DocumentTemplateModalProps) {
   const firstEnabledTemplate = useMemo(
     () => documentTemplates.find((template) => template.enabled),
@@ -63,7 +73,16 @@ export default function DocumentTemplateModal({
   const [selectedFormat, setSelectedFormat] = useState<DocumentFormat>(
     getDefaultFormat(firstEnabledTemplate),
   );
-  const [status, setStatus] = useState<GenerationUiStatus>("idle");
+  const {
+    status,
+    stage,
+    error,
+    pdfUrlToOpen,
+    isActionInProgress: isGenerationInProgress,
+    startGeneration,
+    abort,
+    openReadyPdf,
+  } = useDocumentGeneration();
 
   const selectedTemplate = useMemo(
     () => documentTemplates.find((template) => template.id === selectedTemplateId),
@@ -71,39 +90,37 @@ export default function DocumentTemplateModal({
   );
 
   const handleTemplateSelect = (template: DocumentTemplate) => {
-    if (!template.enabled || isActionInProgress(status)) return;
+    if (!template.enabled || isGenerationInProgress) return;
 
     setSelectedTemplateId(template.id);
     setSelectedFormat(getDefaultFormat(template));
-    setStatus("idle");
   };
 
   const handleGenerate = async () => {
-    if (!selectedTemplate || !selectedTemplate.enabled || isActionInProgress(status)) {
+    if (!selectedTemplate || !selectedTemplate.enabled || isGenerationInProgress) {
       return;
     }
 
-    setStatus("init");
-
-    try {
-      await onGenerate?.({
-        template: selectedTemplate,
-        format: selectedFormat,
-        payload: {
-          selectedItems,
-          customItems,
-          generalComment,
-        },
-      });
-
-      setStatus("processing");
-    } catch {
-      setStatus("error");
-    }
+    await startGeneration({
+      template: selectedTemplate,
+      format: selectedFormat,
+      payload: {
+        selectedItems,
+        customItems,
+        generalComment,
+      },
+    });
   };
 
+  const handleClose = () => {
+    abort();
+    onClose();
+  };
+
+  const statusText = getStatusText({ status, stage, error });
+
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={handleClose}>
       <div
         className={styles.modal}
         role="dialog"
@@ -114,7 +131,7 @@ export default function DocumentTemplateModal({
         <button
           type="button"
           className={styles.closeButton}
-          onClick={onClose}
+          onClick={handleClose}
           aria-label="Закрыть выбор шаблона документа"
         >
           ×
@@ -144,7 +161,7 @@ export default function DocumentTemplateModal({
                     type="button"
                     className={styles.templateTitle}
                     onClick={() => handleTemplateSelect(template)}
-                    disabled={!template.enabled || isActionInProgress(status)}
+                    disabled={!template.enabled || isGenerationInProgress}
                     aria-pressed={isSelected}
                   >
                     {template.title}
@@ -174,7 +191,7 @@ export default function DocumentTemplateModal({
                         handleTemplateSelect(template);
                         setSelectedFormat(format);
                       }}
-                      disabled={!template.enabled || isActionInProgress(status)}
+                      disabled={!template.enabled || isGenerationInProgress}
                       aria-pressed={isSelected && selectedFormat === format}
                     >
                       {format.toUpperCase()}
@@ -193,20 +210,30 @@ export default function DocumentTemplateModal({
           role="status"
           aria-live="polite"
         >
-          {uiStatusText[status]}
+          {statusText}
         </p>
 
+        {pdfUrlToOpen ? (
+          <button
+            type="button"
+            className={styles.openPdfButton}
+            onClick={openReadyPdf}
+          >
+            Открыть PDF
+          </button>
+        ) : null}
+
         <div className={styles.modalActions}>
-          <button type="button" className={styles.secondaryButton} onClick={onClose}>
+          <button type="button" className={styles.secondaryButton} onClick={handleClose}>
             Отмена
           </button>
           <button
             type="button"
             className={styles.primaryButton}
             onClick={handleGenerate}
-            disabled={!selectedTemplate?.enabled || isActionInProgress(status)}
+            disabled={!selectedTemplate?.enabled || isGenerationInProgress}
           >
-            {isActionInProgress(status) ? "Формируем..." : "Сформировать"}
+            {isGenerationInProgress ? "Формируем..." : "Сформировать"}
           </button>
         </div>
       </div>

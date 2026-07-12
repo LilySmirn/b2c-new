@@ -67,11 +67,21 @@ export const cleanupExpiredDocumentJobs = async () => {
   );
 };
 
+const wait = (delayMs: number) =>
+  new Promise<void>((resolve) => {
+    const timeout = setTimeout(resolve, delayMs);
+    timeout.unref?.();
+  });
+
 const completeMockGeneration = async (jobId: string) => {
-  const job = await documentJobStore.getJob(jobId);
-  if (!job || job.status !== "queued") return;
+  const queuedJob = await documentJobStore.getJob(jobId);
+  if (!queuedJob || queuedJob.status !== "queued") return;
 
   await documentJobStore.updateJob(jobId, { status: "processing" });
+  await wait(DOCUMENT_GENERATION_SERVER_CONFIG.mockGenerationDelayMs);
+
+  const job = await documentJobStore.getJob(jobId);
+  if (!job || job.status !== "processing") return;
 
   try {
     const filePath = await generateMockDocumentFile({
@@ -111,9 +121,7 @@ export const createDocumentGenerationJob = async (
 
   await documentJobStore.createJob(job);
 
-  setTimeout(() => {
-    void completeMockGeneration(job.id);
-  }, DOCUMENT_GENERATION_SERVER_CONFIG.mockGenerationDelayMs);
+  void completeMockGeneration(job.id);
 
   return {
     jobId: job.id,
