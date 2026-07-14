@@ -29,6 +29,7 @@ type EasyMedAppointment = {
   plan?: unknown;
   duration?: unknown;
   type?: unknown;
+  is_offlabel?: number | string | boolean | null;
   SMNN_CODE?: unknown;
 };
 
@@ -253,13 +254,18 @@ const getSectionMeta = (appointment: EasyMedAppointment, source: "examination" |
   }
 
   const isDrug = getStringOrEmpty(appointment.type) === "drug";
+  const isOfflabelDrug = isDrug && getBoolean(appointment.is_offlabel);
   const category = isDrug
     ? prescriptionCategories.medications
     : prescriptionCategories.treatment;
 
   return {
     ...category,
-    sectionTitle: isDrug ? "Медикаментозное лечение" : "Немедикаментозное лечение",
+    sectionTitle: isOfflabelDrug
+      ? "Offlabel"
+      : isDrug
+        ? "Медикаментозное лечение"
+        : "Немедикаментозное лечение",
     groupTitle: category.categoryTitle,
   };
 };

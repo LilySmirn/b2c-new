@@ -159,6 +159,23 @@ const shouldShowSectionTitle = (section: ChecklistSection) =>
     .get(section.categoryId)
     ?.has(normalizeSectionTitle(section.title));
 
+const OFFLABEL_SECTION_TITLE = "Offlabel";
+
+const isOfflabelSection = (section: ChecklistSection) =>
+  section.categoryId === "medications" &&
+  normalizeSectionTitle(section.title) === normalizeSectionTitle(OFFLABEL_SECTION_TITLE);
+
+const sortSectionsForDisplay = (sections: ChecklistSection[]) =>
+  sections.slice().sort((left, right) => {
+    if (left.categoryId !== "medications" || right.categoryId !== "medications") {
+      return 0;
+    }
+
+    if (isOfflabelSection(left) === isOfflabelSection(right)) return 0;
+
+    return isOfflabelSection(left) ? 1 : -1;
+  });
+
 const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
   const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
 
@@ -426,8 +443,8 @@ export default function PrescriptionChecklist({
     );
   }, [clearSelectionSignal]);
 
-  const visibleSections = sections.filter(
-    (section) => section.categoryId === activeCategoryId,
+  const visibleSections = sortSectionsForDisplay(
+    sections.filter((section) => section.categoryId === activeCategoryId),
   );
 
   const requiredDiagnosticsSections = sections.filter(
