@@ -196,3 +196,43 @@
     font-size: 34px;
   }
 }
+
+.errorMessage {
+  margin: -12px 0 17px;
+  border: 1px solid rgba(255, 80, 80, 0.42);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 80, 80, 0.12);
+  color: #ffb7b7;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.submitButton:not(:disabled) {
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.submitButton:not(:disabled):hover {
+  background: #0f70c7;
+}
+
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.loadingPopup {
+  border-radius: 12px;
+  padding: 22px 28px;
+  background: #191b2a;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}

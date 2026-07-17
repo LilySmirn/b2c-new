@@ -1,16 +1,28 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-    const userId = request.cookies.get('user_id')?.value;
+const PROTECTED_DIRECTORY_PREFIX = '/preview/directory';
 
-    /*if (!userId) {
-        return NextResponse.redirect(new URL('/login', request.url));
-    }*/
+export function middleware(request: NextRequest) {
+    if (request.nextUrl.pathname.startsWith(PROTECTED_DIRECTORY_PREFIX)) {
+        const username = request.cookies.get('username')?.value;
+        const password = request.cookies.get('password')?.value;
+
+        if (!username || !password) {
+            const authUrl = new URL('/auth', request.url);
+            const code = request.nextUrl.searchParams.get('code');
+
+            if (code) {
+                authUrl.searchParams.set('code', code);
+            }
+
+    return NextResponse.redirect(authUrl);
+        }
+    }
 
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/profile'],
+    matcher: ['/profile', '/preview/directory/:path*'],
 };

@@ -2,19 +2,101 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './auth.module.css';
+
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const MIN_CREDENTIAL_LENGTH = 6;
+
+function buildDirectoryUrl(code: string | null) {
+  const params = code ? `?code=${encodeURIComponent(code)}` : '';
+
+  return `/preview/directory/search${params}`;
+}
+
+function setCredentialCookie(name: string, value: string) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+}
 
 export default function AuthClient() {
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorText, setErrorText] = useState('');
+  const [code, setCode] = useState<string | null>(null);
+
+  const isSubmitDisabled = useMemo(
+    () => isLoading || username.length < MIN_CREDENTIAL_LENGTH || password.length < MIN_CREDENTIAL_LENGTH,
+    [isLoading, password.length, username.length]
+  );
 
   useEffect(() => {
     usernameInputRef.current?.focus();
+    setCode(new URLSearchParams(window.location.search).get('code'));
   }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (isSubmitDisabled) {
+      return;
+    }
+
+    setErrorText('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/legacy-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = (await response.json()) as { result?: string };
+
+      if (data.result === 'denyIP') {
+        setErrorText('IP не зарегистрирован');
+        return;
+      }
+
+      if (data.result === 'deny') {
+        setErrorText('Неверный логин или пароль');
+        return;
+      }
+
+      if (data.result === 'access') {
+        setCredentialCookie('username', username);
+        setCredentialCookie('password', password);
+        window.location.href = buildDirectoryUrl(code);
+        return;
+      }
+
+      setErrorText('Ошибка');
+      console.log(data);
+    } catch (error) {
+      console.error('Ошибка:', error);
+      setErrorText('Ошибка');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <main className={styles.authPage}>
+      {isLoading && (
+        <div className={styles.loadingOverlay} role="status" aria-live="polite">
+          <div className={styles.loadingPopup}>Проверяем доступ...</div>
+        </div>
+      )}
+
       <header className={styles.topBar}>
         <Link className={styles.logoMark} href="/" aria-label="На главную страницу">
           <Image
@@ -38,10 +120,17 @@ export default function AuthClient() {
         <div className={styles.loginCard} aria-labelledby="auth-title">
           <h1 id="auth-title" className={styles.logo}>EasyMed</h1>
 
-          <form className={styles.loginForm}>
+          <form className={styles.loginForm} onSubmit={handleSubmit}>
             <label className={styles.field} htmlFor="username">
               <span>Логин</span>
-              <input ref={usernameInputRef} id="username" type="text" autoComplete="username" />
+              <input
+                ref={usernameInputRef}
+                id="username"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+              />
             </label>
 
             <label className={styles.field} htmlFor="password">
@@ -51,6 +140,8 @@ export default function AuthClient() {
                   id="password"
                   type={isPasswordVisible ? 'text' : 'password'}
                   autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                 />
                 <button
                   type="button"
@@ -71,7 +162,13 @@ export default function AuthClient() {
               </span>
             </label>
 
-            <button className={styles.submitButton} type="button" disabled>
+            {errorText && (
+              <div className={styles.errorMessage} role="alert">
+                {errorText}
+              </div>
+            )}
+
+            <button className={styles.submitButton} type="submit" disabled={isSubmitDisabled}>
               Вход
             </button>
           </form>
