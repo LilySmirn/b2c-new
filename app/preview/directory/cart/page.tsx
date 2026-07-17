@@ -15,6 +15,7 @@ type StoredCartRecommendation = {
     id?: string;
     title?: string;
     mkbCodes?: string[];
+    source?: string;
     prescriptions?: ChecklistSection[];
   };
 };
@@ -148,6 +149,8 @@ export default function CartPreviewPage() {
   const [clearSelectionSignal, setClearSelectionSignal] = useState(0);
   const [diagnosisTitle, setDiagnosisTitle] = useState("");
   const [diagnosisCode, setDiagnosisCode] = useState("");
+  const [recommendationId, setRecommendationId] = useState("");
+  const [recommendationSource, setRecommendationSource] = useState("");
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
   const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
@@ -171,6 +174,8 @@ export default function CartPreviewPage() {
 
       setDiagnosisTitle(currentDiagnosisTitle);
       setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
+      setRecommendationId(parsed.recommendation?.id ?? "");
+      setRecommendationSource(parsed.recommendation?.source ?? "");
       isRestoringStoredSelectionsRef.current = true;
       setRecommendationKey(currentRecommendationKey);
 
@@ -208,6 +213,8 @@ export default function CartPreviewPage() {
     } catch {
       setDiagnosisTitle("");
       setDiagnosisCode("");
+      setRecommendationId("");
+      setRecommendationSource("");
       setChecklistSections([]);
       setRecommendationKey("");
       setAppendixA3Tables([]);
@@ -251,7 +258,12 @@ export default function CartPreviewPage() {
 
   return (
     <>
-      <DirectoryPageHeader variant="cart" diagnosisTitle={diagnosisTitle} />
+      <DirectoryPageHeader
+        variant="cart"
+        diagnosisTitle={diagnosisTitle}
+        recommendationId={recommendationId}
+        recommendationSource={recommendationSource}
+      />
       <main className={styles.page}>
       <section className={styles.layout}>
         <PrescriptionChecklist

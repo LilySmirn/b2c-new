@@ -96,3 +96,48 @@
     margin-left: 16px;
   }
 }
+
+.cartActions {
+  grid-column: -2 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 10px;
+}
+
+.sourceAction {
+  gap: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sourceIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.sourceIcon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.sourceLabel {
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 640px) {
+  .cartActions {
+    gap: 8px;
+  }
+
+  .sourceAction {
+    padding: 11px 14px;
+  }
+}
