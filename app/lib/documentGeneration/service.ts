@@ -6,8 +6,8 @@ import type {
   DocumentGenerationStatusResponse,
   DocumentJob,
 } from "@/app/types/DocumentGeneration";
-import { DOCUMENT_GENERATION_CONFIG } from "@/app/preview/directory/components/documentGenerationConfig";
-import { documentTemplates } from "@/app/preview/directory/components/documentTemplates";
+import { DOCUMENT_GENERATION_CONFIG } from "@/app/directory/components/documentGenerationConfig";
+import { documentTemplates } from "@/app/directory/components/documentTemplates";
 import { DOCUMENT_GENERATION_SERVER_CONFIG } from "./config";
 import { generateMockDocumentFile } from "./generator";
 import { documentJobStore } from "./store";

@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const pages = [
-  { href: "/preview/directory/search", label: "Главный поиск (initial / empty / cards)" },
-  { href: "/preview/directory/cart", label: "Корзина назначений" },
-  { href: "/preview/directory/access-error", label: "Ошибки доступа (404)" },
+  { href: "/directory/search", label: "Главный поиск (initial / empty / cards)" },
+  { href: "/directory/cart", label: "Корзина назначений" },
+  { href: "/directory/access-error", label: "Ошибки доступа (404)" },
 ];
 
 const popups = [
@@ -50,7 +50,7 @@ export default function DirectoryPreviewIndexPage() {
 
       <h2>Попапы</h2>
       <p>
-        Структура файлов создана в <code>app/preview/directory/popups</code>.
+        Структура файлов создана в <code>app/directory/popups</code>.
       </p>
       <ul>
         {popups.map((item) => (
@@ -60,7 +60,7 @@ export default function DirectoryPreviewIndexPage() {
 
       <h2>Компоненты</h2>
       <p>
-        Структура файлов создана в <code>app/preview/directory/components</code>.
+        Структура файлов создана в <code>app/directory/components</code>.
       </p>
       <ul>
         {components.map((item) => (

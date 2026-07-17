@@ -6,7 +6,7 @@ export default function PreviewIndexPage() {
       <h1>Preview routes</h1>
       <ul>
         <li>
-          <Link href="/preview/directory">Справочник (index)</Link>
+          <Link href="/directory">Справочник (index)</Link>
         </li>
       </ul>
     </main>

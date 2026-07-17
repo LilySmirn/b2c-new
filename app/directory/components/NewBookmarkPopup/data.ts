@@ -1,4 +1,4 @@
-import { testRecommendationTitle } from "@/app/preview/directory/components/recommendationTestTitle";
+import { testRecommendationTitle } from "@/app/directory/components/recommendationTestTitle";
 
 export const newBookmarkVisitOptions = [
   { id: "primary", label: "Первичный" },

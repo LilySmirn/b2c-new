@@ -459,7 +459,7 @@ export default function SearchPreviewPage() {
         CART_RECOMMENDATION_STORAGE_KEY,
         serializedCartRecommendation,
       );
-      router.push("/preview/directory/cart");
+      router.push("/directory/cart");
     } catch (error) {
       setCardsError("Не удалось открыть закладку. Попробуйте позже.");
     }
@@ -490,7 +490,7 @@ export default function SearchPreviewPage() {
       CART_RECOMMENDATION_STORAGE_KEY,
       serializedCartRecommendation,
     );
-    router.push("/preview/directory/cart");
+    router.push("/directory/cart");
   };
 
   const matchesEmptyText = (() => {

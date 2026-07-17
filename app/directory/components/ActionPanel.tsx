@@ -7,7 +7,7 @@ import copyIcon from "@/assets/images/action-panel-2.svg";
 import documentIcon from "@/assets/images/action-panel-3.svg";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
-import DocumentTemplateModal from "@/app/preview/directory/components/DocumentTemplateModal";
+import DocumentTemplateModal from "@/app/directory/components/DocumentTemplateModal";
 import styles from "./ActionPanel.module.css";
 
 const actions = [

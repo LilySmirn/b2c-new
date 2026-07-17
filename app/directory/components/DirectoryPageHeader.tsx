@@ -125,7 +125,7 @@ export default function DirectoryPageHeader({
           </a>
         ) : null}
         <Link
-          href="/preview/directory/search"
+          href="/directory/search"
           className={`${styles.action} ${styles.backAction}`}
           onClick={handleBackToSearch}
         >

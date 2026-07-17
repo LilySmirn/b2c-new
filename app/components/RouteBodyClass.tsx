@@ -12,9 +12,9 @@ export default function RouteBodyClass() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isPreviewSearch = pathname === '/preview/directory/search';
-    const isPreviewCart = pathname === '/preview/directory/cart';
-    const isPreviewAccessError = pathname === '/preview/directory/access-error';
+    const isPreviewSearch = pathname === '/directory/search';
+    const isPreviewCart = pathname === '/directory/cart';
+    const isPreviewAccessError = pathname === '/directory/access-error';
     const isAuth = pathname === '/auth';
 
     document.body.classList.toggle(PREVIEW_SEARCH_ROUTE_CLASS, isPreviewSearch);

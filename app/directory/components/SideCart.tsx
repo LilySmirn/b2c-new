@@ -9,7 +9,7 @@ import type { SelectedPrescription } from "./PrescriptionChecklist";
 import RecommendationField from "./RecommendationField";
 import SaveTemplateModal from "./SaveTemplateModal";
 import SelectTemplateModal from "./SelectTemplateModal";
-import type { CartTemplate } from "@/app/preview/directory/components/cartTemplatesStorage";
+import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
 import styles from "./SideCart.module.css";
 import deleteAllIcon from "@/assets/images/delete-all.svg";
 import deleteIcon from "@/assets/images/delete.svg";

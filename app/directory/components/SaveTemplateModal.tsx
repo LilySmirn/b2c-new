@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
-import { readCartTemplates, writeCartTemplates } from "@/app/preview/directory/components/cartTemplatesStorage";
+import { readCartTemplates, writeCartTemplates } from "@/app/directory/components/cartTemplatesStorage";
 import styles from "./SaveTemplateModal.module.css";
 
 const TEMPLATE_NAME_MAX_LENGTH = 100;

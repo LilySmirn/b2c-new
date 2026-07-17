@@ -5,8 +5,8 @@ import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
-import type { CartTemplate } from "@/app/preview/directory/components/cartTemplatesStorage";
-import DirectoryPageHeader from "@/app/preview/directory/components/DirectoryPageHeader";
+import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
+import DirectoryPageHeader from "@/app/directory/components/DirectoryPageHeader";
 
 type StoredCartRecommendation = {
   diagnosisTitle?: string;

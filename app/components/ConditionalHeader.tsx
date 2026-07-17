@@ -4,9 +4,9 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 const HIDDEN_HEADER_PATHS = new Set([
-  '/preview/directory/search',
-  '/preview/directory/cart',
-  '/preview/directory/access-error',
+  '/directory/search',
+  '/directory/cart',
+  '/directory/access-error',
   '/auth',
 ]);
 

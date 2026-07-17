@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import type { CartTemplate } from "@/app/preview/directory/components/cartTemplatesStorage";
-import { deleteCartTemplate, readCartTemplates } from "@/app/preview/directory/components/cartTemplatesStorage";
+import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
+import { deleteCartTemplate, readCartTemplates } from "@/app/directory/components/cartTemplatesStorage";
 import styles from "./SaveTemplateModal.module.css";
 import deleteIcon from "@/assets/images/delete-icon.svg";
 

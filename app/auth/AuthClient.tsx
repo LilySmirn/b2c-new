@@ -11,7 +11,7 @@ const MIN_CREDENTIAL_LENGTH = 6;
 function buildDirectoryUrl(code: string | null) {
   const params = code ? `?code=${encodeURIComponent(code)}` : '';
 
-  return `/preview/directory/search${params}`;
+  return `/directory/search${params}`;
 }
 
 function setCredentialCookie(name: string, value: string) {

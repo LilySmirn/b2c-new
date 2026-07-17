@@ -43,7 +43,7 @@ export default async function RootLayout({
                             <AuthButtonsServer variant="header" />
                             <Link href="/login" className="btn btn-demo">Демо</Link>
                             <button type="button" className="btn btn-logout-preview">Выйти</button>
-                            <Link href="/preview/directory/search" className="btn btn-back-preview">←Назад</Link>
+                            <Link href="/directory/search" className="btn btn-back-preview">←Назад</Link>
                         </div>
                         <div className="mobile-nav">
                             <button className="burger-btn" aria-label="Открыть меню">

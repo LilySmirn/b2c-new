@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_DIRECTORY_PREFIX = '/preview/directory';
+const PROTECTED_DIRECTORY_PREFIX = '/directory';
 
 export function middleware(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith(PROTECTED_DIRECTORY_PREFIX)) {
@@ -24,5 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/profile', '/preview/directory/:path*'],
+    matcher: ['/profile', '/directory/:path*'],
 };

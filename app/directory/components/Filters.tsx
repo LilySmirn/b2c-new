@@ -1,4 +1,4 @@
-import styles from "@/app/preview/directory/components/Filters.module.css";
+import styles from "@/app/directory/components/Filters.module.css";
 import Image, { StaticImageData } from "next/image";
 import stethoscopeIcon from "@/assets/images/Stethoscope.svg";
 import injectionIcon from "@/assets/images/Injection.svg";
