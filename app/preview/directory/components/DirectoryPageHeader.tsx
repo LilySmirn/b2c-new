@@ -68,6 +68,12 @@ const getSourceMeta = (source?: string, id?: string) => {
   };
 };
 
+const clearAuthCookies = () => {
+  ['username', 'password'].forEach((cookieName) => {
+    document.cookie = `${cookieName}=; path=/; max-age=0; SameSite=Lax`;
+  });
+};
+
 const clearCartState = () => {
   [
     CART_RECOMMENDATION_STORAGE_KEY,
@@ -92,6 +98,11 @@ export default function DirectoryPageHeader({
     clearCartState();
   };
 
+  const handleLogout = () => {
+    clearAuthCookies();
+    clearCartState();
+  };
+  
   const action =
     variant === 'cart' ? (
       <div className={styles.cartActions}>
@@ -123,8 +134,8 @@ export default function DirectoryPageHeader({
         </Link>
       </div>
     ) : (
-      <Link href="/profile" className={styles.action}>
-        В личный кабинет
+      <Link href="/auth" className={styles.action} onClick={handleLogout}>
+        Выйти
       </Link>
     );
 

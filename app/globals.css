@@ -1834,6 +1834,9 @@ body.auth-route .site-main {
   min-height: 100vh;
 }
 
+body.preview-directory-search-route .footer,
+body.preview-directory-cart-route .footer,
+body.preview-directory-access-error-route .footer,
 body.auth-route .footer {
   display: none;
 }

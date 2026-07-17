@@ -6,6 +6,7 @@ import "./globals.css";
 import AuthButtonsServer from './components/AuthButtonsServer';
 // import Header from "./components/Header";
 import ConditionalHeader from './components/ConditionalHeader';
+import ConditionalFooter from './components/ConditionalFooter';
 import RouteBodyClass from './components/RouteBodyClass';
 
 export const metadata: Metadata = {
@@ -72,6 +73,7 @@ export default async function RootLayout({
                 </ConditionalHeader>
 
                 <main className="site-main">{children}</main>
+                <ConditionalFooter>
                 <footer id="footer" className="footer">
                     <div className="footer-container">
                         <section className="footer-nav" aria-labelledby="footer-nav-heading">
@@ -127,6 +129,7 @@ export default async function RootLayout({
                         </section>
                     </div>
                 </footer>
+                </ConditionalFooter>
             </body>
         </html>
     );
