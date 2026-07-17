@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import eagleIcon from '@/assets/images/eagle.png';
+import eagleWhiteIcon from '@/assets/images/eagle-white.png';
+import starLogo from '@/assets/images/star_logo.png';
 import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
 
@@ -40,8 +41,8 @@ const getSourceMeta = (source?: string, id?: string) => {
 
   if (normalizedSource === "star") {
     return {
-      icon: "★",
-      iconType: "text" as const,
+      icon: starLogo,
+      iconType: "image" as const,
       label: "StAR",
       title: "Открыть источник документа: StAR",
       url: getRecommendationExternalUrl(source ?? "", id),
@@ -50,7 +51,7 @@ const getSourceMeta = (source?: string, id?: string) => {
 
   if (normalizedSource === "minzdrav") {
     return {
-      icon: eagleIcon,
+      icon: eagleWhiteIcon,
       iconType: "image" as const,
       label: "Рубрикатор",
       title: "Открыть документ в рубрикаторе Минздрава",
@@ -104,7 +105,7 @@ export default function DirectoryPageHeader({
           >
             <span className={styles.sourceIcon} aria-hidden="true">
               {sourceMeta.iconType === "image" ? (
-                <Image src={sourceMeta.icon} alt="" width={16} height={16} />
+                <Image src={sourceMeta.icon} alt="" width={22} height={22} />
               ) : (
                 sourceMeta.icon
               )}
