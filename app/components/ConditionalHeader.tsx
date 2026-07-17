@@ -7,6 +7,7 @@ const HIDDEN_HEADER_PATHS = new Set([
   '/preview/directory/search',
   '/preview/directory/cart',
   '/preview/directory/access-error',
+  '/auth',
 ]);
 
 type ConditionalHeaderProps = {

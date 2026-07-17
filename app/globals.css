@@ -1830,3 +1830,10 @@ body.preview-directory-cart-route .header-container .header-buttons > *:not(.btn
 body.preview-directory-cart-route .header-container .btn-back-preview {
   display: inline-flex;
 }
+body.auth-route .site-main {
+  min-height: 100vh;
+}
+
+body.auth-route .footer {
+  display: none;
+}
