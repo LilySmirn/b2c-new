@@ -23,7 +23,7 @@ const getRecommendationExternalUrl = (source: string, id?: string) => {
   const normalizedId = id?.trim();
 
   if (normalizedSource === "minzdrav" && normalizedId) {
-    return `https://cr.minzdrav.gov.ru/schema/${encodeURIComponent(normalizedId)}`;
+    return `https://cr.minzdrav.gov.ru/view-cr/${encodeURIComponent(normalizedId)}`;
   }
 
   if (normalizedSource === "star") {

@@ -159,7 +159,7 @@ const writeStoredSearchState = (state: StoredSearchState) => {
 
 const getRecommendationExternalUrl = (source: string, id: string) => {
   if (source.toLowerCase() === "minzdrav" && id !== "—") {
-    return `https://cr.minzdrav.gov.ru/schema/${encodeURIComponent(id)}`;
+    return `https://cr.minzdrav.gov.ru/view-cr/${encodeURIComponent(id)}`;
   }
 
   return "https://cr.minzdrav.gov.ru/";
