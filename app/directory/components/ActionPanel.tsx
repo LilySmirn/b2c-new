@@ -28,6 +28,9 @@ const actions = [
   },
 ];
 
+// Keep the document action implementation available, but hide it from the panel until it is enabled.
+const visibleActions = actions.filter((action) => action.id !== "doc");
+
 type ActionPanelProps = {
   selectedItems?: SelectedPrescription[];
   customItems?: CustomCartItem[];
@@ -225,7 +228,7 @@ export default function ActionPanel({
   return (
     <>
       <div className={styles.panel}>
-        {actions.map((action) => (
+        {visibleActions.map((action) => (
           <button
             key={action.id}
             type="button"
