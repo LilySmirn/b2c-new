@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
@@ -144,6 +145,7 @@ const getDiagnosisCodeFromTitle = (title: string) => {
 };
 
 export default function CartPreviewPage() {
+  const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
   const [uncheckItemId, setUncheckItemId] = useState<string | null>(null);
   const [clearSelectionSignal, setClearSelectionSignal] = useState(0);
@@ -161,7 +163,10 @@ export default function CartPreviewPage() {
 
   useEffect(() => {
     const storedValue = getStoredCartRecommendation();
-    if (!storedValue) return;
+    if (!storedValue) {
+      router.replace("/directory/search");
+      return;
+    }
 
     try {
       const parsed = JSON.parse(storedValue) as StoredCartRecommendation;
@@ -211,6 +216,7 @@ export default function CartPreviewPage() {
         ),
       );
     } catch {
+      router.replace("/directory/search");
       setDiagnosisTitle("");
       setDiagnosisCode("");
       setRecommendationId("");
@@ -221,7 +227,7 @@ export default function CartPreviewPage() {
       setIsAppendixA3Loading(false);
       setAppendixA3Error("");
     }
-  }, []);
+  }, [router]);
 
   const handleSelectionChange = useCallback((items: SelectedPrescription[]) => {
     if (isRestoringStoredSelectionsRef.current && items.length === 0) {
