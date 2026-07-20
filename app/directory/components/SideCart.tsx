@@ -162,7 +162,8 @@ export default function SideCart({
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const [saveTemplateError, setSaveTemplateError] = useState("");
-  const hasSelectedItems = selectedItems.length > 0 || customItems.length > 0;
+  const cartItemsCount = selectedItems.length + customItems.length;
+  const hasSelectedItems = cartItemsCount > 0;
   const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
 
   useEffect(() => {
@@ -212,7 +213,7 @@ export default function SideCart({
     <aside className={styles.sideCart}>
 
       <div className={styles.headerRow}>
-        <h2 className={styles.title}>Корзина назначений</h2>
+        <h2 className={styles.title}>Корзина назначений ({cartItemsCount})</h2>
         {hasSelectedItems ? (
           <button
             type="button"
@@ -242,7 +243,7 @@ export default function SideCart({
       <section className={styles.listPlaceholder} aria-label="Список назначений">
         {Object.entries(groupedItems).map(([groupTitle, items]) => (
           <div key={groupTitle}>
-            <div className={styles.groupRow}>{groupTitle}</div>
+            <div className={styles.groupRow}>{groupTitle} ({items.length})</div>
             {items.map((item, index) => (
               <div
                 key={item.id}
