@@ -45,7 +45,7 @@
   min-height: 35px;
   border-bottom: 1px solid #e0e3e7;
   display: grid;
-  grid-template-columns: 103px minmax(0, 1fr) 42px 241px;
+  grid-template-columns: 116px minmax(0, 1fr) 42px 241px;
   align-items: stretch;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -113,13 +113,16 @@
 
 .checkbox {
   width: 18px;
-  height: 1px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  flex: 0 0 14px;
   border-radius: 3px;
   border: 1px solid rgba(133, 144, 162, 0.5);
   background: #ffffff;
   color: #ffffff;
-  font-size: 16px;
-  line-height: 19px;
+  font-size: 11px;
+  line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -134,9 +137,25 @@
 
 .qcValue,
 .codeValue {
-  min-width: 20px;
+  min-width: 34px;
+  min-height: 20px;
+  border: 1px solid #d7dce3;
+  border-radius: 4px;
+  background: #f5f6f8;
+  color: #000000;
   font: 400 13px/1.25 Arial, sans-serif;
-  color: #10253f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  box-sizing: border-box;
+}
+
+.qcValue {
+  border-color: #b9d8f2;
+  background: #edf7ff;
+  color: #0085ff;
+  font-weight: 700;
 }
 
 .infoButton {
@@ -565,4 +584,8 @@
 
 .appendixA3Error {
   color: #d92d20;
+}
+
+.qcValue:empty {
+  visibility: hidden;
 }
