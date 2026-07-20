@@ -43,8 +43,8 @@ const getSourceMeta = (source?: string, id?: string) => {
     return {
       icon: starLogo,
       iconType: "image" as const,
-      label: "StAR",
-      title: "Открыть источник документа: StAR",
+      label: "СтАР",
+      title: "Открыть источник документа: СтАР",
       url: getRecommendationExternalUrl(source ?? "", id),
     };
   }
