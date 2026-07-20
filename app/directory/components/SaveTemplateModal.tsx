@@ -147,10 +147,6 @@ export default function SaveTemplateModal({
           </span>
         </div>
 
-        <p className={styles.mockNotice}>
-          Пока база шаблонов не подключена, тестовое сохранение выполняется в localStorage браузера.
-        </p>
-
         <div className={styles.modalActions}>
           <button
             type="button"

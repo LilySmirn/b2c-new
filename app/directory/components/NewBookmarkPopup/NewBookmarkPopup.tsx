@@ -319,6 +319,7 @@ export default function NewBookmarkPopup({
       id: editingBookmark?.id ?? `${submittedCode}-${selectedRecommendation?.id ?? "custom"}-${Date.now()}`,
       code: submittedCode,
       title: nosologyTitle.trim() || selectedRecommendation?.title || submittedCode,
+      recommendationTitle: selectedRecommendation?.title ?? editingBookmark?.recommendationTitle,
       visitType: isVisitType(visitType) ? visitType : undefined,
       ageGroup: isAgeGroup(ageGroup) ? ageGroup : undefined,
     };

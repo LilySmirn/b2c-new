@@ -13,6 +13,7 @@ export type BookmarkItem = {
   id: string;
   code: string;
   title: string;
+  recommendationTitle?: string;
   visitType?: string;
   ageGroup?: string;
 };
@@ -24,6 +25,7 @@ export const initialBookmarks: BookmarkItem[] = [
     id: "k26-duodenal-ulcer",
     code: "K26",
     title: "Язва двенадцатиперсной кишки",
+    recommendationTitle: "Язва двенадцатиперстной кишки",
     visitType: "primary",
     ageGroup: "adult",
   },

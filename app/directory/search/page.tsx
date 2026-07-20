@@ -408,7 +408,12 @@ export default function SearchPreviewPage() {
     submittedCode && !isCardsLoading && !cardsError && recommendationCards.length === 0,
   );
 
-  const getBookmarkDiagnosisTitle = (bookmark: BookmarkItem) => {
+  const getBookmarkDiagnosisTitle = (bookmark: BookmarkItem, recommendationTitle?: string) => {
+    const clinicalRecommendationTitle = recommendationTitle?.trim() || bookmark.recommendationTitle?.trim();
+
+    if (clinicalRecommendationTitle) {
+      return `${bookmark.code}: ${clinicalRecommendationTitle}`;
+    }
     const bookmarkTitle = bookmark.title.trim();
 
     return getCodeFromMatch(bookmarkTitle).toUpperCase() === bookmark.code.toUpperCase() &&
@@ -420,7 +425,6 @@ export default function SearchPreviewPage() {
   const handleBookmarkSelect = async (bookmark: BookmarkItem) => {
     const bookmarkVisitType = isVisitType(bookmark.visitType) ? bookmark.visitType : visitType;
     const bookmarkAgeGroup = isAgeGroup(bookmark.ageGroup) ? bookmark.ageGroup : ageGroup;
-    const diagnosisTitle = getBookmarkDiagnosisTitle(bookmark);
 
     try {
       const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`);
@@ -444,6 +448,8 @@ export default function SearchPreviewPage() {
         setCardsError("По выбранной закладке клинические рекомендации не найдены.");
         return;
       }
+
+      const diagnosisTitle = getBookmarkDiagnosisTitle(bookmark, selectedCard.title);
 
       const serializedCartRecommendation = JSON.stringify({
         diagnosisTitle,
