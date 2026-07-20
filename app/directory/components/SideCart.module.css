@@ -49,11 +49,18 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  box-sizing: border-box;
+}
+
+.listPlaceholder > * {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .groupRow {
   height: 30px;
   background: #f6f6f6;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   padding: 0 10px;
@@ -64,11 +71,12 @@
 .itemRow {
   min-height: 30px;
   background: #ffffff;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 14px 6px 10px;
+  padding: 6px 0px 6px 10px;
 }
 
 .itemRowAlt {

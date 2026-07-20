@@ -11,7 +11,7 @@ import SaveTemplateModal from "./SaveTemplateModal";
 import SelectTemplateModal from "./SelectTemplateModal";
 import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
 import styles from "./SideCart.module.css";
-import deleteAllIcon from "@/assets/images/delete-all.svg";
+import trashIcon from "@/assets/images/delete-icon.svg";
 import deleteIcon from "@/assets/images/delete.svg";
 
 export type CustomCartItem = {
@@ -210,15 +210,6 @@ export default function SideCart({
 
   return (
     <aside className={styles.sideCart}>
-      <CartTemplateToggle
-        onSelectTemplateClick={() => setIsSelectTemplateModalOpen(true)}
-        onSaveTemplateClick={handleSaveTemplateClick}
-      />
-      {saveTemplateError ? (
-        <p className={styles.saveTemplateError} role="alert">
-          {saveTemplateError}
-        </p>
-      ) : null}
 
       <div className={styles.headerRow}>
         <h2 className={styles.title}>Корзина назначений</h2>
@@ -233,10 +224,20 @@ export default function SideCart({
               setGeneralComment("");
             }}
           >
-            <Image src={deleteAllIcon} alt="" width={22} height={22} aria-hidden="true" />
+            <Image src={trashIcon} alt="" width={18} height={20} aria-hidden="true" />
           </button>
         ) : null}
       </div>
+
+        <CartTemplateToggle
+        onSelectTemplateClick={() => setIsSelectTemplateModalOpen(true)}
+        onSaveTemplateClick={handleSaveTemplateClick}
+      />
+      {saveTemplateError ? (
+        <p className={styles.saveTemplateError} role="alert">
+          {saveTemplateError}
+        </p>
+      ) : null}
 
       <section className={styles.listPlaceholder} aria-label="Список назначений">
         {Object.entries(groupedItems).map(([groupTitle, items]) => (
