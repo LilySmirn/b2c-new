@@ -151,6 +151,10 @@
   box-sizing: border-box;
 }
 
+.codeValueEmpty {
+  visibility: hidden;
+}
+
 .qcValue {
   border-color: #b9d8f2;
   background: #edf7ff;
@@ -433,26 +437,28 @@
 
 .categoryTabs {
   width: 100%;
-  height: 36px;
-  flex: 0 0 44px;
+  min-height: 40px;
+  flex: 0 0 45px;
   margin-bottom: 13px;
-  border: 1px solid #e4e4e4;
-  border-radius: 12px;
+  border: 1px solid #e8ebf0;
+  border-radius: 8px;
   overflow: hidden;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  background: #f4f4f4;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 37, 63, 0.04);
 }
 
 .categoryTab {
+  position: relative;
   min-width: 0;
   height: 100%;
   box-sizing: border-box;
   border: 0;
-  background: #f4f4f4;
-  color: #a3a3a3;
-  padding: 2px 5px;
-  font: 400 13px/1.2 Arial, sans-serif;
+  background: #ffffff;
+  color: #10253f;
+  padding: 4px 8px 6px;
+  font: 600 12px/1.2 Arial, sans-serif;
   white-space: normal;
   overflow: hidden;
   display: -webkit-box;
@@ -460,36 +466,50 @@
   -webkit-line-clamp: 2;
   -webkit-box-pack: center;
   text-align: center;
-  transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   cursor: pointer;
 }
 
+.categoryTab::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
 .categoryTab + .categoryTab {
-  box-shadow: inset 1px 0 0 #e4e4e4;
+  box-shadow: inset 1px 0 0 #eef0f3;
 }
 
 .categoryTab:hover {
-  background: #eeeeee;
-}
-
-.categoryTab:active {
-  transform: translateY(1px);
+  background: #fbfdff;
 }
 
 .categoryTabActive,
 .categoryTabActive:hover {
-  background: #e8e8e8;
-  color: #515151;
+  background: #ffffff;
+  color: #0085ff;
+}
+
+.categoryTabActive::after {
+  background: #0085ff;
 }
 
 .categoryTabDisabled,
 .categoryTabDisabled:hover,
 .categoryTabDisabled:active {
-  background: #fafafa;
-  color: #d1d1d1;
+  background: #ffffff;
+  color: #c4c9d4;
   cursor: not-allowed;
-  opacity: 0.72;
-  transform: none;
+  opacity: 1;
+}
+
+.categoryTabDisabled::after {
+  background: transparent;
 }
 
 .emptyState {

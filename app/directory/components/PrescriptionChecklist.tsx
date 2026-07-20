@@ -576,7 +576,14 @@ export default function PrescriptionChecklist({
                     <span className={styles.qcValue}>
                       {item.qualityControl ? "КК" : ""}
                     </span>
-                    <span className={styles.codeValue}>{item.code}</span>
+                    <span
+                      className={`${styles.codeValue} ${
+                        item.code ? "" : styles.codeValueEmpty
+                      }`}
+                      aria-hidden={!item.code}
+                    >
+                      {item.code}
+                    </span>
                   </div>
 
                   <button
