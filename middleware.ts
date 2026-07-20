@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_DIRECTORY_PATHS = new Set(['/directory/search', '/directory/cart']);
+const PROTECTED_DIRECTORY_PATHS = new Set([
+  '/directory/search',
+  '/directory/cart',
+  '/directory/access-error',
+]);
 
 export function middleware(request: NextRequest) {
   if (PROTECTED_DIRECTORY_PATHS.has(request.nextUrl.pathname)) {
@@ -24,5 +28,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/directory/search', '/directory/cart'],
+  matcher: ['/directory/search', '/directory/cart', '/directory/access-error'],
 };

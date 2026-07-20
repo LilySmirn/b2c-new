@@ -6,6 +6,7 @@ import stethoscopeIcon from "@/assets/images/Stethoscope.svg";
 import injectionIcon from "@/assets/images/Injection.svg";
 import hospitalIcon from "@/assets/images/hospital.svg";
 import NewBookmarkPopup from "./NewBookmarkPopup";
+import LoadingSpinner from "./LoadingSpinner";
 import styles from "./Bookmarks.module.css";
 
 export type BookmarkItem = {
@@ -41,7 +42,7 @@ const ageBadges: Record<string, string> = {
 
 type BookmarksProps = {
   items?: BookmarkItem[];
-  onBookmarkSelect?: (bookmark: BookmarkItem) => void;
+  onBookmarkSelect?: (bookmark: BookmarkItem) => void | Promise<void>;
 };
 
 const readStoredBookmarks = () => {
@@ -63,6 +64,7 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<BookmarkItem | null>(null);
+  const [loadingBookmarkId, setLoadingBookmarkId] = useState<string | null>(null);
   const activeCardRef = useRef<HTMLElement | null>(null);
   const [hasLoadedStoredBookmarks, setHasLoadedStoredBookmarks] = useState(false);
 
@@ -76,6 +78,19 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
 
     window.localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarks));
   }, [bookmarks, hasLoadedStoredBookmarks]);
+
+  const handleBookmarkClick = async (bookmark: BookmarkItem) => {
+    if (!onBookmarkSelect || loadingBookmarkId) return;
+
+    setOpenMenuId(null);
+    setLoadingBookmarkId(bookmark.id);
+
+    try {
+      await onBookmarkSelect(bookmark);
+    } finally {
+      setLoadingBookmarkId(null);
+    }
+  };
 
   useEffect(() => {
     if (!openMenuId) return;
@@ -99,6 +114,7 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
       <section className={styles.bookmarks} aria-label="Закладки нозологий">
         {bookmarks.map((bookmark) => {
           const isMenuOpen = openMenuId === bookmark.id;
+          const isLoading = loadingBookmarkId === bookmark.id;
 
           const visitIcon = visitIcons[bookmark.visitType ?? "primary"] ?? stethoscopeIcon;
           const ageBadge = ageBadges[bookmark.ageGroup ?? "adult"] ?? ageBadges.adult;
@@ -108,10 +124,20 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
               <button
                 type="button"
                 className={styles.bookmarkButton}
-                aria-label={`Открыть ${bookmark.title}`}
-                onClick={() => onBookmarkSelect?.(bookmark)}
+                aria-label={isLoading ? `Открываем ${bookmark.title}` : `Открыть ${bookmark.title}`}
+                aria-busy={isLoading}
+                disabled={Boolean(loadingBookmarkId)}
+                onClick={() => handleBookmarkClick(bookmark)}
               >
-                <span className={styles.codeCircle}>{bookmark.code}</span>
+                <span className={styles.codeCircle}>
+                  {isLoading ? (
+                    <LoadingSpinner className={styles.bookmarkLoader}>
+                      <span className={styles.loaderText}>Загружаем корзину...</span>
+                    </LoadingSpinner>
+                  ) : (
+                    bookmark.code
+                  )}
+                </span>
                 <span className={styles.bookmarkTitle}>{bookmark.title}</span>
                 <span className={styles.iconRow} aria-hidden="true">
                   <Image src={visitIcon} alt="" className={styles.filterIcon} />
@@ -124,6 +150,7 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
                 className={styles.menuButton}
                 aria-label="Открыть меню закладки"
                 aria-expanded={isMenuOpen}
+                disabled={Boolean(loadingBookmarkId)}
                 onClick={(event) => {
                   event.stopPropagation();
 
