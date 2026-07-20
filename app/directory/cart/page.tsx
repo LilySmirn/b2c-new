@@ -159,6 +159,7 @@ export default function CartPreviewPage() {
   const [appendixA3Tables, setAppendixA3Tables] = useState<AppendixA3Table[]>([]);
   const [isAppendixA3Loading, setIsAppendixA3Loading] = useState(false);
   const [appendixA3Error, setAppendixA3Error] = useState("");
+  const [isCartReady, setIsCartReady] = useState(false);
   const isRestoringStoredSelectionsRef = useRef(false);
 
   useEffect(() => {
@@ -215,6 +216,7 @@ export default function CartPreviewPage() {
           storedSelectedItems,
         ),
       );
+      setIsCartReady(true);
     } catch {
       router.replace("/directory/search");
       setDiagnosisTitle("");
@@ -226,6 +228,7 @@ export default function CartPreviewPage() {
       setAppendixA3Tables([]);
       setIsAppendixA3Loading(false);
       setAppendixA3Error("");
+      setIsCartReady(false);
     }
   }, [router]);
 
@@ -262,6 +265,10 @@ export default function CartPreviewPage() {
     writeStoredSelections(recommendationKey, template.items);
   };
 
+  if (!isCartReady) {
+    return null;
+  }
+  
   return (
     <>
       <DirectoryPageHeader

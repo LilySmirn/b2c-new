@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_SEARCH_PATH = '/directory/search';
+const PROTECTED_DIRECTORY_PATHS = new Set(['/directory/search', '/directory/cart']);
 
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname === PROTECTED_SEARCH_PATH) {
+  if (PROTECTED_DIRECTORY_PATHS.has(request.nextUrl.pathname)) {
     const username = request.cookies.get('username')?.value;
     const password = request.cookies.get('password')?.value;
 
@@ -24,5 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/directory/search'],
+  matcher: ['/directory/search', '/directory/cart'],
 };
