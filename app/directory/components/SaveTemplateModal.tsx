@@ -11,6 +11,7 @@ type SaveTemplateModalProps = {
   selectedItems: SelectedPrescription[];
   customItems: CustomCartItem[];
   diagnosisCode: string;
+  recommendationTitle?: string;
   onClose: () => void;
 };
 
@@ -36,6 +37,7 @@ export default function SaveTemplateModal({
   selectedItems,
   customItems,
   diagnosisCode,
+  recommendationTitle = "",
   onClose,
 }: SaveTemplateModalProps) {
   const inputId = useId();
@@ -90,6 +92,7 @@ export default function SaveTemplateModal({
       author,
       createdAt: new Date().toISOString(),
       diagnosisCode,
+      recommendationTitle: recommendationTitle.trim(),
       doctorComments: [...selectedItems, ...customItems]
         .map((item) => item.comment.trim())
         .filter(Boolean),

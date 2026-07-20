@@ -92,8 +92,18 @@ const currentDiagnosisCode = normalizeDiagnosisCode(diagnosisCode);
                   className={styles.templateCard}
                   onClick={() => onSelectTemplate(template)}
                 >
-                  <span className={styles.templateCode}>
-                    {template.diagnosisCode || "Код МКБ не указан"}
+                  <span className={styles.templateMetaRow}>
+                    <span className={styles.templateCode}>
+                      {template.diagnosisCode || "Код МКБ не указан"}
+                    </span>
+                    {template.recommendationTitle ? (
+                      <span
+                        className={styles.templateRecommendationTitle}
+                        title={template.recommendationTitle}
+                      >
+                        {template.recommendationTitle}
+                      </span>
+                    ) : null}
                   </span>
                   <span className={styles.templateName}>{template.name}</span>
                 </button>

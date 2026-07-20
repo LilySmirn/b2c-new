@@ -215,9 +215,26 @@
   outline: none;
 }
 
+.templateMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .templateCode {
+  flex: 0 0 auto;
   color: #1182ee;
   font: 700 13px/1.25 Arial, sans-serif;
+}
+
+.templateRecommendationTitle {
+  min-width: 0;
+  overflow: hidden;
+  color: #696969;
+  font: 400 13px/1.25 Arial, sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .templateName {

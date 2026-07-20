@@ -153,6 +153,7 @@ export default function CartPreviewPage() {
   const [diagnosisCode, setDiagnosisCode] = useState("");
   const [recommendationId, setRecommendationId] = useState("");
   const [recommendationSource, setRecommendationSource] = useState("");
+  const [recommendationTitle, setRecommendationTitle] = useState("");
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
   const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
@@ -182,6 +183,7 @@ export default function CartPreviewPage() {
       setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
       setRecommendationId(parsed.recommendation?.id ?? "");
       setRecommendationSource(parsed.recommendation?.source ?? "");
+      setRecommendationTitle(parsed.recommendation?.title ?? "");
       isRestoringStoredSelectionsRef.current = true;
       setRecommendationKey(currentRecommendationKey);
 
@@ -223,6 +225,7 @@ export default function CartPreviewPage() {
       setDiagnosisCode("");
       setRecommendationId("");
       setRecommendationSource("");
+      setRecommendationTitle("");
       setChecklistSections([]);
       setRecommendationKey("");
       setAppendixA3Tables([]);
@@ -296,6 +299,7 @@ export default function CartPreviewPage() {
           onDeleteAll={handleDeleteAll}
           onApplyTemplate={handleApplyTemplate}
           diagnosisCode={diagnosisCode}
+          recommendationTitle={recommendationTitle}
           storageKey={recommendationKey}
         />
       </section>

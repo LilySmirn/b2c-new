@@ -26,6 +26,7 @@ type SideCartProps = {
   onDeleteAll?: () => void;
   onApplyTemplate?: (template: CartTemplate) => void;
   diagnosisCode?: string;
+  recommendationTitle?: string;
   storageKey?: string;
 };
 
@@ -149,6 +150,7 @@ export default function SideCart({
   onDeleteAll,
   onApplyTemplate,
   diagnosisCode = "",
+  recommendationTitle = "",
   storageKey = "",
 }: SideCartProps) {
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
@@ -370,6 +372,7 @@ export default function SideCart({
           selectedItems={selectedItems}
           customItems={customItems}
           diagnosisCode={diagnosisCode}
+          recommendationTitle={recommendationTitle}
           onClose={() => setIsSaveTemplateModalOpen(false)}
         />
       ) : null}
