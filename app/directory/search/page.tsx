@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FocusEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -381,6 +381,24 @@ export default function SearchPreviewPage() {
     setSubmittedDiagnosisTitle(null);
   };
 
+  const isSubmittedQueryFocused = Boolean(
+    submittedCode &&
+      query.trim() &&
+      (query === submittedDiagnosisTitle || query.trim().toUpperCase() === submittedCode.toUpperCase()),
+  );
+
+  const shouldHideSubmittedQueryEmptyDropdown = Boolean(
+    isSubmittedQueryFocused && matches.length === 0 && !isSearchLoading && !searchError,
+  );
+
+  const handleSearchFocus = (event: FocusEvent<HTMLInputElement>) => {
+    if (isSubmittedQueryFocused) {
+      event.currentTarget.select();
+    }
+
+    setIsMatchesOpen(true);
+  };
+
   const submitSearch = (code = selectedCode, diagnosisTitle?: string) => {
     setIsMatchesOpen(false);
 
@@ -520,12 +538,12 @@ export default function SearchPreviewPage() {
             <SearchBar
               value={query}
               onChange={handleQueryChange}
-              onFocus={() => setIsMatchesOpen(true)}
+              onFocus={handleSearchFocus}
               onSearch={() => submitSearch()}
               variant="connected"
             />
 
-            {isMatchesOpen && (
+            {isMatchesOpen && !shouldHideSubmittedQueryEmptyDropdown && (
               <MatchesList
                 items={matches}
                 emptyText={matchesEmptyText}

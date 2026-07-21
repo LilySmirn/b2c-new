@@ -1,9 +1,11 @@
+import type { FocusEvent } from "react";
+
 import styles from "./SearchBar.module.css";
 
 type SearchBarProps = {
   value: string;
   onChange: (value: string) => void;
-  onFocus?: () => void;
+  onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
   onSearch?: () => void;
   placeholder?: string;
   variant?: "default" | "connected";
