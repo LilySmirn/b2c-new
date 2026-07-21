@@ -7,7 +7,16 @@ const PROTECTED_DIRECTORY_PATHS = new Set([
   '/directory/access-error',
 ]);
 
+const KLINREC_HOSTS = new Set(['klinrec.ru', 'www.klinrec.ru']);
+const EASYMED_HOME_URL = 'https://easymed.pro/';
+
 export function middleware(request: NextRequest) {
+  const host = request.headers.get('host')?.split(':')[0].toLowerCase();
+
+  if (request.nextUrl.pathname === '/' && host && KLINREC_HOSTS.has(host)) {
+    return NextResponse.redirect(EASYMED_HOME_URL);
+  }
+
   if (PROTECTED_DIRECTORY_PATHS.has(request.nextUrl.pathname)) {
     const username = request.cookies.get('username')?.value;
     const password = request.cookies.get('password')?.value;
@@ -28,5 +37,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/directory/search', '/directory/cart', '/directory/access-error'],
+  matcher: ['/', '/directory/search', '/directory/cart', '/directory/access-error'],
 };

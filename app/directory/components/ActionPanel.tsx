@@ -97,20 +97,25 @@ const formatItemHtmlLines = ({
     : escapeHtml(title),
 ];
 
-const copyPlainTextWithTextarea = (plainText: string) => {
-  const textarea = document.createElement("textarea");
-  textarea.value = plainText;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.top = "0";
-  textarea.style.left = "0";
-  textarea.style.width = "1px";
-  textarea.style.height = "1px";
-  textarea.style.opacity = "0";
+const copyHtmlWithSelectionFallback = (html: string) => {
+  const clipboardContainer = document.createElement("div");
+  clipboardContainer.contentEditable = "true";
+  clipboardContainer.innerHTML = html;
+  clipboardContainer.style.position = "fixed";
+  clipboardContainer.style.top = "0";
+  clipboardContainer.style.left = "0";
+  clipboardContainer.style.width = "1px";
+  clipboardContainer.style.height = "1px";
+  clipboardContainer.style.overflow = "hidden";
+  clipboardContainer.style.opacity = "0";
 
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
+  document.body.appendChild(clipboardContainer);
+
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(clipboardContainer);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
 
   try {
     const isCopied = document.execCommand("copy");
@@ -119,7 +124,8 @@ const copyPlainTextWithTextarea = (plainText: string) => {
       throw new Error("Не удалось скопировать выбранное в буфер обмена");
     }
   } finally {
-    document.body.removeChild(textarea);
+    selection?.removeAllRanges();
+    document.body.removeChild(clipboardContainer);
   }
 };
 
@@ -155,7 +161,7 @@ const copyClipboardContent = async ({
     }
   }
 
-  copyPlainTextWithTextarea(plainText);
+  copyHtmlWithSelectionFallback(html);
 };
 
 const buildClipboardContent = (
