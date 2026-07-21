@@ -10,6 +10,7 @@ import RecommendationField from "./RecommendationField";
 import SaveTemplateModal from "./SaveTemplateModal";
 import SelectTemplateModal from "./SelectTemplateModal";
 import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
+import { createBrowserId } from "./createBrowserId";
 import styles from "./SideCart.module.css";
 import trashIcon from "@/assets/images/delete-icon.svg";
 import deleteIcon from "@/assets/images/delete.svg";
@@ -344,7 +345,7 @@ export default function SideCart({
               setCustomItems((prev) => [
                 ...prev,
                 {
-                  id: crypto.randomUUID(),
+                  id: createBrowserId(),
                   name,
                   comment,
                 },

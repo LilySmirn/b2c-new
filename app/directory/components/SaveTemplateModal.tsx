@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
 import { readCartTemplates, writeCartTemplates } from "@/app/directory/components/cartTemplatesStorage";
+import { createBrowserId } from "./createBrowserId";
 import styles from "./SaveTemplateModal.module.css";
 
 const TEMPLATE_NAME_MAX_LENGTH = 100;
@@ -87,7 +88,7 @@ export default function SaveTemplateModal({
     if (validationError) return;
 
     const savedTemplate = {
-      id: crypto.randomUUID(),
+      id: createBrowserId(),
       name: templateName.trim(),
       author,
       createdAt: new Date().toISOString(),
