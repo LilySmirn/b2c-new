@@ -97,6 +97,67 @@ const formatItemHtmlLines = ({
     : escapeHtml(title),
 ];
 
+const copyPlainTextWithTextarea = (plainText: string) => {
+  const textarea = document.createElement("textarea");
+  textarea.value = plainText;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "0";
+  textarea.style.left = "0";
+  textarea.style.width = "1px";
+  textarea.style.height = "1px";
+  textarea.style.opacity = "0";
+
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    const isCopied = document.execCommand("copy");
+
+    if (!isCopied) {
+      throw new Error("Не удалось скопировать выбранное в буфер обмена");
+    }
+  } finally {
+    document.body.removeChild(textarea);
+  }
+};
+
+const copyClipboardContent = async ({
+  plainText,
+  html,
+}: {
+  plainText: string;
+  html: string;
+}) => {
+  const ClipboardItemConstructor = window.ClipboardItem;
+
+  if (navigator.clipboard?.write && ClipboardItemConstructor) {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItemConstructor({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([plainText], { type: "text/plain" }),
+        }),
+      ]);
+      return;
+    } catch (error) {
+      console.warn("Не удалось скопировать HTML, пробуем текстовый формат", error);
+    }
+  }
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(plainText);
+      return;
+    } catch (error) {
+      console.warn("Не удалось скопировать через Clipboard API, используем fallback", error);
+    }
+  }
+
+  copyPlainTextWithTextarea(plainText);
+};
+
 const buildClipboardContent = (
   selectedItems: SelectedPrescription[],
   customItems: CustomCartItem[],
@@ -211,16 +272,7 @@ export default function ActionPanel({
       generalComment,
     );
 
-    if (navigator.clipboard && "ClipboardItem" in window) {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          "text/html": new Blob([html], { type: "text/html" }),
-          "text/plain": new Blob([plainText], { type: "text/plain" }),
-        }),
-      ]);
-    } else {
-      await navigator.clipboard?.writeText(plainText);
-    }
+    await copyClipboardContent({ plainText, html });
 
     showCopyNotice(selectedItems.length + customItems.length);
   };
