@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { encryptPayload } from "@/app/lib/encryptedPayload/server";
 
 const EASYMED_CR_TABLES_URL = "https://easymed.pro/php/API/get-cr-tables.php";
 const EASYMED_USERNAME = process.env.EASYMED_API_USERNAME ?? "testAPI";
@@ -69,7 +70,7 @@ export async function GET(req: Request) {
 
     const data = await upstreamResponse.json();
 
-    return NextResponse.json({ tables: normalizeCrTables(data) });
+    return NextResponse.json(encryptPayload({ tables: normalizeCrTables(data) }));
   } catch {
     return NextResponse.json(
       { error: "EasyMed CR tables service is unavailable" },

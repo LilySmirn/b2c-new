@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { encryptPayload } from "@/app/lib/encryptedPayload/server";
 
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
 const EASYMED_USERNAME = process.env.EASYMED_API_USERNAME ?? "testAPI";
@@ -66,10 +67,12 @@ export async function GET(req: Request) {
 
     const data = (await upstreamResponse.json()) as RecommendationsResponse;
 
-    return NextResponse.json({
-      child: normalizeRecommendations(data.child),
-      grownup: normalizeRecommendations(data.grownup),
-    });
+    return NextResponse.json(
+      encryptPayload({
+        child: normalizeRecommendations(data.child),
+        grownup: normalizeRecommendations(data.grownup),
+      }),
+    );
   } catch {
     return NextResponse.json(
       { error: "EasyMed recommendations service is unavailable" },

@@ -11,6 +11,7 @@ import LoadingSpinner from "../LoadingSpinner";
 import { newBookmarkAgeOptions, newBookmarkVisitOptions } from "./data";
 import styles from "./NewBookmarkPopup.module.css";
 import type { BookmarkItem } from "../Bookmarks";
+import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 
 type MkbSearchResult = {
   code: string;
@@ -197,13 +198,13 @@ export default function NewBookmarkPopup({
       setCardsError(null);
 
       try {
-        const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(submittedCode)}`, {
-          signal: controller.signal,
-        });
+        const { response, data } = await fetchEncryptedJson<MkbDataResponse>(
+          `/api/mkb-data?code=${encodeURIComponent(submittedCode)}`,
+          { signal: controller.signal },
+        );
 
-        if (!response.ok) throw new Error("Не удалось получить данные по коду МКБ");
+        if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
 
-        const data = (await response.json()) as MkbDataResponse;
         setMkbData(data);
         setFilterAvailability(data.availability);
       } catch (error) {

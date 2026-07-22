@@ -13,6 +13,7 @@ import DirectoryPageHeader from "../components/DirectoryPageHeader";
 import logoBig from "@/assets/images/logo-big.svg";
 import RecommendationCard from "../components/RecommendationCard";
 import SuggestedCodesList from "../components/SuggestedCodesList";
+import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 
 type MkbSearchResult = {
   code: string;
@@ -297,13 +298,13 @@ export default function SearchPreviewPage() {
       setCardsError(null);
 
       try {
-        const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(submittedCode)}`, {
-          signal: controller.signal,
-        });
+        const { response, data } = await fetchEncryptedJson<MkbDataResponse>(
+          `/api/mkb-data?code=${encodeURIComponent(submittedCode)}`,
+          { signal: controller.signal },
+        );
 
-        if (!response.ok) throw new Error("Не удалось получить данные по коду МКБ");
+        if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
 
-        const data = (await response.json()) as MkbDataResponse;
         setMkbData(data);
         setFilterAvailability(data.availability);
       } catch (error) {
@@ -445,11 +446,11 @@ export default function SearchPreviewPage() {
     const bookmarkAgeGroup = isAgeGroup(bookmark.ageGroup) ? bookmark.ageGroup : ageGroup;
 
     try {
-      const response = await fetch(`/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`);
+      const { response, data } = await fetchEncryptedJson<MkbDataResponse>(
+        `/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`,
+      );
 
-      if (!response.ok) throw new Error("Не удалось получить данные по коду МКБ");
-
-      const data = (await response.json()) as MkbDataResponse;
+      if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
       const availableFilters = getAvailableFilters(
         data.availability,
         bookmarkAgeGroup,

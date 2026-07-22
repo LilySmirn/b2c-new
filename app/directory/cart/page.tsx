@@ -8,6 +8,7 @@ import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
 import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
 import DirectoryPageHeader from "@/app/directory/components/DirectoryPageHeader";
+import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 
 type StoredCartRecommendation = {
   diagnosisTitle?: string;
@@ -191,13 +192,15 @@ export default function CartPreviewPage() {
       if (crMId) {
         setIsAppendixA3Loading(true);
         setAppendixA3Error("");
-        fetch(`/api/cr-tables?cr_m_id=${encodeURIComponent(crMId)}`)
-          .then(async (response) => {
-            if (!response.ok) {
+        fetchEncryptedJson<{ tables?: AppendixA3Table[] }>(
+          `/api/cr-tables?cr_m_id=${encodeURIComponent(crMId)}`,
+        )
+          .then(({ response, data }) => {
+            if (!response.ok || !data) {
               throw new Error("Failed to load Appendix A3 tables");
             }
 
-            return response.json() as Promise<{ tables?: AppendixA3Table[] }>;
+            return data;
           })
           .then((data) => {
             setAppendixA3Tables(Array.isArray(data.tables) ? data.tables : []);

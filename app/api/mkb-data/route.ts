@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { encryptPayload } from "@/app/lib/encryptedPayload/server";
 
 const EASYMED_MKB_URL = "https://easymed.pro/php/API/get-mkb.php";
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
@@ -487,25 +488,27 @@ export async function GET(req: Request) {
     } satisfies Record<AgeGroup, EasyMedStandard[]>;
     const crTextById = normalizeCrTexts(crTextData);
 
-    return NextResponse.json({
-      availability: buildAvailability(branches),
-      recommendations: {
-        child: normalizeRecommendations(recommendationsData.child),
-        grownup: normalizeRecommendations(recommendationsData.grownup),
-      },
-      standards: {
-        adult: {
-          primary: normalizeStandards(branches.adult, "Взрослые", "primary", crTextById),
-          repeat: normalizeStandards(branches.adult, "Взрослые", "repeat", crTextById),
-          inpatient: normalizeStandards(branches.adult, "Взрослые", "inpatient", crTextById),
+    return NextResponse.json(
+      encryptPayload({
+        availability: buildAvailability(branches),
+        recommendations: {
+          child: normalizeRecommendations(recommendationsData.child),
+          grownup: normalizeRecommendations(recommendationsData.grownup),
         },
-        child: {
-          primary: normalizeStandards(branches.child, "Дети", "primary", crTextById),
-          repeat: normalizeStandards(branches.child, "Дети", "repeat", crTextById),
-          inpatient: normalizeStandards(branches.child, "Дети", "inpatient", crTextById),
+        standards: {
+          adult: {
+            primary: normalizeStandards(branches.adult, "Взрослые", "primary", crTextById),
+            repeat: normalizeStandards(branches.adult, "Взрослые", "repeat", crTextById),
+            inpatient: normalizeStandards(branches.adult, "Взрослые", "inpatient", crTextById),
+          },
+          child: {
+            primary: normalizeStandards(branches.child, "Дети", "primary", crTextById),
+            repeat: normalizeStandards(branches.child, "Дети", "repeat", crTextById),
+            inpatient: normalizeStandards(branches.child, "Дети", "inpatient", crTextById),
+          },
         },
-      },
-    });
+      }),
+    );
   } catch {
     return NextResponse.json(
       { error: "EasyMed MKB data service is unavailable" },
