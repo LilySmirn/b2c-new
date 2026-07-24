@@ -3,21 +3,33 @@ import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
 
-const connection = mysql.createPool({
+const dbPort = Number(process.env.DB_PORT ?? 3306);
+
+export const pool = mysql.createPool({
     host: process.env.DB_HOST,
+    port: Number.isNaN(dbPort) ? 3306 : dbPort,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 });
 
-const logConnection = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: 'logsdb',
-});
+export const connection = pool;
+export const logConnection = pool;
 
-export { connection };
+export async function checkDatabaseConnection(): Promise<boolean> {
+    const [rows] = await pool.query('SELECT 1 AS ok');
+    return Array.isArray(rows) && rows.length > 0;
+}
+
+export async function getUsersCount(): Promise<number> {
+    const [rows] = await pool.query('SELECT COUNT(*) AS users_count FROM users');
+    const result = rows as { users_count: number | string }[];
+
+    return Number(result[0]?.users_count ?? 0);
+}
 
 export default class db {
     public async getCurrentUser(id: string): Promise<User | null> {
