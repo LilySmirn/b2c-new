@@ -10,6 +10,7 @@ export const authOptions: NextAuthOptions = {
             credentials: {
                 email: {},
                 password: {},
+                authFlow: {},
             },
             async authorize(credentials) {
                 if (credentials === null || credentials === undefined) {
@@ -19,6 +20,10 @@ export const authOptions: NextAuthOptions = {
                 const user = await new db().findUserByEmail(credentials?.email ?? "");
 
                 if (user === null || user.password_hash === null) {
+                    return null;
+                }
+
+                if (credentials.authFlow !== "b2c" || user.account_type !== "b2c") {
                     return null;
                 }
 

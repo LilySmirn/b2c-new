@@ -19,6 +19,7 @@ export default function Page() {
         const res = await signIn('credentials', {
             email,
             password,
+            authFlow: 'b2c',
             redirect: false,
         });
 
