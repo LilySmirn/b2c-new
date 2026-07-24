@@ -7,6 +7,7 @@ import styles from '../styles/auth.module.css';
 import Link from 'next/link';
 import LoginErrorAlert from '../components/LoginErrorAlert';
 import { getB2cDeviceId } from '../lib/b2cDeviceId';
+import { DEVICE_LIMIT_REACHED } from '../lib/b2cSessionErrors';
 
 export default function Page() {
     const [email, setEmail] = useState('');
@@ -32,6 +33,8 @@ export default function Page() {
 
         if (res?.ok) {
             router.push('/profile');
+            } else if (res?.error === DEVICE_LIMIT_REACHED) {
+            alert('Вход уже выполнен на другом устройстве. Для аккаунта разрешено только одно активное устройство.');
         } else {
             alert('Неверные данные');
         }
