@@ -11,11 +11,21 @@ export const authOptions: NextAuthOptions = {
                 email: {},
                 password: {},
                 authFlow: {},
+                deviceId: {},
+                deviceName: {},
             },
             async authorize(credentials) {
                 if (credentials === null || credentials === undefined) {
                     return null;
                 }
+
+                const deviceId = credentials.deviceId?.trim() ?? "";
+
+                if (credentials.authFlow === "b2c" && (deviceId === "" || deviceId.length > 128)) {
+                    return null;
+                }
+
+                const deviceName = credentials.deviceName?.slice(0, 255);
 
                 const user = await new db().findUserByEmail(credentials?.email ?? "");
 

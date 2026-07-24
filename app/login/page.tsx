@@ -1,17 +1,22 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/auth.module.css';
 import Link from 'next/link';
 import LoginErrorAlert from '../components/LoginErrorAlert';
+import { getB2cDeviceId } from '../lib/b2cDeviceId';
 
 export default function Page() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        getB2cDeviceId();
+    }, []);
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -20,6 +25,8 @@ export default function Page() {
             email,
             password,
             authFlow: 'b2c',
+            deviceId: getB2cDeviceId(),
+            deviceName: navigator.userAgent,
             redirect: false,
         });
 
