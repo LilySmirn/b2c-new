@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+import mysql, { PoolConnection } from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
@@ -45,7 +45,46 @@ export default class db {
         const name = user.name;
         const password_hash = user.password_hash;
 
-        await connection.query('INSERT INTO users (user_id, login, name, password_hash) VALUES (?, ?, ?, ?)', [user_id, login, name, password_hash]);
+        await connection.query('INSERT INTO users (user_id, login, name, password_hash, account_type) VALUES (?, ?, ?, ?, ?)', [user_id, login, name, password_hash, user.account_type ?? 'b2c']);
+    }
+
+
+    public async createB2cUserWithRequestRecord(user: User): Promise<void> {
+        const trx = await connection.getConnection();
+
+        try {
+            await trx.beginTransaction();
+            await this.insertB2cUser(trx, user);
+            await this.insertUserRequestRecord(trx, user.user_id);
+            await trx.commit();
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        } finally {
+            trx.release();
+        }
+    }
+
+    private async insertB2cUser(trx: PoolConnection, user: User): Promise<void> {
+        await trx.query(
+            `INSERT INTO users (
+                user_id,
+                login,
+                name,
+                password_hash,
+                account_type
+            )
+            VALUES (?, ?, ?, ?, 'b2c')`,
+            [user.user_id, user.login, user.name, user.password_hash]
+        );
+    }
+
+    private async insertUserRequestRecord(trx: PoolConnection, userId: string): Promise<void> {
+        await trx.query(
+            `INSERT INTO user_requests (user_id, current_count, last_request, total_count)
+         VALUES (?, 0, NULL, 0)`,
+            [userId]
+        );
     }
 
     public async findUserByEmail(email: string): Promise<User | null> {
