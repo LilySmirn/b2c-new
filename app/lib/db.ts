@@ -92,6 +92,54 @@ export default class db {
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     }
 
+    public async createB2cUserSession(params: {
+        sessionId: string;
+        userId: string;
+        deviceId: string;
+        deviceName: string | null;
+        ipAddress: string | null;
+        expiresAt: Date;
+    }): Promise<void> {
+        const trx = await connection.getConnection();
+
+        try {
+            await trx.beginTransaction();
+            await trx.query(
+                `UPDATE user_sessions
+                 SET revoked_at = NOW()
+                 WHERE user_id = ?
+                   AND device_id = ?
+                   AND revoked_at IS NULL`,
+                [params.userId, params.deviceId]
+            );
+            await trx.query(
+                `INSERT INTO user_sessions (
+                    session_id,
+                    user_id,
+                    device_id,
+                    device_name,
+                    ip_address,
+                    expires_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    params.sessionId,
+                    params.userId,
+                    params.deviceId,
+                    params.deviceName,
+                    params.ipAddress,
+                    params.expiresAt,
+                ]
+            );
+            await trx.commit();
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        } finally {
+            trx.release();
+        }
+    }
+
     public async deleteUser(id: string): Promise<void> {
         await connection.query('DELETE FROM users WHERE user_id = ?', [id]);
     }
