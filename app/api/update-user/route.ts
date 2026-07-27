@@ -1,8 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import bcrypt from 'bcryptjs';
-import {getServerSession} from 'next-auth';
-import {authOptions} from '@/app/lib/auth';
 import db from '@/app/lib/db';
+import {requireActiveB2cSession} from '@/app/lib/requireActiveB2cSession';
 import {logError, NextErrorResponse} from '@/app/lib/logger';
 import {ErrorType} from "@/app/types/ErrorType";
 
@@ -10,7 +9,7 @@ export async function POST(req: NextRequest) {
     let userId:string | null = null;
     try {
         //throw new Error('Тестовая ошибка для проверки логирования');
-        const session = await getServerSession(authOptions);
+        const session = await requireActiveB2cSession("api");
         userId = session?.user?.id ?? null;
 
         if (!userId) {

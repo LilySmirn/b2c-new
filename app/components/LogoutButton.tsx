@@ -1,6 +1,6 @@
 'use client';
 
-import { logoutB2c } from "@/app/lib/b2cLogout";
+import { logoutB2c } from "../lib/b2cLogout";
 
 interface LogoutButtonProps {
     className?: string;

@@ -1,11 +1,9 @@
-import {redirect} from 'next/navigation';
 import styles from './profile.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
 import AutoRenewToggle from "@/app/profile/AutoRenewToggle";
 import db from "@/app/lib/db";
+import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 import ProfileClientWrapper from "./ProfileClientWrapper";
 import TariffModal from "./TariffModal";
 import LogoutButton from "@/app/components/LogoutButton";
@@ -15,15 +13,7 @@ export default async function AccountPage() {
     //ошибка для теста
     // throw new Error('Тестовая ошибка для проверки app/error.tsx');
 
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        redirect("/login");
-    }
-
-    const refreshPage: any = () : void =>{
-        redirect("/profile");
-    }
+    const session = await requireActiveB2cSession("page");
 
     const database = new db();
     const subscriptions = await database.getUserSubscriptions(session.user.id);

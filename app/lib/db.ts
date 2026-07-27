@@ -22,6 +22,7 @@ export const logConnection = pool;
 
 type ActiveSessionRow = RowDataPacket & {
     session_id: string;
+    user_id: string | number;
 };
 
 export async function checkDatabaseConnection(): Promise<boolean> {
@@ -37,6 +38,21 @@ export async function getUsersCount(): Promise<number> {
 }
 
 export default class db {
+    public async hasActiveB2cSession(sessionId: string, userId: string): Promise<boolean> {
+        const [rows] = await connection.query<ActiveSessionRow[]>(
+            `SELECT session_id, user_id
+             FROM user_sessions
+             WHERE session_id = ?
+               AND user_id = ?
+               AND revoked_at IS NULL
+               AND expires_at > NOW()
+             LIMIT 1`,
+            [sessionId, userId]
+        );
+
+        return rows.length > 0;
+    }
+    
     public async getCurrentUser(id: string): Promise<User | null> {
         const [rows] = await connection.query('SELECT user_id, login, name FROM users WHERE user_id = ?', [id]);
         const users = rows as User[];
