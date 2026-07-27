@@ -32,8 +32,10 @@ export default function Page() {
         });
 
         if (res?.ok) {
+            window.dispatchEvent(new Event('b2c-login-success'));
             router.push('/profile');
-            } else if (res?.error === DEVICE_LIMIT_REACHED) {
+            router.refresh();
+        } else if (res?.error === DEVICE_LIMIT_REACHED) {
             alert('Вход уже выполнен на другом устройстве. Для аккаунта разрешено только одно активное устройство.');
         } else {
             alert('Неверные данные');
