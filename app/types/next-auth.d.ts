@@ -9,11 +9,13 @@ declare module "next-auth" {
             id: string;
             accountType?: AccountType;
         };
+        /** B2C session identifier exposed at the session level, not on session.user. */
         sessionId?: string;
     }
 
     interface User extends DefaultUser {
         accountType: AccountType;
+        /** Internal authorize() payload used to populate the JWT. */
         sessionId?: string;
     }
 }

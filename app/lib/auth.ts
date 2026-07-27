@@ -169,10 +169,15 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.sub;
                 session.user.name = token.name;
                 session.user.email = token.email;
-                session.user.accountType = token.accountType;
+
+                if (token.accountType !== undefined) {
+                    session.user.accountType = token.accountType;
+                }
             }
 
-            session.sessionId = token.sessionId;
+            if (token.sessionId !== undefined) {
+                session.sessionId = token.sessionId;
+            }
 
             return session;
         },
