@@ -181,6 +181,17 @@ export default class db {
         }
     }
 
+    public async revokeB2cSession(sessionId: string, userId: string): Promise<void> {
+        await connection.query(
+            `UPDATE user_sessions
+             SET revoked_at = NOW()
+             WHERE session_id = ?
+               AND user_id = ?
+               AND revoked_at IS NULL`,
+            [sessionId, userId]
+        );
+    }
+
     public async deleteUser(id: string): Promise<void> {
         await connection.query('DELETE FROM users WHERE user_id = ?', [id]);
     }

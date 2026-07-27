@@ -1,6 +1,6 @@
 'use client';
 
-import {signOut} from "next-auth/react";
+import { logoutB2c } from "@/app/lib/b2cLogout";
 
 interface LogoutButtonProps {
     className?: string;
@@ -8,7 +8,7 @@ interface LogoutButtonProps {
 
 export default function LogoutButton({ className }: LogoutButtonProps) {
     return (
-        <button onClick={() => signOut({ callbackUrl: '/login' })} className={className || 'btn btn-login btn-auth'}>
+        <button onClick={logoutB2c} className={className || 'btn btn-login btn-auth'}>
             Выйти
         </button>
     );

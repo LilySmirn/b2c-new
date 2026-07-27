@@ -8,6 +8,7 @@ import AutoRenewToggle from "@/app/profile/AutoRenewToggle";
 import db from "@/app/lib/db";
 import ProfileClientWrapper from "./ProfileClientWrapper";
 import TariffModal from "./TariffModal";
+import LogoutButton from "@/app/components/LogoutButton";
 
 export default async function AccountPage() {
 
@@ -49,7 +50,7 @@ export default async function AccountPage() {
                     <div className={styles.profile}>
                         <div className={styles.profileTitle}>
                             <h2>Личный кабинет</h2>
-                            <Link href="/login" className={styles.logoutLink}>Выйти из аккаунта</Link>
+                            <LogoutButton className={styles.logoutLink} />
                         </div>
 
                         <div className={styles.profileTable}>
