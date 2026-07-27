@@ -117,10 +117,11 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 const expiresAt = getB2cSessionExpiresAt();
+                const sessionId = uuidv4();
 
                 try {
                     await new db().createB2cSessionWithSingleDeviceLimit({
-                        sessionId: uuidv4(),
+                        sessionId,
                         userId: user.user_id.toString(),
                         deviceId,
                         deviceName,
@@ -135,7 +136,13 @@ export const authOptions: NextAuthOptions = {
                     throw error;
                 }
 
-                return { id: user.user_id.toString(), email: user.login, name: user.name };
+                return {
+                    id: user.user_id.toString(),
+                    email: user.login,
+                    name: user.name,
+                    accountType: "b2c",
+                    sessionId,
+                };
             },
         }),
     ],
@@ -152,15 +159,20 @@ export const authOptions: NextAuthOptions = {
                 token.name = user.name;
                 token.email = user.email;
                 token.sub = user.id;
+                token.accountType = user.accountType;
+                token.sessionId = user.sessionId;
             }
             return token;
         },
         async session({ session, token }) {
-            if (session.user && typeof token.sub === 'string') {
+            if (session.user && typeof token.sub === "string") {
                 session.user.id = token.sub;
-                session.user.name = token.name as string;
-                session.user.email = token.email as string;
+                session.user.name = token.name;
+                session.user.email = token.email;
+                session.user.accountType = token.accountType;
             }
+
+            session.sessionId = token.sessionId;
 
             return session;
         },
