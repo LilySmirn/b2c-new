@@ -28,6 +28,32 @@
   align-items: center;
 }
 
+.headerMessages {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.subscriptionWarning {
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #fff0f0;
+  color: #c7242d;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.subscriptionWarning a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .diagnosisTitle {
   display: -webkit-box;
   overflow: hidden;
@@ -135,6 +161,12 @@
 }
 
 @media (max-width: 640px) {
+  .subscriptionWarning {
+    max-width: 190px;
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+
   .cartActions {
     gap: 8px;
   }

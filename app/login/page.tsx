@@ -31,6 +31,7 @@ export default function Page() {
         });
 
         if (res?.ok) {
+            window.sessionStorage.setItem('showSubscriptionExpirationPopup', 'true');
             window.dispatchEvent(new Event('b2c-login-success'));
             router.push('/profile');
         } else {

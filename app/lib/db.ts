@@ -24,6 +24,12 @@ type ActiveSessionRow = RowDataPacket & {
     user_id: string | number;
 };
 
+export type SubscriptionExpirationReminder = {
+    subscriptionId: string;
+    expirationDate: Date;
+    tariffTitle: string | null;
+};
+
 export async function checkDatabaseConnection(): Promise<boolean> {
     const [rows] = await pool.query('SELECT 1 AS ok');
     return Array.isArray(rows) && rows.length > 0;
@@ -37,6 +43,55 @@ export async function getUsersCount(): Promise<number> {
 }
 
 export default class db {
+    public async getSubscriptionExpirationReminder(
+        userId: string
+    ): Promise<SubscriptionExpirationReminder | null> {
+        const [rows] = await connection.query<RowDataPacket[]>(
+            `SELECT
+                s.id AS subscription_id,
+                s.expiration_date,
+                t.title AS tariff_title
+             FROM subscriptions s
+             INNER JOIN tariffs t ON t.tariff_id = s.last_paid_tariff_id
+             LEFT JOIN payments p
+                ON p.user_id = s.user_id
+               AND p.tariff_id = s.last_paid_tariff_id
+             WHERE s.user_id = ?
+               AND s.id = (
+                   SELECT newest.id
+                   FROM subscriptions newest
+                   WHERE newest.user_id = s.user_id
+                   ORDER BY newest.expiration_date DESC
+                   LIMIT 1
+               )
+               AND s.is_auto_renewal = 0
+               AND s.expiration_date >= NOW()
+               AND s.expiration_date <= DATE_ADD(NOW(), INTERVAL 4 DAY)
+             GROUP BY s.id, s.expiration_date, t.title
+             ORDER BY s.expiration_date DESC
+             LIMIT 1`,
+            [userId]
+        );
+
+        const reminder = rows[0] as (RowDataPacket & {
+            subscription_id: string;
+            expiration_date: Date | string;
+            tariff_title: string | null;
+        }) | undefined;
+
+        if (!reminder) {
+            return null;
+        }
+
+        return {
+            subscriptionId: String(reminder.subscription_id),
+            expirationDate: reminder.expiration_date instanceof Date
+                ? reminder.expiration_date
+                : new Date(reminder.expiration_date),
+            tariffTitle: reminder.tariff_title,
+        };
+    }
+    
     public async hasActiveB2cSession(sessionId: string, userId: string): Promise<boolean> {
         const [rows] = await connection.query<ActiveSessionRow[]>(
             `SELECT session_id, user_id

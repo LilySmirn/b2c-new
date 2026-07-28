@@ -7,6 +7,8 @@ import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 import ProfileClientWrapper from "./ProfileClientWrapper";
 import TariffModal from "./TariffModal";
 import LogoutButton from "@/app/components/LogoutButton";
+import SubscriptionExpirationPopup from "@/app/components/SubscriptionExpirationPopup";
+import { getDaysUntilExpiration, type SubscriptionReminder } from "@/app/lib/subscriptionReminder";
 
 export default async function AccountPage() {
 
@@ -18,6 +20,13 @@ export default async function AccountPage() {
     const database = new db();
     const subscriptions = await database.getUserSubscriptions(session.user.id);
     const user = await database.getCurrentUser(session.user.id);
+    const expirationReminder = await database.getSubscriptionExpirationReminder(session.user.id);
+    const reminder: SubscriptionReminder | null = expirationReminder ? {
+        subscriptionId: expirationReminder.subscriptionId,
+        expirationDate: expirationReminder.expirationDate.toISOString(),
+        daysLeft: getDaysUntilExpiration(expirationReminder.expirationDate),
+        tariffTitle: expirationReminder.tariffTitle,
+    } : null;
 
     const lastSubscription = subscriptions?.reduce((latest, current) => {
         return new Date(current.expiration_date) > new Date(latest.expiration_date)
@@ -27,6 +36,7 @@ export default async function AccountPage() {
 
     return (
         <div className={styles.pageWrapper}>
+            <SubscriptionExpirationPopup reminder={reminder} />
             <div id="header"></div>
 
             <div className={styles.mainProfile}>
