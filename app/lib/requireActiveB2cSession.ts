@@ -12,11 +12,13 @@ type ActiveB2cSession = Session & {
     sessionId: string;
 };
 
-export async function requireActiveB2cSession(context: "page"): Promise<ActiveB2cSession>;
-export async function requireActiveB2cSession(context: "api"): Promise<ActiveB2cSession | null>;
-export async function requireActiveB2cSession(
-    context: "page" | "api"
-): Promise<ActiveB2cSession | null> {
+export type B2cSessionStatus = {
+    session: Session | null;
+    isActive: boolean;
+    wasReplaced: boolean;
+};
+
+export async function getB2cSessionStatus(): Promise<B2cSessionStatus> {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     const sessionId = session?.sessionId;
@@ -32,9 +34,26 @@ export async function requireActiveB2cSession(
         ? await new db().hasActiveB2cSession(sessionId, userId)
         : false;
 
+        return {
+        session,
+        isActive,
+        wasReplaced: Boolean(hasB2cClaims && !isActive),
+    };
+}
+
+export async function requireActiveB2cSession(context: "page"): Promise<ActiveB2cSession>;
+export async function requireActiveB2cSession(context: "api"): Promise<ActiveB2cSession | null>;
+export async function requireActiveB2cSession(
+    context: "page" | "api"
+): Promise<ActiveB2cSession | null> {
+    const { session, isActive, wasReplaced } = await getB2cSessionStatus();
+
     if (!isActive) {
         if (context === "page") {
-            redirect("/login");
+            const loginUrl = wasReplaced
+                ? "/login?error=session-replaced"
+                : "/login";
+            redirect(loginUrl);
         }
 
         return null;

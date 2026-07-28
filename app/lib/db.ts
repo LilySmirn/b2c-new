@@ -2,7 +2,6 @@ import mysql, { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
-import { DeviceLimitReachedError } from "./b2cSessionErrors";
 
 const dbPort = Number(process.env.DB_PORT ?? 3306);
 
@@ -113,7 +112,7 @@ export default class db {
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     }
 
-    public async createB2cSessionWithSingleDeviceLimit(params: {
+    public async createB2cSessionReplacingExisting(params: {
         sessionId: string;
         userId: string;
         deviceId: string;
@@ -132,42 +131,13 @@ export default class db {
                  FOR UPDATE`,
                 [params.userId]
             );
-
-            const [currentDeviceSessions] = await trx.query<ActiveSessionRow[]>(
-                `SELECT session_id
-                 FROM user_sessions
-                 WHERE user_id = ?
-                   AND device_id = ?
-                   AND revoked_at IS NULL
-                   AND expires_at > NOW()
-                 LIMIT 1`,
-                [params.userId, params.deviceId]
-            );
-
-            if (currentDeviceSessions.length === 0) {
-                const [otherDeviceSessions] = await trx.query<ActiveSessionRow[]>(
-                    `SELECT session_id
-                     FROM user_sessions
-                     WHERE user_id = ?
-                       AND device_id <> ?
-                       AND revoked_at IS NULL
-                       AND expires_at > NOW()
-                     LIMIT 1`,
-                    [params.userId, params.deviceId]
-                );
-
-                if (otherDeviceSessions.length > 0) {
-                    throw new DeviceLimitReachedError();
-                }
-            }
             
             await trx.query(
                 `UPDATE user_sessions
                  SET revoked_at = NOW()
                  WHERE user_id = ?
-                   AND device_id = ?
                    AND revoked_at IS NULL`,
-                [params.userId, params.deviceId]
+                [params.userId]
             );
             await trx.query(
                 `INSERT INTO user_sessions (

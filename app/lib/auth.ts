@@ -1,6 +1,5 @@
 import NextAuth, {NextAuthOptions} from "next-auth";
 import db from "./db";
-import { DEVICE_LIMIT_REACHED, DeviceLimitReachedError } from "./b2cSessionErrors";
 import bcrypt from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import {v4 as uuidv4} from "uuid";
@@ -119,22 +118,14 @@ export const authOptions: NextAuthOptions = {
                 const expiresAt = getB2cSessionExpiresAt();
                 const sessionId = uuidv4();
 
-                try {
-                    await new db().createB2cSessionWithSingleDeviceLimit({
-                        sessionId,
-                        userId: user.user_id.toString(),
-                        deviceId,
-                        deviceName,
-                        ipAddress: getForwardedIp(req.headers),
-                        expiresAt,
-                    });
-                } catch (error) {
-                    if (error instanceof DeviceLimitReachedError) {
-                        throw new Error(DEVICE_LIMIT_REACHED);
-                    }
-
-                    throw error;
-                }
+                await new db().createB2cSessionReplacingExisting({
+                    sessionId,
+                    userId: user.user_id.toString(),
+                    deviceId,
+                    deviceName,
+                    ipAddress: getForwardedIp(req.headers),
+                    expiresAt,
+                });
 
                 return {
                     id: user.user_id.toString(),
