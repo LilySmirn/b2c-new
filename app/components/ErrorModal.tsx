@@ -7,12 +7,23 @@ import styles from './ErrorModal.module.css';
 interface ErrorModalProps {
     message?: string;
     onClose?: () => void;
+    redirectOnClose?: boolean;
+    reportToTelegram?: boolean;
 }
 
-export default function ErrorModal({ message, onClose }: ErrorModalProps) {
+export default function ErrorModal({
+    message,
+    onClose,
+    redirectOnClose = true,
+    reportToTelegram = true,
+}: ErrorModalProps) {
     const router = useRouter();
 
     useEffect(() => {
+        if (!reportToTelegram) {
+            return;
+        }
+
         const sendError = async () => {
             try {
                 await fetch('/api/sendErrorToTelegram', {
@@ -27,11 +38,14 @@ export default function ErrorModal({ message, onClose }: ErrorModalProps) {
             }
         };
         sendError();
-    }, [message]);
+    }, [message, reportToTelegram]);
 
     const handleOk = () => {
         onClose?.();
-        router.push('/');
+
+        if (redirectOnClose) {
+            router.push('/');
+        }
     };
 
     return (

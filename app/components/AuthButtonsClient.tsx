@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import LogoutButton from "./LogoutButton";
 import UserIconClient from "./UserIconClient";
 
@@ -12,10 +13,18 @@ interface AuthButtonsClientProps {
 
 export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: AuthButtonsClientProps) {
     const [hasActiveSession, setHasActiveSession] = useState(isLoggedIn);
+    const isCheckingSession = useRef(false);
+    const isHandlingReplacedSession = useRef(false);
     const loginClass =
         variant === 'footer' ? 'btn footer-btn-login btn-auth' : 'btn btn-login btn-auth';
 
         const checkSession = useCallback(async () => {
+        if (isCheckingSession.current || isHandlingReplacedSession.current) {
+            return;
+        }
+
+        isCheckingSession.current = true;
+        
         try {
             const response = await fetch('/api/auth/active-session', { cache: 'no-store' });
 
@@ -26,7 +35,13 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
             const status = await response.json() as { isActive: boolean; wasReplaced: boolean };
 
             if (status.wasReplaced) {
+                isHandlingReplacedSession.current = true;
                 setHasActiveSession(false);
+
+                // The database session has already been revoked by the login on the
+                // new device. Remove the stale NextAuth JWT as well; otherwise every
+                // poll sees that same revoked session and redirects again.
+                await signOut({ redirect: false });
                 window.location.replace('/login?error=session-replaced');
                 return;
             }
@@ -34,6 +49,8 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
             setHasActiveSession(status.isActive);
         } catch {
             // Keep the current UI during a temporary network failure.
+            } finally {
+            isCheckingSession.current = false;
         }
     }, []);
 
@@ -44,7 +61,6 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
 
         void checkSession();
 
-        const intervalId = window.setInterval(() => void checkSession(), 5_000);
         const checkVisibleSession = () => {
             if (document.visibilityState === 'visible') {
                 void checkSession();
@@ -55,7 +71,6 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
         document.addEventListener('visibilitychange', checkVisibleSession);
 
         return () => {
-            window.clearInterval(intervalId);
             window.removeEventListener('focus', checkSession);
             document.removeEventListener('visibilitychange', checkVisibleSession);
         };
