@@ -1,21 +1,28 @@
-import NextAuth from "next-auth";
+import { DefaultSession, DefaultUser } from "next-auth";
+import "next-auth/jwt";
+
+type AccountType = "b2b" | "b2c";
 
 declare module "next-auth" {
     interface Session {
-        user: {
+        user: DefaultSession["user"] & {
             id: string;
-            name?: string | null;
-            email?: string | null;
+            accountType?: AccountType;
         };
+        /** B2C session identifier exposed at the session level, not on session.user. */
+        sessionId?: string;
     }
 
-    interface User {
-        id: string;
-        name?: string | null;
-        email?: string | null;
+    interface User extends DefaultUser {
+        accountType: AccountType;
+        /** Internal authorize() payload used to populate the JWT. */
+        sessionId?: string;
     }
+}
 
+declare module "next-auth/jwt" {
     interface JWT {
-        id?: string;
+        accountType?: AccountType;
+        sessionId?: string;
     }
 }

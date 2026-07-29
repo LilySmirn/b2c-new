@@ -1,25 +1,112 @@
-import mysql from 'mysql2/promise';
+import mysql, { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
 
-const connection = mysql.createPool({
+const dbPort = Number(process.env.DB_PORT ?? 3306);
+
+export const pool = mysql.createPool({
     host: process.env.DB_HOST,
+    port: Number.isNaN(dbPort) ? 3306 : dbPort,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 });
 
-const logConnection = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: 'logsdb',
-});
+export const connection = pool;
+export const logConnection = pool;
 
-export { connection };
+type ActiveSessionRow = RowDataPacket & {
+    session_id: string;
+    user_id: string | number;
+};
+
+export type SubscriptionExpirationReminder = {
+    subscriptionId: string;
+    expirationDate: Date;
+    tariffTitle: string | null;
+};
+
+export async function checkDatabaseConnection(): Promise<boolean> {
+    const [rows] = await pool.query('SELECT 1 AS ok');
+    return Array.isArray(rows) && rows.length > 0;
+}
+
+export async function getUsersCount(): Promise<number> {
+    const [rows] = await pool.query('SELECT COUNT(*) AS users_count FROM users');
+    const result = rows as { users_count: number | string }[];
+
+    return Number(result[0]?.users_count ?? 0);
+}
 
 export default class db {
+    public async getSubscriptionExpirationReminder(
+        userId: string
+    ): Promise<SubscriptionExpirationReminder | null> {
+        const [rows] = await connection.query<RowDataPacket[]>(
+            `SELECT
+                s.id AS subscription_id,
+                s.expiration_date,
+                t.title AS tariff_title
+             FROM subscriptions s
+             INNER JOIN tariffs t ON t.tariff_id = s.last_paid_tariff_id
+             LEFT JOIN payments p
+                ON p.user_id = s.user_id
+               AND p.tariff_id = s.last_paid_tariff_id
+             WHERE s.user_id = ?
+               AND s.id = (
+                   SELECT newest.id
+                   FROM subscriptions newest
+                   WHERE newest.user_id = s.user_id
+                   ORDER BY newest.expiration_date DESC
+                   LIMIT 1
+               )
+               AND s.is_auto_renewal = 0
+               AND s.expiration_date >= NOW()
+               AND s.expiration_date <= DATE_ADD(NOW(), INTERVAL 4 DAY)
+             GROUP BY s.id, s.expiration_date, t.title
+             ORDER BY s.expiration_date DESC
+             LIMIT 1`,
+            [userId]
+        );
+
+        const reminder = rows[0] as (RowDataPacket & {
+            subscription_id: string;
+            expiration_date: Date | string;
+            tariff_title: string | null;
+        }) | undefined;
+
+        if (!reminder) {
+            return null;
+        }
+
+        return {
+            subscriptionId: String(reminder.subscription_id),
+            expirationDate: reminder.expiration_date instanceof Date
+                ? reminder.expiration_date
+                : new Date(reminder.expiration_date),
+            tariffTitle: reminder.tariff_title,
+        };
+    }
+    
+    public async hasActiveB2cSession(sessionId: string, userId: string): Promise<boolean> {
+        const [rows] = await connection.query<ActiveSessionRow[]>(
+            `SELECT session_id, user_id
+             FROM user_sessions
+             WHERE session_id = ?
+               AND user_id = ?
+               AND revoked_at IS NULL
+               AND expires_at > NOW()
+             LIMIT 1`,
+            [sessionId, userId]
+        );
+
+        return rows.length > 0;
+    }
+    
     public async getCurrentUser(id: string): Promise<User | null> {
         const [rows] = await connection.query('SELECT user_id, login, name FROM users WHERE user_id = ?', [id]);
         const users = rows as User[];
@@ -33,12 +120,117 @@ export default class db {
         const name = user.name;
         const password_hash = user.password_hash;
 
-        await connection.query('INSERT INTO users (user_id, login, name, password_hash) VALUES (?, ?, ?, ?)', [user_id, login, name, password_hash]);
+        await connection.query('INSERT INTO users (user_id, login, name, password_hash, account_type) VALUES (?, ?, ?, ?, ?)', [user_id, login, name, password_hash, user.account_type ?? 'b2c']);
+    }
+
+
+    public async createB2cUserWithRequestRecord(user: User): Promise<void> {
+        const trx = await connection.getConnection();
+
+        try {
+            await trx.beginTransaction();
+            await this.insertB2cUser(trx, user);
+            await this.insertUserRequestRecord(trx, user.user_id);
+            await trx.commit();
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        } finally {
+            trx.release();
+        }
+    }
+
+    private async insertB2cUser(trx: PoolConnection, user: User): Promise<void> {
+        await trx.query(
+            `INSERT INTO users (
+                user_id,
+                login,
+                name,
+                password_hash,
+                account_type
+            )
+            VALUES (?, ?, ?, ?, 'b2c')`,
+            [user.user_id, user.login, user.name, user.password_hash]
+        );
+    }
+
+    private async insertUserRequestRecord(trx: PoolConnection, userId: string): Promise<void> {
+        await trx.query(
+            `INSERT INTO user_requests (user_id, current_count, last_request, total_count)
+         VALUES (?, 0, NULL, 0)`,
+            [userId]
+        );
     }
 
     public async findUserByEmail(email: string): Promise<User | null> {
         const [rows] = await connection.query('SELECT * FROM users WHERE login = ?', [email]) as unknown as [User[]];
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+    }
+
+    public async createB2cSessionReplacingExisting(params: {
+        sessionId: string;
+        userId: string;
+        deviceId: string;
+        deviceName: string | null;
+        ipAddress: string | null;
+        expiresAt: Date;
+    }): Promise<void> {
+        const trx = await connection.getConnection();
+
+        try {
+            await trx.beginTransaction();
+            await trx.query(
+                `SELECT user_id
+                 FROM users
+                 WHERE user_id = ?
+                 FOR UPDATE`,
+                [params.userId]
+            );
+            
+            await trx.query(
+                `UPDATE user_sessions
+                 SET revoked_at = NOW()
+                 WHERE user_id = ?
+                   AND revoked_at IS NULL`,
+                [params.userId]
+            );
+            await trx.query(
+                `INSERT INTO user_sessions (
+                    session_id,
+                    user_id,
+                    device_id,
+                    device_name,
+                    ip_address,
+                    expires_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    params.sessionId,
+                    params.userId,
+                    params.deviceId,
+                    params.deviceName,
+                    params.ipAddress,
+                    params.expiresAt,
+                ]
+            );
+            await trx.commit();
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        } finally {
+            trx.release();
+        }
+    }
+
+    public async revokeB2cSession(sessionId: string, userId: string): Promise<void> {
+        await connection.query(
+            `UPDATE user_sessions
+             SET revoked_at = NOW()
+             WHERE session_id = ?
+               AND user_id = ?
+               AND revoked_at IS NULL`,
+            [sessionId, userId]
+        );
     }
 
     public async deleteUser(id: string): Promise<void> {

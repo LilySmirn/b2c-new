@@ -87,6 +87,8 @@ type PrescriptionItem = {
   info: string;
   comment: string;
   infoComment: string;
+  treatmentPlan?: string;
+  treatmentDuration?: string;
 };
 
 type PrescriptionSection = {
@@ -288,6 +290,8 @@ const normalizeAppointment = (
     title,
     info: getAppointmentInfo(appointment, crTextById),
     infoComment: getAppointmentInfoComment(appointment, crTextById),
+    treatmentPlan: getStringOrEmpty(appointment.plan),
+    treatmentDuration: getStringOrEmpty(appointment.duration),
     comment: "",
   };
 };

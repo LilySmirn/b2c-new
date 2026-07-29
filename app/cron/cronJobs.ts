@@ -1,20 +1,6 @@
 import cron from "node-cron";
-import mysql from "mysql2/promise";
+import { connection as mainConnection, logConnection } from "@/app/lib/db";
 import { sendMail } from "@/app/lib/mailer";
-
-const mainConnection = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-});
-
-const logConnection = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: "logsdb",
-});
 
 async function checkExpiringSubscriptions() {
     console.log("Запуск проверки подписок");

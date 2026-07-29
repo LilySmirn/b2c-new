@@ -1,11 +1,12 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/auth.module.css';
 import Link from 'next/link';
 import LoginErrorAlert from '../components/LoginErrorAlert';
+import { getB2cDeviceId } from '../lib/b2cDeviceId';
 
 export default function Page() {
     const [email, setEmail] = useState('');
@@ -13,16 +14,25 @@ export default function Page() {
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
 
+    useEffect(() => {
+        getB2cDeviceId();
+    }, []);
+
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const res = await signIn('credentials', {
             email,
             password,
+            authFlow: 'b2c',
+            deviceId: getB2cDeviceId(),
+            deviceName: navigator.userAgent,
             redirect: false,
         });
 
         if (res?.ok) {
+            window.sessionStorage.setItem('showSubscriptionExpirationPopup', 'true');
+            window.dispatchEvent(new Event('b2c-login-success'));
             router.push('/profile');
         } else {
             alert('Неверные данные');

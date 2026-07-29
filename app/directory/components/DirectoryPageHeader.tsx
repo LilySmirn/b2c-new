@@ -6,6 +6,7 @@ import eagleWhiteIcon from '@/assets/images/eagle-white.png';
 import starLogo from '@/assets/images/star_logo.png';
 import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
+import SubscriptionExpirationWarning from '@/app/directory/components/SubscriptionExpirationWarning';
 
 type DirectoryPageHeaderProps = {
   variant: 'search' | 'cart';
@@ -151,9 +152,12 @@ export default function DirectoryPageHeader({
             loading="eager"
           />
         </Link>
-        {variant === 'cart' && diagnosisTitle ? (
-          <p className={styles.diagnosisTitle}>{diagnosisTitle}</p>
-        ) : null}
+        <div className={styles.headerMessages}>
+          {variant === 'cart' && diagnosisTitle ? (
+            <p className={styles.diagnosisTitle}>{diagnosisTitle}</p>
+          ) : null}
+          <SubscriptionExpirationWarning />
+        </div>
         {action}
       </div>
     </header>

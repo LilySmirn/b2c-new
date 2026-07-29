@@ -1,32 +1,32 @@
-import {redirect} from 'next/navigation';
 import styles from './profile.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
 import AutoRenewToggle from "@/app/profile/AutoRenewToggle";
 import db from "@/app/lib/db";
+import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 import ProfileClientWrapper from "./ProfileClientWrapper";
 import TariffModal from "./TariffModal";
+import LogoutButton from "@/app/components/LogoutButton";
+import SubscriptionExpirationPopup from "@/app/components/SubscriptionExpirationPopup";
+import { getDaysUntilExpiration, type SubscriptionReminder } from "@/app/lib/subscriptionReminder";
 
 export default async function AccountPage() {
 
     //ошибка для теста
     // throw new Error('Тестовая ошибка для проверки app/error.tsx');
 
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        redirect("/login");
-    }
-
-    const refreshPage: any = () : void =>{
-        redirect("/profile");
-    }
+    const session = await requireActiveB2cSession("page");
 
     const database = new db();
     const subscriptions = await database.getUserSubscriptions(session.user.id);
     const user = await database.getCurrentUser(session.user.id);
+    const expirationReminder = await database.getSubscriptionExpirationReminder(session.user.id);
+    const reminder: SubscriptionReminder | null = expirationReminder ? {
+        subscriptionId: expirationReminder.subscriptionId,
+        expirationDate: expirationReminder.expirationDate.toISOString(),
+        daysLeft: getDaysUntilExpiration(expirationReminder.expirationDate),
+        tariffTitle: expirationReminder.tariffTitle,
+    } : null;
 
     const lastSubscription = subscriptions?.reduce((latest, current) => {
         return new Date(current.expiration_date) > new Date(latest.expiration_date)
@@ -36,6 +36,7 @@ export default async function AccountPage() {
 
     return (
         <div className={styles.pageWrapper}>
+            <SubscriptionExpirationPopup reminder={reminder} />
             <div id="header"></div>
 
             <div className={styles.mainProfile}>
@@ -49,7 +50,7 @@ export default async function AccountPage() {
                     <div className={styles.profile}>
                         <div className={styles.profileTitle}>
                             <h2>Личный кабинет</h2>
-                            <Link href="/login" className={styles.logoutLink}>Выйти из аккаунта</Link>
+                            <LogoutButton className={styles.logoutLink} />
                         </div>
 
                         <div className={styles.profileTable}>

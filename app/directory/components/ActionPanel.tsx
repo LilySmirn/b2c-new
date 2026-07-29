@@ -59,12 +59,14 @@ const getClipboardCategoryTitle = (item: SelectedPrescription) => {
   }
 
   if (
-    categoryId === "treatment" ||
     categoryId === "medications" ||
-    title === "Лечение" ||
     title === "Препараты"
   ) {
-    return "Лечение";
+    return "Лекарственная терапия";
+  }
+
+  if (categoryId === "treatment" || title === "Лечение") {
+    return "Немедикаментозное лечение";
   }
 
   return title;
@@ -80,21 +82,39 @@ const groupSelectedItemsByClipboardCategory = (selectedItems: SelectedPrescripti
 const formatItemTextLines = ({
   title,
   comment,
+  treatmentPlan,
+  treatmentDuration,
 }: {
   title: string;
   comment: string;
-}) => [comment ? `${title} - ${comment}` : title];
+  treatmentPlan?: string;
+  treatmentDuration?: string;
+}) => [
+  comment ? `${title} - ${comment}` : title,
+  ...(treatmentPlan ? [`Схема лечения: ${treatmentPlan}`] : []),
+  ...(treatmentDuration ? [`Длительность курса: ${treatmentDuration}`] : []),
+];
 
 const formatItemHtmlLines = ({
   title,
   comment,
+  treatmentPlan,
+  treatmentDuration,
 }: {
   title: string;
   comment: string;
+  treatmentPlan?: string;
+  treatmentDuration?: string;
 }) => [
   comment
     ? `${escapeHtml(title)} - ${escapeHtml(comment)}`
     : escapeHtml(title),
+    ...(treatmentPlan
+    ? [`Схема лечения: ${escapeHtml(treatmentPlan)}`]
+    : []),
+  ...(treatmentDuration
+    ? [`Длительность курса: ${escapeHtml(treatmentDuration)}`]
+    : []),
 ];
 
 const copyHtmlWithSelectionFallback = (html: string) => {
@@ -172,8 +192,8 @@ const buildClipboardContent = (
   const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
 
   if (customItems.length > 0) {
-    groupedItems["Лечение"] = [
-      ...(groupedItems["Лечение"] ?? []),
+    groupedItems["Немедикаментозное лечение"] = [
+      ...(groupedItems["Немедикаментозное лечение"] ?? []),
       ...customItems.map((item) => ({
         id: item.id,
         groupTitle: "Лечение",
@@ -188,11 +208,29 @@ const buildClipboardContent = (
   const categoryGroups = Object.entries(groupedItems);
 
   const textBlocks = categoryGroups.map(([categoryTitle, items]) => {
+    if (categoryTitle === "Лекарственная терапия") {
+      const itemBlocks = items.map((item) =>
+        formatItemTextLines({
+          title: item.title,
+          comment: item.comment,
+          treatmentPlan: item.treatmentPlan,
+          treatmentDuration: item.treatmentDuration,
+        }).join("\n"),
+      );
+
+      return [categoryTitle, ...itemBlocks].join("\n\n");
+    }
+
     const itemLines = items.flatMap((item) =>
-      formatItemTextLines({ title: item.title, comment: item.comment }),
+      formatItemTextLines({
+        title: item.title,
+        comment: item.comment,
+        treatmentPlan: item.treatmentPlan,
+        treatmentDuration: item.treatmentDuration,
+      }),
     );
 
-    return [`${categoryTitle}:`, ...itemLines].join("\n");
+    return [categoryTitle, ...itemLines].join("\n");
   });
 
   if (trimmedGeneralComment) {
@@ -202,11 +240,32 @@ const buildClipboardContent = (
   const plainText = textBlocks.join("\n\n");
 
   const htmlBlocks = categoryGroups.map(([categoryTitle, items]) => {
+    if (categoryTitle === "Лекарственная терапия") {
+      const itemBlocks = items.map((item) =>
+        formatItemHtmlLines({
+          title: item.title,
+          comment: item.comment,
+          treatmentPlan: item.treatmentPlan,
+          treatmentDuration: item.treatmentDuration,
+        }).join("<br>"),
+      );
+
+      return [
+        `<strong>${escapeHtml(categoryTitle)}</strong>`,
+        ...itemBlocks,
+      ].join("<br><br>");
+    }
+
     const itemLines = items.flatMap((item) =>
-      formatItemHtmlLines({ title: item.title, comment: item.comment }),
+      formatItemHtmlLines({
+        title: item.title,
+        comment: item.comment,
+        treatmentPlan: item.treatmentPlan,
+        treatmentDuration: item.treatmentDuration,
+      }),
     );
 
-    return [`<strong>${escapeHtml(categoryTitle)}:</strong>`, ...itemLines].join(
+    return [`<strong>${escapeHtml(categoryTitle)}</strong>`, ...itemLines].join(
       "<br>",
     );
   });
