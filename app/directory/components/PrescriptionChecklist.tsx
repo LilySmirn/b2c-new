@@ -12,6 +12,8 @@ export type ChecklistItem = {
   info: string;
   infoComment?: string;
   comment: string;
+  treatmentPlan?: string;
+  treatmentDuration?: string;
   sourceIds?: string[];
   mergedItems?: ChecklistItem[];
 };
@@ -33,6 +35,8 @@ export type SelectedPrescription = {
   sectionTitle: string;
   title: string;
   comment: string;
+  treatmentPlan?: string;
+  treatmentDuration?: string;
 };
 
 export type AppendixA3Table = {
@@ -115,6 +119,9 @@ const mergeChecklistItemsByTitle = (items: ChecklistItem[]) => {
         item.infoComment ?? "",
       ),
       comment: existingItem.comment || item.comment,
+      treatmentPlan: existingItem.treatmentPlan || item.treatmentPlan,
+      treatmentDuration:
+        existingItem.treatmentDuration || item.treatmentDuration,
       sourceIds: Array.from(
         new Set([...getItemIds(existingItem), ...getItemIds(item)]),
       ),
@@ -382,6 +389,8 @@ export default function PrescriptionChecklist({
             sectionTitle: section.title,
             title: item.title,
             comment: item.comment,
+            treatmentPlan: item.treatmentPlan,
+            treatmentDuration: item.treatmentDuration,
           })),
       ),
     );
