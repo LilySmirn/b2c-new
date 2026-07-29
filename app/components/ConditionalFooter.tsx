@@ -4,9 +4,9 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 const HIDDEN_FOOTER_PATHS = new Set([
-  '/directory/search',
-  '/directory/cart',
-  '/directory/access-error',
+  '/search',
+  '/cart',
+  '/access-error',
   '/auth',
 ]);
 

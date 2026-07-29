@@ -6,8 +6,8 @@ import PrescriptionChecklist from "../components/PrescriptionChecklist";
 import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
 import styles from "./cart.module.css";
-import type { CartTemplate } from "@/app/directory/components/cartTemplatesStorage";
-import DirectoryPageHeader from "@/app/directory/components/DirectoryPageHeader";
+import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
+import DirectoryPageHeader from "@/app/(directory)/components/DirectoryPageHeader";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 
 type StoredCartRecommendation = {
@@ -167,7 +167,7 @@ export default function CartPreviewPage() {
   useEffect(() => {
     const storedValue = getStoredCartRecommendation();
     if (!storedValue) {
-      router.replace("/directory/search");
+      router.replace("/search");
       return;
     }
 
@@ -223,7 +223,7 @@ export default function CartPreviewPage() {
       );
       setIsCartReady(true);
     } catch {
-      router.replace("/directory/search");
+      router.replace("/search");
       setDiagnosisTitle("");
       setDiagnosisCode("");
       setRecommendationId("");

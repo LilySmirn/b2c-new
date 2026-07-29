@@ -6,7 +6,7 @@ import eagleWhiteIcon from '@/assets/images/eagle-white.png';
 import starLogo from '@/assets/images/star_logo.png';
 import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
-import SubscriptionExpirationWarning from '@/app/directory/components/SubscriptionExpirationWarning';
+import SubscriptionExpirationWarning from '@/app/(directory)/components/SubscriptionExpirationWarning';
 
 type DirectoryPageHeaderProps = {
   variant: 'search' | 'cart';
@@ -126,7 +126,7 @@ export default function DirectoryPageHeader({
           </a>
         ) : null}
         <Link
-          href="/directory/search"
+          href="/search"
           className={`${styles.action} ${styles.backAction}`}
           onClick={handleBackToSearch}
         >

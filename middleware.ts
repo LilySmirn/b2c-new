@@ -3,9 +3,15 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const PROTECTED_DIRECTORY_PATHS = new Set([
-  '/directory/search',
-  '/directory/cart',
-  '/directory/access-error',
+  '/search',
+  '/cart',
+  '/access-error',
+]);
+
+const LEGACY_DIRECTORY_PATHS = new Map([
+  ['/directory/search', '/search'],
+  ['/directory/cart', '/cart'],
+  ['/directory/access-error', '/access-error'],
 ]);
 
 const KLINREC_HOSTS = new Set(['klinrec.ru', 'www.klinrec.ru']);
@@ -16,6 +22,14 @@ export async function middleware(request: NextRequest) {
 
   if (request.nextUrl.pathname === '/' && host && KLINREC_HOSTS.has(host)) {
     return NextResponse.redirect(EASYMED_HOME_URL);
+  }
+
+  const legacyPath = LEGACY_DIRECTORY_PATHS.get(request.nextUrl.pathname);
+
+  if (legacyPath) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = legacyPath;
+    return NextResponse.redirect(redirectUrl, 308);
   }
 
   if (PROTECTED_DIRECTORY_PATHS.has(request.nextUrl.pathname)) {
@@ -40,5 +54,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/directory/search', '/directory/cart', '/directory/access-error'],
+  matcher: [
+    '/',
+    '/search',
+    '/cart',
+    '/access-error',
+    '/directory/search',
+    '/directory/cart',
+    '/directory/access-error',
+  ],
 };
