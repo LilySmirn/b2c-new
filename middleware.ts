@@ -3,13 +3,13 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const PROTECTED_DIRECTORY_PATHS = new Set([
-  '/search',
+  '/mkb',
   '/cart',
   '/access-error',
 ]);
 
 const LEGACY_DIRECTORY_PATHS = new Map([
-  ['/directory/search', '/search'],
+  ['/directory/search', '/mkb'],
   ['/directory/cart', '/cart'],
   ['/directory/access-error', '/access-error'],
 ]);
@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/search',
+    '/mkb',
     '/cart',
     '/access-error',
     '/directory/search',

@@ -18,7 +18,7 @@ export default function AccessErrorPreviewPage() {
             <p className={`${styles.text} ${styles.textSpaced}`}>
               Но не переживайте, мы поможем вернуться на правильный путь.
             </p>
-            <Link href="/search" className={styles.button}>
+            <Link href="/mkb" className={styles.button}>
               Вернуться
             </Link>
           </div>

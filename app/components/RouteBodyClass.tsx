@@ -12,7 +12,7 @@ export default function RouteBodyClass() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isPreviewSearch = pathname === '/search';
+    const isPreviewSearch = pathname === '/mkb';
     const isPreviewCart = pathname === '/cart';
     const isPreviewAccessError = pathname === '/access-error';
     const isAuth = pathname === '/auth';

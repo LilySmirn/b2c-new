@@ -167,7 +167,7 @@ export default function CartPreviewPage() {
   useEffect(() => {
     const storedValue = getStoredCartRecommendation();
     if (!storedValue) {
-      router.replace("/search");
+      router.replace("/mkb");
       return;
     }
 
@@ -223,7 +223,7 @@ export default function CartPreviewPage() {
       );
       setIsCartReady(true);
     } catch {
-      router.replace("/search");
+      router.replace("/mkb");
       setDiagnosisTitle("");
       setDiagnosisCode("");
       setRecommendationId("");
