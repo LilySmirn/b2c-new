@@ -190,17 +190,6 @@ const buildClipboardContent = (
   const categoryGroups = Object.entries(groupedItems);
 
   const textBlocks = categoryGroups.map(([categoryTitle, items]) => {
-    if (categoryTitle === "Лекарственная терапия") {
-      const itemBlocks = items.map((item) =>
-        formatItemTextLines({
-          title: item.title,
-          comment: item.comment,
-        }).join("\n"),
-      );
-
-      return [categoryTitle, ...itemBlocks].join("\n\n");
-    }
-
     const itemLines = items.flatMap((item) =>
       formatItemTextLines({
         title: item.title,
@@ -218,20 +207,6 @@ const buildClipboardContent = (
   const plainText = textBlocks.join("\n\n");
 
   const htmlBlocks = categoryGroups.map(([categoryTitle, items]) => {
-    if (categoryTitle === "Лекарственная терапия") {
-      const itemBlocks = items.map((item) =>
-        formatItemHtmlLines({
-          title: item.title,
-          comment: item.comment,
-        }).join("<br>"),
-      );
-
-      return [
-        `<strong>${escapeHtml(categoryTitle)}</strong>`,
-        ...itemBlocks,
-      ].join("<br><br>");
-    }
-
     const itemLines = items.flatMap((item) =>
       formatItemHtmlLines({
         title: item.title,
@@ -239,21 +214,22 @@ const buildClipboardContent = (
       }),
     );
 
-    return [`<strong>${escapeHtml(categoryTitle)}</strong>`, ...itemLines].join(
-      "<br>",
-    );
+    return `<div>${[
+      `<strong>${escapeHtml(categoryTitle)}</strong>`,
+      ...itemLines,
+    ].join("<br>")}</div>`;
   });
 
   if (trimmedGeneralComment) {
     htmlBlocks.push(
-      [
+      `<div>${[
         "<strong>Общая рекомендация:</strong>",
         escapeHtml(trimmedGeneralComment),
-      ].join("<br>"),
+      ].join("<br>")}</div>`,
     );
   }
 
-  const html = htmlBlocks.join("<br><br>");
+  const html = htmlBlocks.join("<br>");
 
   return { plainText, html };
 };
