@@ -214,22 +214,22 @@ const buildClipboardContent = (
       }),
     );
 
-    return `<div>${[
+    return [
       `<strong>${escapeHtml(categoryTitle)}</strong>`,
       ...itemLines,
-    ].join("<br>")}</div>`;
+    ].join("<br>");
   });
 
   if (trimmedGeneralComment) {
     htmlBlocks.push(
-      `<div>${[
+      [
         "<strong>Общая рекомендация:</strong>",
         escapeHtml(trimmedGeneralComment),
-      ].join("<br>")}</div>`,
+      ].join("<br>"),
     );
   }
 
-  const html = htmlBlocks.join("<br>");
+  const html = `<div>${htmlBlocks.join("<br><br>")}</div>`;
 
   return { plainText, html };
 };
