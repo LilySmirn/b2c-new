@@ -15,7 +15,7 @@ const LEGACY_DIRECTORY_PATHS = new Map([
 ]);
 
 const KLINREC_HOSTS = new Set(['klinrec.ru', 'www.klinrec.ru']);
-const EASYMED_HOME_URL = 'https://easymed.pro/';
+const EASYMED_HOME_URL = 'http://klinicheskie-rekomendatsii.ru/';
 
 export async function middleware(request: NextRequest) {
   const host = request.headers.get('host')?.split(':')[0].toLowerCase();

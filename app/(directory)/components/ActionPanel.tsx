@@ -82,39 +82,21 @@ const groupSelectedItemsByClipboardCategory = (selectedItems: SelectedPrescripti
 const formatItemTextLines = ({
   title,
   comment,
-  treatmentPlan,
-  treatmentDuration,
 }: {
   title: string;
   comment: string;
-  treatmentPlan?: string;
-  treatmentDuration?: string;
-}) => [
-  comment ? `${title} - ${comment}` : title,
-  ...(treatmentPlan ? [`Схема лечения: ${treatmentPlan}`] : []),
-  ...(treatmentDuration ? [`Длительность курса: ${treatmentDuration}`] : []),
-];
+  }) => [comment ? `${title} - ${comment}` : title];
 
 const formatItemHtmlLines = ({
   title,
   comment,
-  treatmentPlan,
-  treatmentDuration,
 }: {
   title: string;
   comment: string;
-  treatmentPlan?: string;
-  treatmentDuration?: string;
 }) => [
   comment
     ? `${escapeHtml(title)} - ${escapeHtml(comment)}`
     : escapeHtml(title),
-    ...(treatmentPlan
-    ? [`Схема лечения: ${escapeHtml(treatmentPlan)}`]
-    : []),
-  ...(treatmentDuration
-    ? [`Длительность курса: ${escapeHtml(treatmentDuration)}`]
-    : []),
 ];
 
 const copyHtmlWithSelectionFallback = (html: string) => {
@@ -213,8 +195,6 @@ const buildClipboardContent = (
         formatItemTextLines({
           title: item.title,
           comment: item.comment,
-          treatmentPlan: item.treatmentPlan,
-          treatmentDuration: item.treatmentDuration,
         }).join("\n"),
       );
 
@@ -225,8 +205,6 @@ const buildClipboardContent = (
       formatItemTextLines({
         title: item.title,
         comment: item.comment,
-        treatmentPlan: item.treatmentPlan,
-        treatmentDuration: item.treatmentDuration,
       }),
     );
 
@@ -245,8 +223,6 @@ const buildClipboardContent = (
         formatItemHtmlLines({
           title: item.title,
           comment: item.comment,
-          treatmentPlan: item.treatmentPlan,
-          treatmentDuration: item.treatmentDuration,
         }).join("<br>"),
       );
 
@@ -260,8 +236,6 @@ const buildClipboardContent = (
       formatItemHtmlLines({
         title: item.title,
         comment: item.comment,
-        treatmentPlan: item.treatmentPlan,
-        treatmentDuration: item.treatmentDuration,
       }),
     );
 

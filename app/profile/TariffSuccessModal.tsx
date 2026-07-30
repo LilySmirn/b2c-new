@@ -37,7 +37,7 @@ export default function TariffSuccessModal({
                 <div className={styles.modalText}>
                     Справочник:{" "}
                     <a
-                        href="https://easymed.pro/kr/"
+                        href="http://klinicheskie-rekomendatsii.ru/"
                         target="_blank"
                         rel="noreferrer"
                         className={styles.link}

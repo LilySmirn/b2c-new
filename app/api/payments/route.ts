@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     const profileUrl = 'https://klinicheskie-rekomendatsii.ru/profile';
-    const demoUrl = 'https://easymed.pro/kr/';
+    const demoUrl = 'http://klinicheskie-rekomendatsii.ru/';
     const wordMonths = pluralizeMonths(durationInMonths);
 
     const html = `

@@ -156,7 +156,7 @@ export default async function AccountPage() {
                             </div>
 
                             <div>
-                                <Link href="https://easymed.pro/kr/" className={styles.open}>Открыть справочник</Link>
+                                <Link href="http://klinicheskie-rekomendatsii.ru/" className={styles.open}>Открыть справочник</Link>
                             </div>
 
                             {/*<div className={styles.desktopIconDiv}>*/}

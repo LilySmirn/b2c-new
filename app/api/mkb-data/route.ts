@@ -281,6 +281,11 @@ const normalizeAppointment = (
 ): PrescriptionItem => {
   const title = getString(appointment.name, "Назначение");
   const crDbId = getStringOrEmpty(appointment.cr_db_id);
+  const treatmentPlan = getStringOrEmpty(appointment.plan);
+  const treatmentDuration = getStringOrEmpty(appointment.duration);
+  const treatmentComment = [treatmentPlan, treatmentDuration]
+    .filter(Boolean)
+    .join(", ");
 
   return {
     id: `${source}-${index}-${slugify(crDbId, "cr")}-${slugify(title, "item")}`,
@@ -290,9 +295,9 @@ const normalizeAppointment = (
     title,
     info: getAppointmentInfo(appointment, crTextById),
     infoComment: getAppointmentInfoComment(appointment, crTextById),
-    treatmentPlan: getStringOrEmpty(appointment.plan),
-    treatmentDuration: getStringOrEmpty(appointment.duration),
-    comment: "",
+    treatmentPlan,
+    treatmentDuration,
+    comment: treatmentComment,
   };
 };
 

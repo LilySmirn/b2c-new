@@ -165,7 +165,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="hero-buttons">
-                <Link href="https://easymed.pro/kr/" className="btn btn-hero-demo">Найти рекомендации</Link>
+                <Link href="http://klinicheskie-rekomendatsii.ru/" className="btn btn-hero-demo">Найти рекомендации</Link>
                 <Link href="/login" className="btn btn-pricing">
                   Приобрести подписку
                 </Link>
