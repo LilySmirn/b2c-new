@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserAllowedMkbCodes } from "@/app/lib/mkbAccess";
-import { isMkbCodeAllowed } from "@/app/lib/mkbCodeAccess";
 
 const EASYMED_SEARCH_URL = "https://easymed.pro/php/API/search.php";
 
@@ -75,12 +74,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const items = getUniqueSearchItems(data);
-    const visibleItems = allowedCodes === null
-      ? items
-      : items.filter((item) => isMkbCodeAllowed(item.code, allowedCodes));
-
-    return NextResponse.json(visibleItems);
+    return NextResponse.json(getUniqueSearchItems(data));
   } catch {
     return NextResponse.json(
       { error: "EasyMed search service is unavailable" },
