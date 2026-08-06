@@ -17,6 +17,14 @@ Use these settings in Vercel:
 
 ## Required environment variables
 
+The application explicitly loads `.env.local` at startup and lets its values
+override variables configured on the server. To deploy with exactly the same
+database and authorization settings as the local application, include your
+local `.env.local` file when uploading the project. The file remains ignored by
+Git because it contains secrets. If `.env.local` is absent, Next.js keeps its
+standard environment-loading behavior; the standalone cron runner falls back
+to `.env`.
+
 Add the same values for Production and Preview unless intentionally different:
 
 - `AUTH_SECRET`
