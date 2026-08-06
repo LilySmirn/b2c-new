@@ -14,6 +14,7 @@ import logoBig from "@/assets/images/logo-big.svg";
 import RecommendationCard from "../components/RecommendationCard";
 import SuggestedCodesList from "../components/SuggestedCodesList";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
+import { isMkbCodeAllowed, normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 
 type MkbSearchResult = {
   code: string;
@@ -63,6 +64,10 @@ type MkbDataResponse = {
   availability: FilterAvailability;
   recommendations: MkbRecommendationsResponse;
   standards: StandardsByFilters;
+};
+
+type MkbAccessResponse = {
+  allowedCodes: string[] | null;
 };
 
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
@@ -180,9 +185,34 @@ export default function SearchPreviewPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [mkbData, setMkbData] = useState<MkbDataResponse | null>(null);
   const [cardsError, setCardsError] = useState<string | null>(null);
+  const [allowedMkbCodes, setAllowedMkbCodes] = useState<string[] | null | undefined>(undefined);
+  const [isMkbAccessLoaded, setIsMkbAccessLoaded] = useState(false);
+  const [mkbAccessError, setMkbAccessError] = useState<string | null>(null);
   const [isCardsLoading, setIsCardsLoading] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const hasRestoredSearchStateRef = useRef(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadMkbAccess = async () => {
+      try {
+        const response = await fetch("/api/mkb-access", { signal: controller.signal });
+        if (!response.ok) throw new Error("Не удалось проверить доступные коды МКБ");
+
+        const data = (await response.json()) as MkbAccessResponse;
+        setAllowedMkbCodes(data.allowedCodes);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        setMkbAccessError("Не удалось проверить доступные коды МКБ. Попробуйте позже.");
+      } finally {
+        setIsMkbAccessLoaded(true);
+      }
+    };
+
+    loadMkbAccess();
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (hasRestoredSearchStateRef.current) return;
@@ -378,6 +408,7 @@ export default function SearchPreviewPage() {
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
+    setMkbAccessError(null);
     setSubmittedCode(null);
     setSubmittedDiagnosisTitle(null);
   };
@@ -405,8 +436,28 @@ export default function SearchPreviewPage() {
 
     if (!code) return;
 
-    setSubmittedCode(code);
-    setSubmittedDiagnosisTitle(diagnosisTitle ?? getDiagnosisTitle(code));
+    const normalizedCode = normalizeMkbCode(code);
+    if (!isMkbAccessLoaded) {
+      setMkbAccessError("Проверяем доступные для аккаунта коды. Повторите поиск.");
+      return;
+    }
+
+    if (allowedMkbCodes === undefined) {
+      setMkbAccessError("Не удалось проверить доступные коды МКБ. Попробуйте позже.");
+      return;
+    }
+
+    if (allowedMkbCodes !== null && !isMkbCodeAllowed(normalizedCode, allowedMkbCodes)) {
+      setMkbAccessError(
+        `Для этого аккаунта доступны следующие коды: ${allowedMkbCodes.join(", ")}`,
+      );
+      return;
+    }
+
+    setMkbAccessError(null);
+
+    setSubmittedCode(normalizedCode);
+    setSubmittedDiagnosisTitle(diagnosisTitle ?? getDiagnosisTitle(normalizedCode));
   };
 
   const handleMatchSelect = (item: string) => {
@@ -553,6 +604,10 @@ export default function SearchPreviewPage() {
               />
             )}
           </div>
+
+          {mkbAccessError ? (
+            <p className={styles.mkbAccessError} role="alert">{mkbAccessError}</p>
+          ) : null}
 
           <Filters
             visitOptions={visitOptions}

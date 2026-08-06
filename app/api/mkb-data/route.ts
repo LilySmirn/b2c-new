@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { encryptPayload } from "@/app/lib/encryptedPayload/server";
+import { getCurrentUserAllowedMkbCodes, isMkbCodeAllowed } from "@/app/lib/mkbAccess";
 
 const EASYMED_MKB_URL = "https://easymed.pro/php/API/get-mkb.php";
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
@@ -472,6 +473,18 @@ export async function GET(req: Request) {
     return NextResponse.json(
       { error: "Missing required parameter: code" },
       { status: 400 },
+    );
+  }
+
+  const allowedCodes = await getCurrentUserAllowedMkbCodes();
+  if (allowedCodes === undefined) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isMkbCodeAllowed(code, allowedCodes)) {
+    return NextResponse.json(
+      { error: "MKB code is not allowed for this account", allowedCodes },
+      { status: 403 },
     );
   }
 

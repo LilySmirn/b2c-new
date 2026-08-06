@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getCurrentUserAllowedMkbCodes } from "@/app/lib/mkbAccess";
+import { isMkbCodeAllowed } from "@/app/lib/mkbCodeAccess";
 
 const EASYMED_SEARCH_URL = "https://easymed.pro/php/API/search.php";
 
@@ -18,10 +20,10 @@ const isValidSearchItem = (item: EasyMedSearchItem): item is ValidSearchItem =>
 const getSearchItemKey = ({ code, name }: ValidSearchItem) =>
   `${code.trim().toLowerCase()}::${name.trim().toLowerCase()}`;
 
-const getUniqueSearchItems = (items: EasyMedSearchItem[]) => {
+const getUniqueSearchItems = (items: EasyMedSearchItem[]): ValidSearchItem[] => {
   const seen = new Set<string>();
 
-  return items.filter((item) => {
+  return items.filter((item): item is ValidSearchItem => {
     if (!isValidSearchItem(item)) return false;
 
     const key = getSearchItemKey(item);
@@ -41,6 +43,11 @@ export async function GET(req: Request) {
       { error: "Missing required parameter: search" },
       { status: 400 },
     );
+  }
+
+  const allowedCodes = await getCurrentUserAllowedMkbCodes();
+  if (allowedCodes === undefined) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const upstreamUrl = new URL(EASYMED_SEARCH_URL);
@@ -68,7 +75,12 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json(getUniqueSearchItems(data));
+    const items = getUniqueSearchItems(data);
+    const visibleItems = allowedCodes === null
+      ? items
+      : items.filter((item) => isMkbCodeAllowed(item.code, allowedCodes));
+
+    return NextResponse.json(visibleItems);
   } catch {
     return NextResponse.json(
       { error: "EasyMed search service is unavailable" },

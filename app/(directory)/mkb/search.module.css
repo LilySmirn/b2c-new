@@ -127,3 +127,11 @@
   line-height: 1.3;
   text-align: center;
 }
+
+.mkbAccessError {
+  margin: 8px 12px 0;
+  color: #d32f2f;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.3;
+}
