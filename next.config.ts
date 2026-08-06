@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
-import { loadLocalEnv } from "./config/load-local-env";
+import { loadEnv } from "./config/load-env";
 
-loadLocalEnv();
+loadEnv();
 
 const nextConfig: NextConfig = {
   //output: "standalone",

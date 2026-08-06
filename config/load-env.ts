@@ -7,18 +7,19 @@ import dotenv from "dotenv";
  *
  * Next.js normally gives variables provided by the host process precedence over
  * values from env files.  That makes a stale server-level configuration win over
- * `.env.local`.  Loading the file explicitly with `override` makes `.env.local`
- * the source of truth whenever it is included in the deployed project.
+ * `.env`. Loading the file explicitly with `override` makes `.env` the source
+ * of truth whenever it is included in the deployed project, even if a
+ * `.env.local` file is also present.
  */
-export function loadLocalEnv(): boolean {
-  const localEnvPath = resolve(process.cwd(), ".env.local");
+export function loadEnv(): boolean {
+  const envPath = resolve(process.cwd(), ".env");
 
-  if (!existsSync(localEnvPath)) {
+  if (!existsSync(envPath)) {
     return false;
   }
 
   const result = dotenv.config({
-    path: localEnvPath,
+    path: envPath,
     override: true,
     quiet: true,
   });

@@ -1,9 +1,6 @@
-import dotenv from "dotenv";
-import { loadLocalEnv } from "../config/load-local-env";
+import { loadEnv } from "../config/load-env";
 
-if (!loadLocalEnv()) {
-    dotenv.config({ quiet: true });
-}
+loadEnv();
 
 import "@/app/cron/cronJobs";
 
