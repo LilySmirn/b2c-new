@@ -92,9 +92,14 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
+                const authFlow = credentials.authFlow;
+                if (authFlow !== "b2c" && authFlow !== "b2b") {
+                    return null;
+                }
+
                 const deviceId = credentials.deviceId?.trim() ?? "";
 
-                if (credentials.authFlow === "b2c" && (deviceId === "" || deviceId.length > 100)) {
+                if (authFlow === "b2c" && (deviceId === "" || deviceId.length > 100)) {
                     return null;
                 }
 
@@ -106,7 +111,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                if (credentials.authFlow !== "b2c" || user.account_type !== "b2c") {
+                if (user.account_type !== authFlow) {
                     return null;
                 }
 
@@ -115,23 +120,27 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                const expiresAt = getB2cSessionExpiresAt();
-                const sessionId = uuidv4();
+                let sessionId: string | undefined;
 
-                await new db().createB2cSessionReplacingExisting({
-                    sessionId,
-                    userId: user.user_id.toString(),
-                    deviceId,
-                    deviceName,
-                    ipAddress: getForwardedIp(req.headers),
-                    expiresAt,
-                });
+                if (authFlow === "b2c") {
+                    const expiresAt = getB2cSessionExpiresAt();
+                    sessionId = uuidv4();
+
+                    await new db().createB2cSessionReplacingExisting({
+                        sessionId,
+                        userId: user.user_id.toString(),
+                        deviceId,
+                        deviceName,
+                        ipAddress: getForwardedIp(req.headers),
+                        expiresAt,
+                    });
+                }
 
                 return {
                     id: user.user_id.toString(),
                     email: user.login,
                     name: user.name,
-                    accountType: "b2c",
+                    accountType: authFlow,
                     sessionId,
                 };
             },

@@ -2,20 +2,15 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getB2cDeviceId } from '../lib/b2cDeviceId';
 import styles from './auth.module.css';
-
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-const MIN_CREDENTIAL_LENGTH = 6;
 
 function buildDirectoryUrl(code: string | null) {
   const params = code ? `?code=${encodeURIComponent(code)}` : '';
 
   return `/mkb${params}`;
-}
-
-function setCredentialCookie(name: string, value: string) {
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
 }
 
 export default function AuthClient() {
@@ -28,12 +23,13 @@ export default function AuthClient() {
   const [code, setCode] = useState<string | null>(null);
 
   const isSubmitDisabled = useMemo(
-    () => isLoading || username.length < MIN_CREDENTIAL_LENGTH || password.length < MIN_CREDENTIAL_LENGTH,
-    [isLoading, password.length, username.length]
+    () => isLoading || username.trim() === '' || password === '',
+    [isLoading, password, username]
   );
 
   useEffect(() => {
     usernameInputRef.current?.focus();
+    getB2cDeviceId();
     setCode(new URLSearchParams(window.location.search).get('code'));
   }, []);
 
@@ -48,39 +44,23 @@ export default function AuthClient() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/legacy-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
+      const result = await signIn('credentials', {
+        email: username,
+        password,
+        authFlow: 'b2b',
+        deviceId: getB2cDeviceId(),
+        deviceName: navigator.userAgent,
+        redirect: false,
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = (await response.json()) as { result?: string };
-
-      if (data.result === 'denyIP') {
-        setErrorText('IP не зарегистрирован');
-        return;
-      }
-
-      if (data.result === 'deny') {
+      if (!result?.ok) {
         setErrorText('Неверный логин или пароль');
         return;
       }
 
-      if (data.result === 'access') {
-        setCredentialCookie('username', username);
-        setCredentialCookie('password', password);
-        window.location.href = buildDirectoryUrl(code);
-        return;
-      }
-
-      setErrorText('Ошибка');
-      console.log(data);
+      window.sessionStorage.setItem('showSubscriptionExpirationPopup', 'true');
+      window.dispatchEvent(new Event('b2c-login-success'));
+      window.location.href = buildDirectoryUrl(code);
     } catch (error) {
       console.error('Ошибка:', error);
       setErrorText('Ошибка');

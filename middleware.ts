@@ -35,10 +35,11 @@ export async function middleware(request: NextRequest) {
   if (PROTECTED_DIRECTORY_PATHS.has(request.nextUrl.pathname)) {
     const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
     const isB2cLogin = token?.accountType === 'b2c' && typeof token.sessionId === 'string';
+    const isB2bLogin = token?.accountType === 'b2b';
     const username = request.cookies.get('username')?.value;
     const password = request.cookies.get('password')?.value;
 
-    if ((!username || !password) && !isB2cLogin) {
+    if ((!username || !password) && !isB2cLogin && !isB2bLogin) {
       const authUrl = new URL('/auth', request.url);
       const code = request.nextUrl.searchParams.get('code');
 
