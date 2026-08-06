@@ -1,11 +1,12 @@
 import { getToken } from "next-auth/jwt";
+import { getAuthSecret } from "@/app/lib/authSecret";
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/app/lib/db";
 
 export async function POST(request: NextRequest) {
     const token = await getToken({
         req: request,
-        secret: process.env.AUTH_SECRET,
+        secret: getAuthSecret(),
     });
 
     if (

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { getAuthSecret } from '@/app/lib/authSecret';
 
 const PROTECTED_DIRECTORY_PATHS = new Set([
   '/mkb',
@@ -33,7 +34,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (PROTECTED_DIRECTORY_PATHS.has(request.nextUrl.pathname)) {
-    const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+    const token = await getToken({ req: request, secret: getAuthSecret() });
     const isB2cLogin = token?.accountType === 'b2c' && typeof token.sessionId === 'string';
     const isB2bLogin = token?.accountType === 'b2b';
     const username = request.cookies.get('username')?.value;

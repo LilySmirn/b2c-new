@@ -3,6 +3,7 @@ import db from "./db";
 import bcrypt from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import {v4 as uuidv4} from "uuid";
+import {getAuthSecret} from "./authSecret";
 
 const DEFAULT_NEXT_AUTH_JWT_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -182,5 +183,5 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
     },
-    secret: process.env.AUTH_SECRET,
+    secret: getAuthSecret(),
 };
