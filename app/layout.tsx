@@ -8,6 +8,7 @@ import AuthButtonsServer from './components/AuthButtonsServer';
 import ConditionalHeader from './components/ConditionalHeader';
 import ConditionalFooter from './components/ConditionalFooter';
 import RouteBodyClass from './components/RouteBodyClass';
+import UserBlockingGuard from './modules/userBlocking/components/UserBlockingGuard';
 
 export const metadata: Metadata = {
   title: "EasyMed",
@@ -22,6 +23,7 @@ export default async function RootLayout({
     return (
         <html lang="ru">
             <body>
+                <UserBlockingGuard />
                 <RouteBodyClass />
                  <ConditionalHeader>
                     <header id="header" className="header-section">

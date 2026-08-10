@@ -1,7 +1,7 @@
 import type {
     BlockUserCommand,
     UserBlockRecord,
-} from "@/app/lib/userBlocking/types";
+} from "../types";
 
 export interface UserBlockingRepository {
     findByUserId(userId: string): Promise<UserBlockRecord | null>;

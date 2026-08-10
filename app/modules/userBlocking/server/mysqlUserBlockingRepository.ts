@@ -1,10 +1,10 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { pool } from "@/app/lib/db";
-import type { UserBlockingRepository } from "@/app/lib/userBlocking/repository";
+import type { UserBlockingRepository } from "./repository";
 import type {
     BlockUserCommand,
     UserBlockRecord,
-} from "@/app/lib/userBlocking/types";
+} from "../types";
 
 type UserBlockRow = RowDataPacket & {
     user_id: string;

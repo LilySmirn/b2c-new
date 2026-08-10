@@ -85,30 +85,9 @@
     transform: translateY(1px);
 }
 
-.supportLink:focus-visible,
-.closeButton:focus-visible {
+.supportLink:focus-visible {
     outline: 3px solid rgba(0, 133, 255, 0.35);
     outline-offset: 3px;
-}
-
-.closeButton {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: #758391;
-    font-size: 28px;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.closeButton:hover {
-    background: #f1f6fa;
-    color: #203040;
 }
 
 @media (max-width: 520px) {

@@ -1,4 +1,4 @@
-import type { UserBlockReasonCode } from "@/app/lib/userBlocking/types";
+import type { UserBlockReasonCode } from "@/app/modules/userBlocking/types";
 
 export type AccountType = "b2c" | "b2b";
 

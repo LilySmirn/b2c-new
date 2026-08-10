@@ -1,21 +1,10 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import type { UserBlockReasonCode } from "@/app/lib/userBlocking/types";
-import { USER_BLOCK_REASON_CODES } from "@/app/lib/userBlocking/types";
 import styles from "./UserBlockedPopup.module.css";
-
-const REASON_MESSAGES: Record<UserBlockReasonCode, string> = {
-    [USER_BLOCK_REASON_CODES.FREQUENT_UNIQUE_CLINICAL_RECOMMENDATION_REQUESTS]:
-        "Мы заметили необычно частые обращения к разным клиническим рекомендациям.",
-    [USER_BLOCK_REASON_CODES.EXCESSIVE_REQUESTS]:
-        "Мы заметили необычно большое количество запросов с вашего аккаунта.",
-};
 
 export interface UserBlockedPopupProps {
     isOpen: boolean;
-    reason?: UserBlockReasonCode | null;
-    onClose?: () => void;
     supportHref?: string;
 }
 
@@ -25,13 +14,12 @@ export interface UserBlockedPopupProps {
  */
 export default function UserBlockedPopup({
     isOpen,
-    reason = null,
-    onClose,
     supportHref = "https://t.me/easymed_admin",
 }: UserBlockedPopupProps) {
     const titleId = useId();
     const descriptionId = useId();
     const dialogRef = useRef<HTMLElement>(null);
+    const supportLinkRef = useRef<HTMLAnchorElement>(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -39,22 +27,22 @@ export default function UserBlockedPopup({
         const previouslyFocused = document.activeElement as HTMLElement | null;
         dialogRef.current?.focus();
 
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && onClose) onClose();
+        const keepFocusInsidePopup = (event: KeyboardEvent) => {
+            if (event.key !== "Tab") return;
+
+            event.preventDefault();
+            supportLinkRef.current?.focus();
         };
 
-        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keydown", keepFocusInsidePopup);
+
         return () => {
-            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keydown", keepFocusInsidePopup);
             previouslyFocused?.focus();
         };
-    }, [isOpen, onClose]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
-
-    const reasonMessage = reason
-        ? REASON_MESSAGES[reason]
-        : "Мы временно ограничили доступ к аккаунту из-за подозрительной активности.";
 
     return (
         <div className={styles.overlay} role="presentation">
@@ -67,17 +55,6 @@ export default function UserBlockedPopup({
                 aria-describedby={descriptionId}
                 tabIndex={-1}
             >
-                {onClose && (
-                    <button
-                        className={styles.closeButton}
-                        type="button"
-                        aria-label="Закрыть уведомление"
-                        onClick={onClose}
-                    >
-                        ×
-                    </button>
-                )}
-
                 <div className={styles.icon} aria-hidden="true">
                     <svg viewBox="0 0 24 24" focusable="false">
                         <path d="M7 10V7a5 5 0 0 1 10 0v3" />
@@ -88,14 +65,14 @@ export default function UserBlockedPopup({
 
                 <h2 id={titleId}>Доступ временно ограничен</h2>
                 <div id={descriptionId} className={styles.description}>
-                    <p>{reasonMessage}</p>
                     <p>
-                        Если вы считаете, что это произошло по ошибке, напишите нам —
-                        мы проверим блокировку и поможем восстановить доступ.
+                        Превышена частота запросов, свяжитесь с отделом
+                        техподдержки.
                     </p>
                 </div>
 
                 <a
+                    ref={supportLinkRef}
                     className={styles.supportLink}
                     href={supportHref}
                     target="_blank"

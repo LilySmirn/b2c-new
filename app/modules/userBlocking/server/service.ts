@@ -1,10 +1,10 @@
-import type { UserBlockingRepository } from "@/app/lib/userBlocking/repository";
+import type { UserBlockingRepository } from "@/app/modules/userBlocking/server/repository";
 import type {
     BlockUserCommand,
     UserBlockReasonCode,
     UserBlockState,
-} from "@/app/lib/userBlocking/types";
-import { USER_BLOCK_REASON_CODES } from "@/app/lib/userBlocking/types";
+} from "../types";
+import { USER_BLOCK_REASON_CODES } from "../types";
 
 const knownReasonCodes = new Set<string>(Object.values(USER_BLOCK_REASON_CODES));
 
@@ -24,6 +24,17 @@ export class InvalidUserBlockRecordError extends Error {
 
 export class UserBlockingService {
     constructor(private readonly repository: UserBlockingRepository) {}
+
+    /** Lightweight access check; block metadata is not required to deny access. */
+    async isBlocked(userId: string): Promise<boolean> {
+        const record = await this.repository.findByUserId(userId);
+
+        if (record === null) {
+            throw new UserNotFoundError(userId);
+        }
+
+        return Boolean(record.blocked);
+    }
 
     async getState(userId: string): Promise<UserBlockState> {
         const record = await this.repository.findByUserId(userId);

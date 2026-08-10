@@ -37,3 +37,8 @@ export interface UserBlockRecord {
     blockedReason: string | null;
     blockedAt: Date | string | null;
 }
+
+/** Public shape returned to the browser by the blocking status endpoint. */
+export interface UserBlockingStatus {
+    blocked: boolean;
+}
