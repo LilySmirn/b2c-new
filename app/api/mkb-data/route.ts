@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/auth";
 import { encryptPayload } from "@/app/lib/encryptedPayload/server";
 import { getCurrentUserAllowedMkbCodes, isMkbCodeAllowed } from "@/app/lib/mkbAccess";
+import { normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
+import { registerClinicalRecommendationOpening } from "@/app/modules/clinicalRecommendationOpening/server/service";
 
 const EASYMED_MKB_URL = "https://easymed.pro/php/API/get-mkb.php";
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
@@ -485,6 +489,29 @@ export async function GET(req: Request) {
     return NextResponse.json(
       { error: "MKB code is not allowed for this account", allowedCodes },
       { status: 403 },
+    );
+  }
+
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { blocked } = await registerClinicalRecommendationOpening(
+    userId,
+    normalizeMkbCode(code),
+  );
+  if (blocked) {
+    return NextResponse.json(
+      { error: "User is blocked" },
+      {
+        status: 403,
+        headers: {
+          "Cache-Control": "no-store",
+          "X-User-Blocked": "true",
+        },
+      },
     );
   }
 

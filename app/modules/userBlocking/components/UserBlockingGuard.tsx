@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { UserBlockingStatus } from "../types";
+import { USER_BLOCKING_REFRESH_EVENT, type UserBlockingStatus } from "../types";
 import UserBlockedPopup from "@/app/modules/userBlocking/components/UserBlockedPopup";
 
 const STATUS_URL = "/api/user-blocking/status";
@@ -53,12 +53,14 @@ export default function UserBlockingGuard() {
         };
 
         window.addEventListener("focus", handleFocus);
+        window.addEventListener(USER_BLOCKING_REFRESH_EVENT, handleFocus);
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {
             controller.abort();
             window.clearInterval(intervalId);
             window.removeEventListener("focus", handleFocus);
+            window.removeEventListener(USER_BLOCKING_REFRESH_EVENT, handleFocus);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
     }, [refreshStatus]);

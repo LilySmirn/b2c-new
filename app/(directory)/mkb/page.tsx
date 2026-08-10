@@ -15,6 +15,7 @@ import RecommendationCard from "../components/RecommendationCard";
 import SuggestedCodesList from "../components/SuggestedCodesList";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 import { isMkbCodeAllowed, normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
+import { USER_BLOCKING_REFRESH_EVENT } from "@/app/modules/userBlocking";
 
 type MkbSearchResult = {
   code: string;
@@ -333,6 +334,9 @@ export default function SearchPreviewPage() {
           { signal: controller.signal },
         );
 
+        if (response.headers.get("X-User-Blocked") === "true") {
+          window.dispatchEvent(new Event(USER_BLOCKING_REFRESH_EVENT));
+        }
         if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
 
         setMkbData(data);
@@ -541,7 +545,7 @@ export default function SearchPreviewPage() {
     }
   };
 
-  const handleCardSelect = (card: RecommendationStandard) => {
+  const handleCardSelect = async (card: RecommendationStandard) => {
     const diagnosisTitle = submittedDiagnosisTitle ?? submittedCode ?? card.title;
     
     writeStoredSearchState({

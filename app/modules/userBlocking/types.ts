@@ -42,3 +42,6 @@ export interface UserBlockRecord {
 export interface UserBlockingStatus {
     blocked: boolean;
 }
+
+/** Fired when an application request may have changed the persisted block state. */
+export const USER_BLOCKING_REFRESH_EVENT = "user-blocking:refresh";
