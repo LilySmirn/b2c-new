@@ -3,7 +3,11 @@
 This directory is the single ownership boundary for user-blocking behavior.
 
 - `components/` contains the client-side access boundary and blocking popup.
-- `server/` contains database access, domain service, and the status route handler.
+- `server/blockUser.ts` is the only entry point that reason detectors should use
+  to block a user. It delegates to the domain service, while the repository
+  atomically writes `blocked`, `blocked_reason`, and `blocked_at`.
+- `server/` also contains database access, state checks, and the status route
+  handler.
 - `types.ts` contains contracts shared by the client and server.
 - `index.ts` is the browser-safe public entry point.
 
@@ -16,3 +20,20 @@ Server-only consumers must import from `@/app/modules/userBlocking/server`.
 Client and shared consumers must import from `@/app/modules/userBlocking` or
 `@/app/modules/userBlocking/types`; this prevents database dependencies from
 entering the client bundle.
+
+To add a blocking trigger, add its stable code to
+`USER_BLOCK_REASON_CODES`, then call:
+
+```ts
+import { blockUser } from "@/app/modules/userBlocking/server";
+import { USER_BLOCK_REASON_CODES } from "@/app/modules/userBlocking";
+
+await blockUser({
+    userId,
+    reason: USER_BLOCK_REASON_CODES.EXCESSIVE_REQUESTS,
+});
+```
+
+The root-level guard polls the status endpoint independently of authorization,
+locks the page and displays the warning popup whenever the stored `blocked` flag
+is set. The current authorization flow does not contain blocking logic.

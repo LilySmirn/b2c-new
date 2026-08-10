@@ -1,5 +1,4 @@
-import { MysqlUserBlockingRepository } from "./mysqlUserBlockingRepository";
-import { UserBlockingService } from "./service";
+export { blockUser } from "./blockUser";
 
 export { MysqlUserBlockingRepository } from "./mysqlUserBlockingRepository";
 export type { UserBlockingRepository } from "./repository";
@@ -9,6 +8,4 @@ export {
     UserNotFoundError,
 } from "./service";
 
-export const userBlockingService = new UserBlockingService(
-    new MysqlUserBlockingRepository()
-);
+export { userBlockingService } from "./serviceInstance";
