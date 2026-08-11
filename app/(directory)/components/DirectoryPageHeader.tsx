@@ -7,6 +7,7 @@ import starLogo from '@/assets/images/star_logo.png';
 import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
 import SubscriptionExpirationWarning from '@/app/(directory)/components/SubscriptionExpirationWarning';
+import { signOut } from 'next-auth/react';
 
 type DirectoryPageHeaderProps = {
   variant: 'search' | 'cart';
@@ -99,9 +100,12 @@ export default function DirectoryPageHeader({
     clearCartState();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
     clearAuthCookies();
     clearCartState();
+    await signOut({ redirect: false });
+    window.location.assign('/auth');
   };
   
   const action =
