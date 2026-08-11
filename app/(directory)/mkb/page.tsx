@@ -129,6 +129,8 @@ type StoredSearchState = {
   ageGroup?: AgeGroup;
   submittedCode?: string | null;
   submittedDiagnosisTitle?: string | null;
+  apiMatches?: MkbSearchResult[];
+  mkbData?: MkbDataResponse | null;
 };
 
 const getCartRecommendationKey = (
@@ -193,6 +195,8 @@ export default function SearchPreviewPage() {
   const [isCardsLoading, setIsCardsLoading] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const hasRestoredSearchStateRef = useRef(false);
+  const restoredMatchesSearchRef = useRef<string | null>(null);
+  const restoredMkbDataCodeRef = useRef<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -238,6 +242,17 @@ export default function SearchPreviewPage() {
       setAgeGroup(storedSearchState.ageGroup);
     }
 
+    if (Array.isArray(storedSearchState.apiMatches)) {
+      setApiMatches(storedSearchState.apiMatches);
+      restoredMatchesSearchRef.current = storedSearchState.query?.trim() ?? null;
+    }
+
+    if (storedSearchState.mkbData && storedSearchState.submittedCode) {
+      setMkbData(storedSearchState.mkbData);
+      setFilterAvailability(storedSearchState.mkbData.availability);
+      restoredMkbDataCodeRef.current = storedSearchState.submittedCode;
+    }
+
     setSubmittedCode(storedSearchState.submittedCode ?? null);
     setSubmittedDiagnosisTitle(storedSearchState.submittedDiagnosisTitle ?? null);
 
@@ -255,8 +270,10 @@ export default function SearchPreviewPage() {
       ageGroup,
       submittedCode,
       submittedDiagnosisTitle,
+      apiMatches,
+      mkbData,
     });
-  }, [ageGroup, query, submittedCode, submittedDiagnosisTitle, visitType]);
+  }, [ageGroup, apiMatches, mkbData, query, submittedCode, submittedDiagnosisTitle, visitType]);
 
   const search = query.trim();
   const matches = useMemo(() => apiMatches.map(formatMkbResult), [apiMatches]);
@@ -274,6 +291,12 @@ export default function SearchPreviewPage() {
   }, [apiMatches, normalizedSearchCode, query]);
 
   useEffect(() => {
+    if (restoredMatchesSearchRef.current !== null) {
+      if (restoredMatchesSearchRef.current === search) {
+        restoredMatchesSearchRef.current = null;
+      }
+      return;
+    }
     if (search.length < 3) {
       setApiMatches([]);
       setIsSearchLoading(false);
@@ -315,6 +338,13 @@ export default function SearchPreviewPage() {
   }, [search]);
 
   useEffect(() => {
+    if (restoredMkbDataCodeRef.current !== null) {
+      if (restoredMkbDataCodeRef.current === submittedCode) {
+        restoredMkbDataCodeRef.current = null;
+      }
+      return;
+    }
+
     if (!submittedCode) {
       setMkbData(null);
       setFilterAvailability(null);
@@ -556,6 +586,8 @@ export default function SearchPreviewPage() {
       ageGroup,
       submittedCode,
       submittedDiagnosisTitle,
+      apiMatches,
+      mkbData,
     });
 
     const serializedCartRecommendation = JSON.stringify({

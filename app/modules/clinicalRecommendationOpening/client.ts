@@ -1,8 +1,24 @@
 export const CART_VISIT_STORAGE_KEY = "clinicalRecommendationCartVisit";
+const MAX_RECOMMENDATION_KEY_LENGTH = 255;
 
 export type CartVisit = { visitId: string; recommendationKey: string };
 
 export const createEventId = () => crypto.randomUUID();
+
+export async function normalizeOpeningRecommendationKey(recommendationKey: string) {
+  const normalizedKey = recommendationKey.trim();
+  if (normalizedKey.length <= MAX_RECOMMENDATION_KEY_LENGTH) return normalizedKey;
+
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(normalizedKey),
+  );
+  const hash = Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+
+  return `sha256:${hash}`;
+}
 
 export async function sendOpeningEvent(
   event: { eventId: string; type: "selected" | "cart_opened" | "cart_left"; visitId: string; recommendationKey?: string },
@@ -28,7 +44,8 @@ export async function sendOpeningEvent(
 }
 
 export async function beginCartVisit(recommendationKey: string): Promise<CartVisit> {
-  const visit = { visitId: crypto.randomUUID(), recommendationKey };
+  const openingRecommendationKey = await normalizeOpeningRecommendationKey(recommendationKey);
+  const visit = { visitId: crypto.randomUUID(), recommendationKey: openingRecommendationKey };
   await sendOpeningEvent({
     eventId: createEventId(),
     type: "selected",
