@@ -5,7 +5,7 @@ import { USER_BLOCKING_REFRESH_EVENT, type UserBlockingStatus } from "../types";
 import UserBlockedPopup from "@/app/modules/userBlocking/components/UserBlockedPopup";
 
 const STATUS_URL = "/api/user-blocking/status";
-const CHECK_INTERVAL_MS = 5_000;
+const CHECK_INTERVAL_MS = 60_000;
 
 /**
  * Application-wide block boundary.
@@ -45,7 +45,12 @@ export default function UserBlockingGuard() {
         void refreshStatus(controller.signal);
 
         const intervalId = window.setInterval(() => {
-            void refreshStatus(controller.signal);
+            // A hidden tab cannot be used, and visibilitychange refreshes the
+            // status as soon as the user returns. Avoid needless background
+            // session and database checks while it remains hidden.
+            if (document.visibilityState === "visible") {
+                void refreshStatus(controller.signal);
+            }
         }, CHECK_INTERVAL_MS);
         const handleFocus = () => void refreshStatus(controller.signal);
         const handleVisibilityChange = () => {

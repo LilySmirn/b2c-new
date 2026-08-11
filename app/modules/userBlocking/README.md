@@ -34,6 +34,9 @@ await blockUser({
 });
 ```
 
-The root-level guard polls the status endpoint independently of authorization,
-locks the page and displays the warning popup whenever the stored `blocked` flag
-is set. The current authorization flow does not contain blocking logic.
+The root-level guard checks the status when it mounts, when the tab becomes
+active, and immediately after an application request reports a possible block.
+A once-per-minute fallback poll (paused while the tab is hidden) also covers
+block state changes made outside the current tab. It locks the page and displays
+the warning popup whenever the stored `blocked` flag is set. The current
+authorization flow does not contain blocking logic.
