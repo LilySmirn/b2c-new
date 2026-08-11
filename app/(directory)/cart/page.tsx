@@ -9,6 +9,12 @@ import styles from "./cart.module.css";
 import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
 import DirectoryPageHeader from "@/app/(directory)/components/DirectoryPageHeader";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
+import {
+  CART_VISIT_STORAGE_KEY,
+  createEventId,
+  sendOpeningEvent,
+  type CartVisit,
+} from "@/app/modules/clinicalRecommendationOpening/client";
 
 type StoredCartRecommendation = {
   diagnosisTitle?: string;
@@ -163,6 +169,38 @@ export default function CartPreviewPage() {
   const [appendixA3Error, setAppendixA3Error] = useState("");
   const [isCartReady, setIsCartReady] = useState(false);
   const isRestoringStoredSelectionsRef = useRef(false);
+
+  useEffect(() => {
+    let visit: CartVisit | undefined;
+    try {
+      visit = JSON.parse(
+        window.sessionStorage.getItem(CART_VISIT_STORAGE_KEY) ?? "null",
+      ) as CartVisit | undefined;
+    } catch {
+      return;
+    }
+    if (!visit?.visitId || !visit.recommendationKey) return;
+
+    void sendOpeningEvent({
+      eventId: createEventId(),
+      type: "cart_opened",
+      ...visit,
+    });
+
+    const leaveEventId = createEventId();
+    const reportLeave = () => {
+      void sendOpeningEvent({
+        eventId: leaveEventId,
+        type: "cart_left",
+        visitId: visit.visitId,
+      }, true);
+    };
+    window.addEventListener("pagehide", reportLeave, { once: true });
+    return () => {
+      window.removeEventListener("pagehide", reportLeave);
+      reportLeave();
+    };
+  }, []);
 
   useEffect(() => {
     const storedValue = getStoredCartRecommendation();

@@ -16,6 +16,7 @@ import SuggestedCodesList from "../components/SuggestedCodesList";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 import { isMkbCodeAllowed, normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 import { USER_BLOCKING_REFRESH_EVENT } from "@/app/modules/userBlocking";
+import { beginCartVisit } from "@/app/modules/clinicalRecommendationOpening/client";
 
 type MkbSearchResult = {
   code: string;
@@ -539,6 +540,7 @@ export default function SearchPreviewPage() {
         CART_RECOMMENDATION_STORAGE_KEY,
         serializedCartRecommendation,
       );
+      await beginCartVisit(getCartRecommendationKey(diagnosisTitle, selectedCard));
       router.push("/cart");
     } catch (error) {
       setCardsError("Не удалось открыть закладку. Попробуйте позже.");
@@ -570,6 +572,12 @@ export default function SearchPreviewPage() {
       CART_RECOMMENDATION_STORAGE_KEY,
       serializedCartRecommendation,
     );
+    try {
+      await beginCartVisit(getCartRecommendationKey(diagnosisTitle, card));
+    } catch {
+      setCardsError("Не удалось открыть рекомендацию. Попробуйте позже.");
+      return;
+    }
     router.push("/cart");
   };
 

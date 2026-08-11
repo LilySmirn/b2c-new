@@ -5,6 +5,8 @@
  * Existing values must not be renamed because they can already be persisted.
  */
 export const USER_BLOCK_REASON_CODES = {
+    AUTOMATED_CLINICAL_RECOMMENDATION_BROWSING:
+        "automated_clinical_recommendation_browsing",
     FREQUENT_UNIQUE_CLINICAL_RECOMMENDATION_REQUESTS:
         "frequent_unique_clinical_recommendation_requests",
     EXCESSIVE_REQUESTS:
