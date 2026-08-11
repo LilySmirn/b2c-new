@@ -4,6 +4,12 @@ import bcrypt from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import {v4 as uuidv4} from "uuid";
 import {getAuthSecret} from "./authSecret";
+import { USER_BLOCK_REASON_CODES } from "@/app/modules/userBlocking";
+import { blockUser } from "@/app/modules/userBlocking/server";
+import {
+    normalizeLogin,
+    registerLoginAttempt,
+} from "@/app/modules/userBlocking/server/loginAttemptLimiter";
 
 const DEFAULT_NEXT_AUTH_JWT_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -104,46 +110,65 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                const deviceName = getDeviceName(credentials.deviceName);
+                const normalizedLogin = normalizeLogin(credentials.email ?? "");
+                const attempt = await registerLoginAttempt(normalizedLogin);
 
-                const user = await new db().findUserByEmail(credentials?.email ?? "");
+                try {
+                    const deviceName = getDeviceName(credentials.deviceName);
+                    const database = new db();
+                    const user = await database.findUserByEmail(normalizedLogin);
 
-                if (user === null || user.password_hash === null) {
-                    return null;
-                }
+                    if (attempt.limitReached) {
+                        if (user !== null) {
+                            await blockUser({
+                                userId: user.user_id.toString(),
+                                reason: USER_BLOCK_REASON_CODES.EXCESSIVE_LOGIN_ATTEMPTS,
+                            });
+                        }
 
-                if (user.account_type !== authFlow) {
-                    return null;
-                }
+                        return null;
+                    }
 
-                const isValid = await bcrypt.compare(credentials.password, user.password_hash!);
-                if (!isValid) {
-                    return null;
-                }
+                    if (user === null || user.password_hash === null || user.blocked) {
+                        return null;
+                    }
 
-                let sessionId: string | undefined;
+                    if (user.account_type !== authFlow) {
+                        return null;
+                    }
 
-                if (authFlow === "b2c") {
-                    const expiresAt = getB2cSessionExpiresAt();
-                    sessionId = uuidv4();
+                    const isValid = await bcrypt.compare(credentials.password ?? "", user.password_hash!);
+                    if (!isValid) {
+                        return null;
+                    }
 
-                    await new db().createB2cSessionReplacingExisting({
+                    let sessionId: string | undefined;
+
+                    if (authFlow === "b2c") {
+                        const expiresAt = getB2cSessionExpiresAt();
+                        sessionId = uuidv4();
+
+                        await database.createB2cSessionReplacingExisting({
+                            sessionId,
+                            userId: user.user_id.toString(),
+                            deviceId,
+                            deviceName,
+                            ipAddress: getForwardedIp(req.headers),
+                            expiresAt,
+                        });
+                    }
+
+                    return {
+                        id: user.user_id.toString(),
+                        email: user.login,
+                        name: user.name,
+                        accountType: authFlow,
                         sessionId,
-                        userId: user.user_id.toString(),
-                        deviceId,
-                        deviceName,
-                        ipAddress: getForwardedIp(req.headers),
-                        expiresAt,
-                    });
+                        };
+                } finally {
+                    attempt.release();
                 }
 
-                return {
-                    id: user.user_id.toString(),
-                    email: user.login,
-                    name: user.name,
-                    accountType: authFlow,
-                    sessionId,
-                };
             },
         }),
     ],

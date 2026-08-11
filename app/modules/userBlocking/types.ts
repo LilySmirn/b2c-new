@@ -11,6 +11,8 @@ export const USER_BLOCK_REASON_CODES = {
         "frequent_unique_clinical_recommendation_requests",
     EXCESSIVE_REQUESTS:
         "excessive_requests",
+    EXCESSIVE_LOGIN_ATTEMPTS:
+        "excessive_login_attempts",
 } as const;
 
 export type UserBlockReasonCode =
