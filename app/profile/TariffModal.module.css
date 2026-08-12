@@ -66,14 +66,6 @@
     margin-bottom: 22px;
 }
 
-.modalEyebrow {
-    margin: 0 0 8px;
-    color: #1182ee;
-    font: 700 14px/1.3 Arial, sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-}
-
 .modal h2 {
      margin: 0;
     color: #00182f;
@@ -95,19 +87,29 @@
     margin: 0;
 }
 
+.tariffHeader,
 .tariffOption {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: 18px minmax(140px, 1.2fr) minmax(110px, 0.8fr) auto;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     width: 100%;
-    padding: 16px 18px;
+    box-sizing: border-box;
+}
+
+.tariffHeader {
+    padding: 0 18px 2px;
+    color: #596a7d;
+    font: 700 13px/1.3 Arial, sans-serif;
+}
+
+.tariffOption {
+    padding: 14px 18px;
     border: 1px solid #d8e2ef;
     border-radius: 10px;
     background: #ffffff;
     color: #00182f;
     cursor: pointer;
-    box-sizing: border-box;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
@@ -125,29 +127,15 @@
     accent-color: #1182ee;
 }
 
-.tariffOptionContent {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 23px;
-    background-color: white;
-    border: #0085FF solid 1px;
-    border-radius: 10px;
-    padding: 12px 60px;
-    width: 200px;
-    cursor: pointer;
-    flex-direction: column;
-    min-width: 0;
-    gap: 4px;
-}
-
 .tariffName {
+    min-width: 0;
     font: 700 18px/1.25 Arial, sans-serif;
 }
 
 .tariffMeta {
+    min-width: 0;
     color: #596a7d;
-    font: 400 14px/1.3 Arial, sans-serif;
+    font: 400 16px/1.3 Arial, sans-serif;
 }
 
 .tariffPrice {
@@ -213,12 +201,21 @@
         padding: 28px 22px 24px;
     }
 
+    .tariffHeader {
+        display: none;
+    }
+
     .tariffOption {
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .tariffMeta {
+        grid-column: 2;
     }
 
     .tariffPrice {
-        grid-column: 2;
+        grid-column: 3;
+        grid-row: 1 / span 2;
     }
 
     .buttons {

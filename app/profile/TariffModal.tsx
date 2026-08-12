@@ -71,7 +71,6 @@ export default function TariffModal({
                         </button>
 
                         <div className={styles.modalHeader}>
-                            <p className={styles.modalEyebrow}>Продление подписки</p>
                             <h2 id="tariff-modal-title">Выберите тариф</h2>
                             <p className={styles.modalDescription}>
                                 Срок действия тарифа будет добавлен к текущей подписке после оплаты.
@@ -79,6 +78,12 @@ export default function TariffModal({
                         </div>
                         
                         <div className={styles.tariffList}>
+                            <div className={styles.tariffHeader} aria-hidden="true">
+                                <span />
+                                <span>Название тарифа</span>
+                                <span>Срок</span>
+                                <span>Цена</span>
+                            </div>
                             {tariffs.map(tariff => (
                                 <label key={tariff.id} className={styles.tariffOption}>
                                     <input
@@ -88,10 +93,8 @@ export default function TariffModal({
                                         checked={selectedTariff === tariff.id}
                                         onChange={() => setSelectedTariff(tariff.id)}
                                     />
-                                    <span className={styles.tariffOptionContent}>
-                                        <span className={styles.tariffName}>{tariff.title}</span>
-                                        <span className={styles.tariffMeta}>Срок действия: {tariff.duration}</span>
-                                    </span>
+                                    <span className={styles.tariffName}>{tariff.title}</span>
+                                    <span className={styles.tariffMeta}>{tariff.duration}</span>
                                     <span className={styles.tariffPrice}>{tariff.price.toLocaleString("ru-RU")} ₽</span>
                                 </label>
                             ))}
