@@ -151,7 +151,7 @@ export default async function AccountPage() {
                                     <em>Внимание! Без подписки доступно 5 запросов в день.</em>
                                 </div>
                                 <div className={styles.warningsText}>
-                                    Для отмены ограничений купите подписку или вступите в наше <Link href="#" className={styles.warningsLink}>телеграм-сообщество</Link> для доступа без ограничений на месяц
+                                    Для отмены ограничений приобретите <TariffModal triggerText="подписку" triggerClassName={styles.warningsLink} />
                                 </div>
                             </div>
 

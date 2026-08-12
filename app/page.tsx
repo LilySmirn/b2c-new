@@ -10,17 +10,17 @@ export const metadata: Metadata = {
   description:
       "Быстрый доступ к актуальным клиническим рекомендациям Минздрава РФ 2024-2025 по МКБ-10. Удобный интерфейс, поиск, тарифы.",
   alternates: {
-    canonical: "https://klinicheskie-rekomendatsii.ru/",
+    canonical: "https://klinrec.ru/",
   },
   openGraph: {
     type: "website",
-    url: "https://klinicheskie-rekomendatsii.ru/",
+    url: "https://klinrec.ru/",
     title: "Клинические рекомендации по МКБ-10",
     description:
         "Актуальный справочник клинических рекомендаций Минздрава РФ по МКБ-10.",
     images: [
       {
-        url: 'https://klinicheskie-rekomendatsii.ru/images/preview.jpg',
+        url: 'https://klinrec.ru/images/preview.jpg',
         width: 1200,
         height: 630,
         alt: 'Клинические рекомендации'
@@ -35,24 +35,23 @@ export default function Home() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://klinicheskie-rekomendatsii.ru/#website",
-        url: "https://klinicheskie-rekomendatsii.ru/",
+        "@id": "https://klinrec.ru/#website",
+        url: "https://klinrec.ru/",
         name: "Клинические рекомендации Минздрава по МКБ-10",
         description:
             "Быстрый доступ к актуальным клиническим рекомендациям Минздрава РФ 2024-2025 по МКБ-10. Удобный интерфейс, поиск, тарифы.",
         publisher: {
-          "@id": "https://klinicheskie-rekomendatsii.ru/#organization",
+          "@id": "https://klinrec.ru/#organization",
         },
       },
       {
         "@type": "Organization",
-        "@id": "https://klinicheskie-rekomendatsii.ru/#organization",
+        "@id": "https://klinrec.ru/#organization",
         name: "EasyMed",
-        url: "https://klinicheskie-rekomendatsii.ru/",
+        url: "https://klinrec.ru/",
         logo: {
           "@type": "ImageObject",
-          url: "https://klinicheskie-rekomendatsii.ru/assets/images/logo.webp",
-          width: 250,
+          url: "https://klinrec.ru/assets/images/logo.webp",
           height: 60,
           caption: "Клинические рекомендации Минздрава — логотип",
         },
@@ -68,7 +67,7 @@ export default function Home() {
       },
       {
         "@type": "OfferCatalog",
-        "@id": "https://klinicheskie-rekomendatsii.ru/#offers",
+        "@id": "https://klinrec.ru/#offers",
         name: "Тарифы на подписку",
         itemListElement: [
           {
@@ -81,7 +80,7 @@ export default function Home() {
             price: "300",
             priceCurrency: "RUB",
             priceValidUntil: "2025-12-31",
-            url: "https://klinicheskie-rekomendatsii.ru/#pricing",
+            url: "https://klinrec.ru/#pricing",
             eligibleDuration: {
               "@type": "Duration",
               duration: "P1M",
@@ -97,7 +96,7 @@ export default function Home() {
             price: "750",
             priceCurrency: "RUB",
             priceValidUntil: "2025-12-31",
-            url: "https://klinicheskie-rekomendatsii.ru/#pricing",
+            url: "https://klinrec.ru/#pricing",
             eligibleDuration: {
               "@type": "Duration",
               duration: "P3M",
@@ -113,7 +112,7 @@ export default function Home() {
             price: "1200",
             priceCurrency: "RUB",
             priceValidUntil: "2025-12-31",
-            url: "https://klinicheskie-rekomendatsii.ru/#pricing",
+            url: "https://klinrec.ru/#pricing",
             eligibleDuration: {
               "@type": "Duration",
               duration: "P6M",
@@ -129,7 +128,7 @@ export default function Home() {
             price: "1800",
             priceCurrency: "RUB",
             priceValidUntil: "2025-12-31",
-            url: "https://klinicheskie-rekomendatsii.ru/#pricing",
+            url: "https://klinrec.ru/#pricing",
             eligibleDuration: {
               "@type": "Duration",
               duration: "P1Y",
@@ -165,7 +164,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="hero-buttons">
-                <Link href="http://klinicheskie-rekomendatsii.ru/" className="btn btn-hero-demo">Найти рекомендации</Link>
+                <Link href="/mkb" className="btn btn-hero-demo">Найти рекомендации</Link>
                 <Link href="/login" className="btn btn-pricing">
                   Приобрести подписку
                 </Link>
@@ -584,7 +583,7 @@ export default function Home() {
         <section id="why-us" className="why-us-section">
           <div className="why-us-container">
             <h2 className="title why-us-title">
-              Почему сайт <span className="highlight"><Link href="https://klinicheskie-rekomendatsii.ru" className="why-us-btn">klinicheskie-rekomendatsii.ru</Link></span> —
+              Почему сайт <span className="highlight"><Link href="https://klinrec.ru" className="why-us-btn">klinrec.ru</Link></span> —
               лучший выбор?
             </h2>
           </div>
@@ -623,7 +622,7 @@ export default function Home() {
               Вы по адресу
             </h2>
             <h2 className="title cta-banner-title-2">
-              <span className="highlight"><Link href="https://klinicheskie-rekomendatsii.ru" className="why-us-btn">klinicheskie-rekomendatsii.ru</Link></span> - ваш надёжный
+              <span className="highlight"><Link href="https://klinrec.ru" className="why-us-btn">klinrec.ru</Link></span> - ваш надёжный
               справочник
             </h2>
           </div>

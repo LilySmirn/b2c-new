@@ -15,15 +15,7 @@ const LEGACY_DIRECTORY_PATHS = new Map([
   ['/directory/access-error', '/access-error'],
 ]);
 
-const KLINREC_HOSTS = new Set(['klinrec.ru', 'www.klinrec.ru']);
-const EASYMED_HOME_URL = 'http://klinicheskie-rekomendatsii.ru/';
-
 export async function middleware(request: NextRequest) {
-  const host = request.headers.get('host')?.split(':')[0].toLowerCase();
-
-  if (request.nextUrl.pathname === '/' && host && KLINREC_HOSTS.has(host)) {
-    return NextResponse.redirect(EASYMED_HOME_URL);
-  }
 
   const legacyPath = LEGACY_DIRECTORY_PATHS.get(request.nextUrl.pathname);
 

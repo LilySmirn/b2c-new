@@ -18,7 +18,15 @@ const tariffs: Tariff[] = [
     { id: "pro", title: "Профи", price: 1800, paymentUrl: "/pay/pro" }
 ];
 
-export default function TariffModal() {
+interface TariffModalProps {
+    triggerText?: string;
+    triggerClassName?: string;
+}
+
+export default function TariffModal({
+    triggerText = "Продлить тариф",
+    triggerClassName = styles.tariffLink,
+}: TariffModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedTariff, setSelectedTariff] = useState<string>(tariffs[0].id);
     const router = useRouter();
@@ -33,10 +41,11 @@ export default function TariffModal() {
     return (
         <>
             <button
+            type="button"
                 onClick={() => setIsOpen(true)}
-                className={styles.tariffLink}
+                className={triggerClassName}
             >
-                Продлить тариф
+                {triggerText}
             </button>
 
             {isOpen && (
