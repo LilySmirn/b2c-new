@@ -93,6 +93,10 @@ export default function Header() {
 
                 <div className="header-buttons">
 
+                <Link href="/login" className="btn btn-login btn-auth">
+                        Войти
+                    </Link>
+
                     <Link href="/login" className="btn btn-demo">
                         Демо
                     </Link>
