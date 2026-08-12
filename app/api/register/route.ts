@@ -3,8 +3,32 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { User } from "@/app/types/User";
 import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
+import { sendMail } from "@/app/lib/mailer";
 const MIN_PASSWORD_LENGTH = 6;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getPublicBaseUrl(req: Request): string {
+    const configuredUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+
+    if (configuredUrl) {
+        return configuredUrl.replace(/\/$/, "");
+    }
+
+    const host = req.headers.get("host") ?? "localhost:3000";
+    const protocol = req.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+
+    return `${protocol}://${host}`;
+}
+
+function buildVerificationEmail(name: string, verificationUrl: string): string {
+    return `
+        <p>Здравствуйте, ${name}!</p>
+        <p>Для завершения регистрации в EasyMed подтвердите адрес электронной почты.</p>
+        <p><a href="${verificationUrl}">Подтвердить email</a></p>
+        <p>Ссылка действует 24 часа.</p>
+    `;
+}
 
 type RegisterPayload = {
     email?: unknown;
@@ -63,6 +87,7 @@ export async function POST(req: Request) {
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
 
     const newUser: User = {
         user_id: uuidv4(),
@@ -70,6 +95,7 @@ export async function POST(req: Request) {
         name,
         password_hash: hashed,
         account_type: "b2c",
+        email_verification_token: emailVerificationToken,
     };
 
     try {
@@ -82,7 +108,12 @@ export async function POST(req: Request) {
         throw error;
     }
 
-     // Welcome email is temporarily disabled for public registration.
+    const verificationUrl = `${getPublicBaseUrl(req)}/register/verify?token=${emailVerificationToken}`;
+    await sendMail(
+        email,
+        "Подтверждение регистрации EasyMed",
+        buildVerificationEmail(name, verificationUrl)
+    );
 
     return NextResponse.json({ ok: true });
 }

@@ -119,7 +119,7 @@ export default function LoginClient() {
                         <div className={styles.signupText}>
                             Впервые на сайте?
                             <br />
-                            <Link href="/registration/register" className={styles.btnCreate}>
+                            <Link href="/register" className={styles.btnCreate}>
                                 Создайте аккаунт
                             </Link>
                         </div>

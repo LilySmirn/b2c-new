@@ -12,4 +12,7 @@ export interface User {
     blocked?: boolean;
     blocked_reason?: UserBlockReasonCode | null;
     blocked_at?: Date | null;
+    email_verified_at?: Date | string | null;
+    email_verification_token?: string | null;
+    email_verification_expires_at?: Date | string | null;
 }

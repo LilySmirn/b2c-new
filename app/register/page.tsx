@@ -1,6 +1,6 @@
 'use client';
 
-import styles from '../../styles/auth.module.css';
+import styles from '../styles/auth.module.css';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -48,7 +48,7 @@ export default function Register() {
                 return;
             }
 
-            router.push('/registration/success');
+            router.push('/register/success');
 
         } catch (err) {
             console.error(err);

@@ -137,6 +137,10 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
+                    if (authFlow === "b2c" && user.email_verified_at === null) {
+                        return null;
+                    }
+
                     const isValid = await bcrypt.compare(credentials.password ?? "", user.password_hash!);
                     if (!isValid) {
                         return null;

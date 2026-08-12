@@ -15,8 +15,9 @@ export default function Result() {
 
                 <div className={styles.mainReg}>
                     <section className={styles.regFormSection}>
-                        <h2 className={styles.successRegTitle}>Регистрация выполнена успешно!</h2>
-                        <Link className={styles.successReg} href="/login">Войти</Link>
+                        <h2 className={styles.successRegTitle}>Проверьте почту</h2>
+                        <p>Мы отправили ссылку для подтверждения регистрации на указанный email. Перейдите по ней, чтобы активировать аккаунт.</p>
+                        <Link className={styles.successReg} href="/login">Перейти ко входу</Link>
                     </section>
                 </div>
                 <div id="footer"></div>

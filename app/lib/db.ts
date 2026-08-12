@@ -24,6 +24,12 @@ type ActiveSessionRow = RowDataPacket & {
     user_id: string | number;
 };
 
+type EmailVerificationRow = RowDataPacket & {
+    user_id: string;
+    email_verified_at: Date | string | null;
+    email_verification_expires_at: Date | string | null;
+};
+
 export type SubscriptionExpirationReminder = {
     subscriptionId: string;
     expirationDate: Date;
@@ -43,6 +49,65 @@ export async function getUsersCount(): Promise<number> {
 }
 
 export default class db {
+    private static emailVerificationColumnsReady = false;
+
+    private async ensureEmailVerificationColumns(): Promise<void> {
+        if (db.emailVerificationColumnsReady) {
+            return;
+        }
+
+        const [columns] = await connection.query<RowDataPacket[]>(
+            `SELECT column_name
+             FROM information_schema.columns
+             WHERE table_schema = DATABASE()
+               AND table_name = 'users'
+               AND column_name IN (
+                   'email_verified_at',
+                   'email_verification_token',
+                   'email_verification_expires_at'
+               )`
+        );
+        const existingColumns = new Set(columns.map((column) => String(column.column_name)));
+
+        if (!existingColumns.has("email_verified_at")) {
+            await connection.query(`ALTER TABLE users ADD COLUMN email_verified_at datetime NULL`);
+        }
+
+        if (!existingColumns.has("email_verification_token")) {
+            await connection.query(`ALTER TABLE users ADD COLUMN email_verification_token varchar(64) NULL`);
+        }
+
+        if (!existingColumns.has("email_verification_expires_at")) {
+            await connection.query(`ALTER TABLE users ADD COLUMN email_verification_expires_at datetime NULL`);
+        }
+
+        const [indexes] = await connection.query<RowDataPacket[]>(
+            `SELECT 1
+             FROM information_schema.statistics
+             WHERE table_schema = DATABASE()
+               AND table_name = 'users'
+               AND index_name = 'users_email_verification_token_unique'
+             LIMIT 1`
+        );
+
+        if (indexes.length === 0) {
+            await connection.query(
+                `ALTER TABLE users
+                 ADD UNIQUE KEY users_email_verification_token_unique (email_verification_token)`
+            );
+        }
+
+        await connection.query(`
+            UPDATE users
+            SET email_verified_at = registration_date
+            WHERE email_verified_at IS NULL
+              AND email_verification_token IS NULL
+              AND email_verification_expires_at IS NULL
+        `);
+
+        db.emailVerificationColumnsReady = true;
+    }
+
     public async getSubscriptionExpirationReminder(
         userId: string
     ): Promise<SubscriptionExpirationReminder | null> {
@@ -125,6 +190,7 @@ export default class db {
 
 
     public async createB2cUserWithRequestRecord(user: User): Promise<void> {
+        await this.ensureEmailVerificationColumns();
         const trx = await connection.getConnection();
 
         try {
@@ -147,10 +213,13 @@ export default class db {
                 login,
                 name,
                 password_hash,
-                account_type
+                account_type,
+                email_verified_at,
+                email_verification_token,
+                email_verification_expires_at
             )
-            VALUES (?, ?, ?, ?, 'b2c')`,
-            [user.user_id, user.login, user.name, user.password_hash]
+            VALUES (?, ?, ?, ?, 'b2c', NULL, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
+            [user.user_id, user.login, user.name, user.password_hash, user.email_verification_token]
         );
     }
 
@@ -163,8 +232,49 @@ export default class db {
     }
 
     public async findUserByEmail(email: string): Promise<User | null> {
+        await this.ensureEmailVerificationColumns();
         const [rows] = await connection.query('SELECT * FROM users WHERE login = ?', [email]) as unknown as [User[]];
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+    }
+
+    public async verifyUserEmail(token: string): Promise<"ok" | "expired" | "not_found"> {
+        await this.ensureEmailVerificationColumns();
+
+        const [rows] = await connection.query<EmailVerificationRow[]>(
+            `SELECT user_id, email_verified_at, email_verification_expires_at
+             FROM users
+             WHERE email_verification_token = ?
+             LIMIT 1`,
+            [token]
+        );
+
+        const user = rows[0];
+        if (!user) {
+            return "not_found";
+        }
+
+        if (user.email_verified_at !== null) {
+            return "ok";
+        }
+
+        const expiresAt = user.email_verification_expires_at instanceof Date
+            ? user.email_verification_expires_at
+            : new Date(user.email_verification_expires_at ?? 0);
+
+        if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() < Date.now()) {
+            return "expired";
+        }
+
+        await connection.query(
+            `UPDATE users
+             SET email_verified_at = NOW(),
+                 email_verification_token = NULL,
+                 email_verification_expires_at = NULL
+             WHERE user_id = ?`,
+            [user.user_id]
+        );
+
+        return "ok";
     }
 
     public async createB2cSessionReplacingExisting(params: {
