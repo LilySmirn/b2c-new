@@ -51,7 +51,7 @@ export default function ErrorModal({
     return (
         <div className={styles.errorOverlay}>
             <div className={styles.errorModal}>
-                <h2>При взаимодействии с сервером произошла ошибка</h2>
+                <h2>Сеанс завершённ</h2>
                 <p>{message || 'Попробуйте ещё раз.'}</p>
                 <button className={styles.okBtn} onClick={handleOk}>
                     Ок

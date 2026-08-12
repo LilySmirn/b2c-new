@@ -15,7 +15,7 @@ export async function safeTry<T>(
     } catch (err: any) {
         console.error('Client error caught by safeTry:', err);
 
-        if (options?.setErrorMsg) options.setErrorMsg(err.message || 'При взаимодействии с сервером произошла ошибка');
+        if (options?.setErrorMsg) options.setErrorMsg(err.message || 'Сеанс завершён');
         if (options?.setShowError) options.setShowError(true);
 
         try {

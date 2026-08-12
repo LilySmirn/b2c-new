@@ -18,7 +18,7 @@ export default function LoginErrorAlert() {
             setErrorMsg('Пожалуйста, заполните все поля.');
             setShowError(true);
         } else if (error === 'session-replaced') {
-            setErrorMsg('Сеанс завершён: в ваш аккаунт вошли с нового устройства. Если это были не вы, смените пароль.');
+            setErrorMsg('В ваш аккаунт вошли с нового устройства. Если это были не вы, смените пароль.');
             setShowError(true);
 
             // Consume the one-time reason without reloading the page. This keeps a
