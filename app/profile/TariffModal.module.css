@@ -15,90 +15,117 @@
 
 .modalOverlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    inset: 0;
     z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
 }
 
 .modal {
+    position: relative;
     z-index: 10000;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    width: 690px;
-    height: auto;
-    background-color: #99CEFF;
-    padding: 30px;
-    position: relative;
-    border-radius: 20px;
+    width: min(620px, 100%);
+    max-height: calc(100vh - 64px);
+    overflow: auto;
+    background-color: #ffffff;
+    padding: 34px;
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(0, 24, 47, 0.24);
+    box-sizing: border-box;
 }
 
 .modalPopupClose {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 20px;
-    height: 20px;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #8b8b8b;
     cursor: pointer;
-    transform: none;
-    margin: 0;
+    font: 300 32px/34px Arial, sans-serif;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.modalPopupClose:hover,
+.modalPopupClose:focus-visible {
+    background: #f4f4f4;
+    color: #00182f;
+}
+
+.modalHeader {
+    padding-right: 42px;
+    margin-bottom: 22px;
+}
+
+.modalEyebrow {
+    margin: 0 0 8px;
+    color: #1182ee;
+    font: 700 14px/1.3 Arial, sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 .modal h2 {
-    font-family: "Segoe UI", sans-serif;
-    font-weight: bold;
-    font-size: 30px;
-    text-align: center;
-    margin-bottom: 10px;
+     margin: 0;
+    color: #00182f;
+    font: 700 28px/1.2 Arial, sans-serif;
+}
+
+.modalDescription {
+    max-width: 480px;
+    margin: 12px 0 0;
+    color: #596a7d;
+    font: 400 15px/1.45 Arial, sans-serif;
 }
 
 .tariffList {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 60%;
-    margin: 20px auto;
-    gap: 20px;
+    gap: 12px;
+    width: 100%;
+    margin: 0;
 }
 
 .tariffOption {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1.4;
-    white-space: normal;
+    gap: 14px;
     width: 100%;
-}
-
-.tariffList input {
-    width: 10%;
-    margin-left: 50px;
-}
-
-.buyBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 23px;
-    background-color: #0085FF;
-    color: white;
-    border: none;
+    padding: 16px 18px;
+    border: 1px solid #d8e2ef;
     border-radius: 10px;
-    padding: 12px 70px;
-    width: 200px;
+    background: #ffffff;
+    color: #00182f;
     cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
-.cancelBtn {
+.tariffOption:hover,
+.tariffOption:focus-within {
+    border-color: #1182ee;
+    background: #f7fbff;
+    box-shadow: 0 0 0 3px rgba(17, 130, 238, 0.12);
+}
+
+.tariffOption input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #1182ee;
+}
+
+.tariffOptionContent {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -109,19 +136,97 @@
     padding: 12px 60px;
     width: 200px;
     cursor: pointer;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+}
+
+.tariffName {
+    font: 700 18px/1.25 Arial, sans-serif;
+}
+
+.tariffMeta {
+    color: #596a7d;
+    font: 400 14px/1.3 Arial, sans-serif;
+}
+
+.tariffPrice {
+    color: #00182f;
+    font: 700 20px/1.2 Arial, sans-serif;
+    white-space: nowrap;
 }
 
 .modalText {
     margin-bottom: 15px;
     font-size: 20px;
-    font-family: "Segoe UI";
+    font-family: "Segoe UI", sans-serif;
 }
 
 .buttons {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 24px;
+}
+
+.buyBtn,
+.cancelBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    height: 46px;
+    border-radius: 8px;
+    padding: 0 20px;
+    font: 700 15px/1 Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.buyBtn {
+    background-color: #1182ee;
+    color: white;
+    border: none;
+}
+
+.buyBtn:hover,
+.buyBtn:focus-visible {
+    background-color: #0f73d1;
+}
+
+.cancelBtn {
+    background-color: white;
+    color: #595959;
+    border: 1px solid #ccd6e6;
+}
+
+.cancelBtn:hover,
+.cancelBtn:focus-visible {
+    border-color: #b9c7d9;
+    background: #f6f7f9;
+    color: #00182f;
+}
+
+@media (max-width: 560px) {
+    .modal {
+        padding: 28px 22px 24px;
+    }
+
+    .tariffOption {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .tariffPrice {
+        grid-column: 2;
+    }
+
+    .buttons {
+        flex-direction: column-reverse;
+    }
+
+    .buyBtn,
+    .cancelBtn {
+        width: 100%;
+    }
 }

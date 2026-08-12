@@ -7,15 +7,16 @@ import { useRouter } from "next/navigation";
 interface Tariff {
     id: string;
     title: string;
+    duration: string;
     price: number;
     paymentUrl: string;
 }
 
 const tariffs: Tariff[] = [
-    { id: "basic", title: "Базовый", price: 300, paymentUrl: "/pay/basic" },
-    { id: "optimal", title: "Оптимальный", price: 750, paymentUrl: "/pay/optimal" },
-    { id: "extended", title: "Расширенный", price: 1200, paymentUrl: "/pay/extended" },
-    { id: "pro", title: "Профи", price: 1800, paymentUrl: "/pay/pro" }
+    { id: "basic", title: "Базовый", duration: "1 месяц", price: 300, paymentUrl: "/pay/basic" },
+    { id: "optimal", title: "Оптимальный", duration: "3 месяца", price: 750, paymentUrl: "/pay/optimal" },
+    { id: "extended", title: "Расширенный", duration: "6 месяцев", price: 1200, paymentUrl: "/pay/extended" },
+    { id: "pro", title: "Премиум", duration: "12 месяцев", price: 1800, paymentUrl: "/pay/pro" }
 ];
 
 interface TariffModalProps {
@@ -56,14 +57,27 @@ export default function TariffModal({
                     <div
                         className={styles.modal}
                         onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="tariff-modal-title"
                     >
-                        <div
+                        <button
+                            type="button"
                             className={styles.modalPopupClose}
                             onClick={() => setIsOpen(false)}
+                            aria-label="Закрыть окно выбора тарифа"
                         >
-                            <img src="/images/popup-exit.png" alt="close"/>
+                            ×
+                        </button>
+
+                        <div className={styles.modalHeader}>
+                            <p className={styles.modalEyebrow}>Продление подписки</p>
+                            <h2 id="tariff-modal-title">Выберите тариф</h2>
+                            <p className={styles.modalDescription}>
+                                Срок действия тарифа будет добавлен к текущей подписке после оплаты.
+                            </p>
                         </div>
-                        <h2>Выберите тариф</h2>
+                        
                         <div className={styles.tariffList}>
                             {tariffs.map(tariff => (
                                 <label key={tariff.id} className={styles.tariffOption}>
@@ -74,17 +88,21 @@ export default function TariffModal({
                                         checked={selectedTariff === tariff.id}
                                         onChange={() => setSelectedTariff(tariff.id)}
                                     />
-                                    {tariff.title} — {tariff.price} ₽
+                                    <span className={styles.tariffOptionContent}>
+                                        <span className={styles.tariffName}>{tariff.title}</span>
+                                        <span className={styles.tariffMeta}>Срок действия: {tariff.duration}</span>
+                                    </span>
+                                    <span className={styles.tariffPrice}>{tariff.price.toLocaleString("ru-RU")} ₽</span>
                                 </label>
                             ))}
                         </div>
 
                         <div className={styles.buttons}>
-                            <button onClick={handleBuy} className={styles.buyBtn}>
-                                Купить
-                            </button>
                             <button onClick={() => setIsOpen(false)} className={styles.cancelBtn}>
                                 Отмена
+                            </button>
+                            <button onClick={handleBuy} className={styles.buyBtn}>
+                                Купить
                             </button>
                         </div>
 
