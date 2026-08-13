@@ -46,6 +46,13 @@ Add the same values for Production and Preview unless intentionally different:
 - `EASYMED_API_USERNAME` if not using the built-in fallback
 - `EASYMED_API_PASSWORD` if not using the built-in fallback
 
+For the mail server, use the port/security pair required by the provider: usually
+`SMTP_PORT=465` with `SMTP_SECURE=true`, or `SMTP_PORT=587` with
+`SMTP_SECURE=false` (STARTTLS). The registration endpoint now returns an error
+instead of reporting success when these variables are missing, authentication
+fails, or the production host cannot connect to the SMTP server. An unverified
+user can submit the registration form again to receive a fresh confirmation link.
+
 ## If the build log is green but deployment still fails
 
 1. In Vercel, open the failed deployment and check the lines after `Collecting build traces`; those lines belong to the deployment packaging step, not to `next build`.

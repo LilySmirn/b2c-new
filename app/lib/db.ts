@@ -237,6 +237,21 @@ export default class db {
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     }
 
+    public async renewEmailVerificationToken(userId: string, token: string): Promise<boolean> {
+        await this.ensureEmailVerificationColumns();
+        const [result] = await connection.query(
+            `UPDATE users
+             SET email_verification_token = ?,
+                 email_verification_expires_at = DATE_ADD(NOW(), INTERVAL 24 HOUR)
+             WHERE user_id = ?
+               AND account_type = 'b2c'
+               AND email_verified_at IS NULL`,
+            [token, userId]
+        );
+
+        return "affectedRows" in result && Number(result.affectedRows) === 1;
+    }
+
     public async verifyUserEmail(token: string): Promise<"ok" | "expired" | "not_found"> {
         await this.ensureEmailVerificationColumns();
 

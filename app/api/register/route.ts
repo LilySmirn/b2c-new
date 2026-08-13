@@ -83,7 +83,18 @@ export async function POST(req: Request) {
 
     const existingUser = await database.findUserByEmail(email);
     if (existingUser) {
-        return NextResponse.json({ error: "Пользователь с таким адресом уже существует" }, { status: 400 });
+        if (existingUser.account_type !== "b2c" || existingUser.email_verified_at !== null) {
+            return NextResponse.json({ error: "Пользователь с таким адресом уже существует" }, { status: 400 });
+        }
+
+        const replacementToken = crypto.randomBytes(32).toString("hex");
+        const renewed = await database.renewEmailVerificationToken(existingUser.user_id, replacementToken);
+
+        if (!renewed) {
+            return NextResponse.json({ error: "Пользователь с таким адресом уже существует" }, { status: 400 });
+        }
+
+        return sendVerificationEmail(req, email, existingUser.name, replacementToken);
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -108,12 +119,23 @@ export async function POST(req: Request) {
         throw error;
     }
 
-    const verificationUrl = `${getPublicBaseUrl(req)}/register/verify?token=${emailVerificationToken}`;
-    await sendMail(
-        email,
-        "Подтверждение регистрации EasyMed",
-        buildVerificationEmail(name, verificationUrl)
-    );
+    return sendVerificationEmail(req, email, name, emailVerificationToken);
+}
 
-    return NextResponse.json({ ok: true });
+    async function sendVerificationEmail(req: Request, email: string, name: string, token: string) {
+    const verificationUrl = `${getPublicBaseUrl(req)}/register/verify?token=${token}`;
+
+    try {
+        await sendMail(
+            email,
+            "Подтверждение регистрации EasyMed",
+            buildVerificationEmail(name, verificationUrl)
+        );
+        return NextResponse.json({ ok: true });
+    } catch {
+        return NextResponse.json(
+            { error: "Не удалось отправить письмо. Проверьте настройки почты на сервере и повторите регистрацию." },
+            { status: 502 }
+        );
+    }
 }
