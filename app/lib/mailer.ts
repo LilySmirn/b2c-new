@@ -59,11 +59,18 @@ export async function sendMail(to: string, subject: string, html: string): Promi
 
     try {
         await transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, html, });
-        await logInfo(InfoType.MailSendingSucceed, `Letter successfully sent to ${to}`);
     } catch (error) {
         await reportMailError(ErrorType.MailSendingFailed, error);
         throw error;
     } finally {
         transporter.close();
+    }
+
+    // The message has already been accepted by SMTP at this point. A logging
+    // failure must not turn a successful delivery into a failed API response.
+    try {
+        await logInfo(InfoType.MailSendingSucceed, `Letter successfully sent to ${to}`);
+    } catch (loggingError) {
+        console.error("Could not persist successful mail event", loggingError);
     }
 }

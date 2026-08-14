@@ -12,6 +12,8 @@ export default function Register() {
     const [name, setName] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
 
     const router = useRouter();
 
@@ -35,6 +37,7 @@ export default function Register() {
         }
 
         try {
+            setIsSubmitting(true);
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -48,12 +51,19 @@ export default function Register() {
                 return;
             }
 
-            router.push('/register/success');
+            setIsSuccessPopupOpen(true);
 
         } catch (err) {
             console.error(err);
             alert('Ошибка сети');
+            } finally {
+            setIsSubmitting(false);
         }
+    };
+
+    const closeSuccessPopup = () => {
+        setIsSuccessPopupOpen(false);
+        router.push('/login');
     };
 
     return (
@@ -170,8 +180,8 @@ export default function Register() {
                                 </div>
                             </div>
 
-                            <button type="submit" className={styles.btnLoginPage}>
-                                Зарегистрироваться
+                            <button type="submit" className={styles.btnLoginPage} disabled={isSubmitting}>
+                                {isSubmitting ? 'Регистрация…' : 'Зарегистрироваться'}
                             </button>
 
                             <div className={styles.signupText}>
@@ -186,6 +196,26 @@ export default function Register() {
                 </section>
             </div>
             <div id="footer"></div>
+            {isSuccessPopupOpen && (
+                <div className={styles.successPopupOverlay}>
+                    <section
+                        className={styles.successPopup}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="registration-success-title"
+                        aria-describedby="registration-success-description"
+                    >
+                        <h2 id="registration-success-title">Проверьте почту</h2>
+                        <p id="registration-success-description">
+                            Мы отправили на указанный email ссылку для подтверждения регистрации.
+                            Перейдите по ней, подтвердите адрес электронной почты, а затем войдите в аккаунт.
+                        </p>
+                        <button type="button" className={styles.successPopupButton} onClick={closeSuccessPopup} autoFocus>
+                            Понятно
+                        </button>
+                    </section>
+                </div>
+            )}
         </div>
     );
 }
