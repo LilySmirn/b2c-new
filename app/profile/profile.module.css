@@ -248,221 +248,168 @@ input:checked + .slider::before {
 
 .modalOverlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    inset: 0;
     z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
 }
 
 .modal {
-    background: #fff;
-    padding: 50px;
-    border-radius: 10px;
-    width: auto;
-    margin: 100px auto;
     position: relative;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: auto;
-}
-
-.modalHeader {
-    font-family: "Segoe UI", sans-serif;
-    font-weight: bold;
-    font-size: 30px;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-#confirmPasswordInput {
-    margin-top: 0 !important;
-}
-
-#modalInputs {
-    width: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    margin: 20px 0;
-}
-
-.modalInput {
-    width: 510px;
-    padding: 30px;
-    height: 39px;
-    border-radius: 10px;
-    border: 1px solid #0085FF;
-    outline: none;
-    margin-bottom: 5px;
-}
-
-.modalInput {
-    margin: 0;
-}
-
-#modalSubmit, #modalCancel {
-    width: 250px;
-    height: 66px;
-    background: #0085FF;
-    color: #fff;
-    font-size: 23px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 10px;
-}
-
-.passwordField {
-    position: relative;
-}
-
-.togglePassword .icon {
-    transition: all 0.3s ease;
-}
-
-.togglePassword.visible .icon {
-    position: relative;
-}
-
-.togglePassword.visible .icon::after {
-    content: '';
-    position: absolute;
-    left: 3px;
-    top: 50%;
-    width: 18px;
-    height: 2px;
-    background: gray;
-    transform: rotate(-45deg);
-    transform-origin: center;
-}
-
-.togglePassword {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    opacity: 0.6;
-    transition: opacity 0.3s;
-}
-
-.togglePassword:hover {
-    opacity: 1;
-}
-.togglePassword svg {
-    fill: #888;
-    width: 24px;
-    height: 24px;
-}
-
-.inputError {
-    border: 1px solid red;
-    background-color: #ffecec;
-}
-
-.desktopIconDiv {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.modal {
     z-index: 10000;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    width: 690px;
-    height: auto;
-    background-color: #99CEFF;
-    padding: 30px;
-    position: relative;
-    border-radius: 20px;
-}
-
-.modalHeader {
-    margin-bottom: 30px;
-}
-
-.passwordField {
-    display: flex;
-    flex-direction: column;
-}
-
-.passwordField + .passwordField {
-    margin-top: 10px;
+    align-items: stretch;
+    width: min(620px, 100%);
+    max-height: calc(100vh - 64px);
+    overflow: auto;
+    padding: 34px;
+    border-radius: 10px;
+    background-color: #ffffff;
+    box-shadow: 0 24px 60px rgba(0, 24, 47, 0.24);
+    box-sizing: border-box;
 }
 
 .modalClose {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 20px;
-    height: 20px;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #8b8b8b;
     cursor: pointer;
-    transform: none;
+    font: 300 32px/34px Arial, sans-serif;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.modalClose:hover,
+.modalClose:focus-visible {
+    background: #f4f4f4;
+    color: #00182f;
+}
+
+.modalHeader {
+    padding-right: 42px;
+    margin-bottom: 22px;
+}
+
+.modalHeader h2 {
     margin: 0;
+    color: #00182f;
+    font: 700 28px/1.2 Arial, sans-serif;
+}
+
+.modalHeader p {
+    max-width: 480px;
+    margin: 12px 0 0;
+    color: #596a7d;
+    font: 400 15px/1.45 Arial, sans-serif;
+}
+
+.modalInputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.modalInput {
+    width: 100%;
+    height: 50px;
+    margin: 0;
+    padding: 0 16px;
+    border: 1px solid #d8e2ef;
+    border-radius: 10px;
+    outline: none;
+    color: #00182f;
+    background: #ffffff;
+    font: 400 16px/1.3 Arial, sans-serif;
+    box-sizing: border-box;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.modalInput:focus {
+    border-color: #1182ee;
+    box-shadow: 0 0 0 3px rgba(17, 130, 238, 0.12);
+}
+
+.modalError {
+    margin-top: 10px;
+    color: #c62828;
+    font: 400 14px/1.4 Arial, sans-serif;
 }
 
 .modalButtons {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 10px;
-    margin-top: 30px;
-    margin-bottom: 10px;
+    margin-top: 24px;
 }
 
-.changeBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 23px;
-    background-color: #0085FF;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 50px;
-}
-
+.changeBtn,
 .cancelBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 23px;
-    background-color: white;
-    border: #0085FF solid 1px;
-    border-radius: 10px;
-    padding: 12px 60px;
+    min-width: 140px;
+    height: 46px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font: 700 15px/1 Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.changeBtn {
+    border: none;
+    background-color: #1182ee;
+    color: #ffffff;
+}
+
+.changeBtn:hover,
+.changeBtn:focus-visible {
+    background-color: #0f73d1;
+}
+
+.changeBtn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.cancelBtn {
+    border: 1px solid #ccd6e6;
+    background-color: #ffffff;
+    color: #595959;
+}
+
+.cancelBtn:hover,
+.cancelBtn:focus-visible {
+    border-color: #b9c7d9;
+    background: #f6f7f9;
+    color: #00182f;
+}
+
+@media (max-width: 560px) {
+    .modal {
+        padding: 28px 22px 24px;
+    }
+
+    .modalButtons {
+        flex-direction: column-reverse;
+    }
+
+    .changeBtn,
+    .cancelBtn {
+        width: 100%;
+    }
 }
 
 .warnings {

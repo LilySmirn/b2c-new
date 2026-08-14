@@ -17,7 +17,7 @@ export default function ProfileModalController({ onUserUpdate }: { onUserUpdate:
     const openModal = (type: ModalType) => {
         setModalType(type);
         renderFields(type);
-        if (overlayRef.current) overlayRef.current.style.display = 'block';
+        if (overlayRef.current) overlayRef.current.style.display = 'flex';
     };
 
     const closeModal = () => {
@@ -83,15 +83,15 @@ export default function ProfileModalController({ onUserUpdate }: { onUserUpdate:
 
         switch (type) {
             case 'name':
-                titleRef.current.textContent = 'Изменение имени';
+                titleRef.current.textContent = 'Изменить имя и фамилию';
                 inputsRef.current.innerHTML = `
-                    <input type="text" id="fullNameInput" class="${styles.modalInput}" placeholder="Введите имя и фамилию" />
+                    <input type="text" id="fullNameInput" class="${styles.modalInput}" placeholder="Введите новые данные" />
                 `;
                 break;
             case 'login':
-                titleRef.current.textContent = 'Изменение логина';
+                titleRef.current.textContent = 'Изменить email';
                 inputsRef.current.innerHTML = `
-                    <input type="text" id="loginInput" class="${styles.modalInput}" placeholder="Введите логин (почту)" />
+                    <input type="text" id="loginInput" class="${styles.modalInput}" placeholder="Введите новые данные" />
                 `;
                 break;
             case 'password':
@@ -129,22 +129,35 @@ export default function ProfileModalController({ onUserUpdate }: { onUserUpdate:
 
     return (
         <div className={styles.modalOverlay} ref={overlayRef} style={{ display: 'none' }}>
-            <div className={styles.modal}>
-                <div className={styles.modalClose} onClick={closeModal}>
-                    <img src="/images/popup-exit.png" alt="close" />
+            <div
+                className={styles.modal}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="profile-modal-title"
+            >
+                <button
+                    type="button"
+                    className={styles.modalClose}
+                    onClick={closeModal}
+                    aria-label="Закрыть окно"
+                >
+                    ×
+                </button>
+
+                <div className={styles.modalHeader}>
+                    <h2 id="profile-modal-title" ref={titleRef}>Введите новое значение</h2>
+                    <p>Укажите новые данные и сохраните изменения.</p>
                 </div>
 
-                <div className={styles.modalHeader} ref={titleRef}>Введите новое значение</div>
+                <div className={styles.modalInputs} ref={inputsRef}></div>
 
-                <div id="modalInputs" ref={inputsRef}></div>
-
-                {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
+                {error && <div className={styles.modalError}>{error}</div>}
 
                 <div className={styles.modalButtons}>
-                    <button onClick={handleSubmit} disabled={loading} className={styles.changeBtn}>
-                        {loading ? 'Сохранение...' : 'Изменить'}
-                    </button>
                     <button onClick={closeModal} className={styles.cancelBtn}>Отмена</button>
+                    <button onClick={handleSubmit} disabled={loading} className={styles.changeBtn}>
+                        {loading ? 'Сохранение...' : 'Сохранить'}
+                    </button>
                 </div>
             </div>
         </div>
