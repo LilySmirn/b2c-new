@@ -1,6 +1,6 @@
 'use client';
 
-import { logoutB2c } from "../lib/b2cLogout";
+import { logout } from "../lib/logout";
 
 interface LogoutButtonProps {
     className?: string;
@@ -8,7 +8,7 @@ interface LogoutButtonProps {
 
 export default function LogoutButton({ className }: LogoutButtonProps) {
     return (
-        <button onClick={logoutB2c} className={className || 'btn btn-login btn-auth'}>
+        <button onClick={logout} className={className || 'btn btn-login btn-auth'}>
             Выйти
         </button>
     );
