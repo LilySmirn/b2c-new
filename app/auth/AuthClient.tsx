@@ -15,6 +15,7 @@ function buildDirectoryUrl(code: string | null) {
 
 export default function AuthClient() {
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -31,7 +32,35 @@ export default function AuthClient() {
     usernameInputRef.current?.focus();
     getB2cDeviceId();
     setCode(new URLSearchParams(window.location.search).get('code'));
+    
+    // Password managers can populate controlled inputs without firing React's
+    // onChange event. Keep state in sync so the submit button reflects the
+    // values that are already visible in the form.
+    const syncAutofilledValues = () => {
+      const autofilledUsername = usernameInputRef.current?.value ?? '';
+      const autofilledPassword = passwordInputRef.current?.value ?? '';
+
+      setUsername((current) => current === autofilledUsername ? current : autofilledUsername);
+      setPassword((current) => current === autofilledPassword ? current : autofilledPassword);
+    };
+    const timeoutIds = [0, 100, 500, 1000, 2000].map((delay) =>
+      window.setTimeout(syncAutofilledValues, delay)
+    );
+
+    window.addEventListener('pageshow', syncAutofilledValues);
+    window.addEventListener('focus', syncAutofilledValues);
+
+    return () => {
+      timeoutIds.forEach(window.clearTimeout);
+      window.removeEventListener('pageshow', syncAutofilledValues);
+      window.removeEventListener('focus', syncAutofilledValues);
+    };
   }, []);
+
+  const handleAutofill = () => {
+    setUsername(usernameInputRef.current?.value ?? '');
+    setPassword(passwordInputRef.current?.value ?? '');
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -110,6 +139,7 @@ export default function AuthClient() {
                 autoComplete="username"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
+                onAnimationStart={handleAutofill}
               />
             </label>
 
@@ -117,11 +147,13 @@ export default function AuthClient() {
               <span>Пароль</span>
               <span className={styles.passwordInputWrapper}>
                 <input
+                  ref={passwordInputRef}
                   id="password"
                   type={isPasswordVisible ? 'text' : 'password'}
                   autoComplete="current-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                  onAnimationStart={handleAutofill}
                 />
                 <button
                   type="button"
