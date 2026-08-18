@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LogoutButton from "./LogoutButton";
-import UserIconClient from "./UserIconClient";
 
 interface AuthButtonsClientProps {
     isLoggedIn: boolean;
@@ -12,6 +12,8 @@ interface AuthButtonsClientProps {
 }
 
 export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: AuthButtonsClientProps) {
+    const pathname = usePathname();
+    const [renderedPathname, setRenderedPathname] = useState<string | null>(null);
     const [hasActiveSession, setHasActiveSession] = useState(isLoggedIn);
     const isCheckingSession = useRef(false);
     const isHandlingReplacedSession = useRef(false);
@@ -55,6 +57,13 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
     }, []);
 
     useEffect(() => {
+        // The pathname available during SSR can differ from the browser pathname
+        // (for example after a rewrite). Defer route-specific markup until after
+        // hydration so React receives the same initial tree on both sides.
+        setRenderedPathname(pathname);
+    }, [pathname]);
+
+    useEffect(() => {
         if (variant !== 'header') {
             return;
         }
@@ -76,6 +85,18 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
         };
     }, [checkSession, variant]);
 
+    if (variant === 'header' && hasActiveSession) {
+        return (
+            <div className="auth-buttons-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {renderedPathname === '/profile' ? (
+                    <LogoutButton className={loginClass} />
+                ) : (
+                    <Link href="/profile" className={loginClass}>Личный кабинет</Link>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="auth-buttons-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 
@@ -88,12 +109,7 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
             )}
 
             {hasActiveSession ? (
-                <>
-                    <LogoutButton className={loginClass} />
-                    {variant === 'header' && (
-                        <Link href="/login" className="btn btn-demo">Демо</Link>
-                    )}
-                </>
+                <LogoutButton className={loginClass} />
             ) : (
                 <Link href="/login" className={loginClass}>Войти</Link>
             )}
