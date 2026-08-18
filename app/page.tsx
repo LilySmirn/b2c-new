@@ -197,7 +197,7 @@ export default function Home() {
               Всё, что нужно врачу, в одном <span className="highlight">справочнике</span>
             </h2>
             <p className="description">
-              <span className="highlight bold">600+</span> актуальных клинических рекомендаций в удобном формате.
+              <span className="highlight bold">800+</span> актуальных клинических рекомендаций в удобном формате.
             </p>
             <p className="description">
               Мы собрали, сократили, отфильтровали — чтобы вы могли сразу работать.
