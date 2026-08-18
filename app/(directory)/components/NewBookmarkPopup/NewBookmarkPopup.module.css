@@ -63,7 +63,7 @@
   border-radius: 50%;
   background: transparent;
   color: #8b8b8b;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 32px;
   font-weight: 300;
   line-height: 34px;
@@ -80,7 +80,7 @@
 .title {
   margin: 0 0 28px;
   color: #00182f;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.2;
@@ -109,7 +109,7 @@
 .filterLabel {
   margin: 0;
   color: #595959;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
@@ -128,7 +128,7 @@
   max-width: 100%;
   margin: 0 auto 22px;
   display: block;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
 }
 
 .nameLabelText {
@@ -148,7 +148,7 @@
   border-radius: 8px;
   background: #ffffff;
   color: #00182f;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 16px;
   font-weight: 400;
   outline: none;
@@ -173,7 +173,7 @@
   border-radius: 8px;
   background: #1182ee;
   color: #ffffff;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;

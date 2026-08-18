@@ -272,7 +272,7 @@ input:checked + .slider::before {
 }
 
 .modal-header {
-    font-family: "Segoe UI", sans-serif;
+    font-family: var(--font-family-primary);
     font-weight: bold;
     font-size: 30px;
     text-align: center;

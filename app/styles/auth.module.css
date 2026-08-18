@@ -253,7 +253,7 @@
 }
 
 .modalContent p {
-    font-family: "Segoe UI", sans-serif;
+    font-family: var(--font-family-primary);
     font-weight: normal;
     font-size: 20px;
     text-align: center;

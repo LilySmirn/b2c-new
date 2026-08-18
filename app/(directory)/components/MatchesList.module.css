@@ -20,7 +20,7 @@
   align-items: center;
   padding: 8px 13px;
   font-size: 16px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   line-height: 1.2;
   text-align: left;
   color: #111111;
@@ -50,7 +50,7 @@
 .footerItem {
   padding: 8px 13px 0;
   color: #c2410c;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 14px;
   line-height: 1.3;
 }

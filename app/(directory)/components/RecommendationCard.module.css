@@ -33,7 +33,7 @@
   overflow: hidden;
   color: #000000;
   cursor: inherit;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 16px;
   font-weight: 400;
   line-height: 1.2;
@@ -57,7 +57,7 @@
 
 .body {
   padding: 12px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   flex: 1;
   box-sizing: border-box;
 }
@@ -195,7 +195,7 @@
   border: 0;
   background: #ffffff;
   color: #595959;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 12px;
   font-weight: 400;
   line-height: 15px;

@@ -28,7 +28,7 @@
   border: none;
   background: #f4f4f4;
   color: #a3a3a3;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-weight: 700;
   font-size: 12px;
   line-height: 1;
@@ -103,7 +103,7 @@
 
 .badge {
   min-width: 20px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;

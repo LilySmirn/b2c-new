@@ -2,7 +2,7 @@
   min-height: 100vh;
   padding: 108px 32px 30px;
   background: #fff;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-primary);
 }
 
 .layout {

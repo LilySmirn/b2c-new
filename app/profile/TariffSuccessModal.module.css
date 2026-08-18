@@ -34,7 +34,7 @@
 }
 
 .modal h2 {
-    font-family: "Segoe UI", sans-serif;
+    font-family: var(--font-family-primary);
     font-weight: bold;
     font-size: 30px;
     text-align: center;
@@ -44,7 +44,7 @@
 .modalText {
     margin-bottom: 15px;
     font-size: 20px;
-    font-family: "Segoe UI";
+    font-family: var(--font-family-primary);
     text-align: center;
 }
 

@@ -552,7 +552,7 @@
 
 .appendixA3TableHtml :where(*) {
   color: inherit !important;
-  font-family: Arial, sans-serif !important;
+  font-family: var(--font-family-primary);
   font-size: 12px !important;
   line-height: 1.1 !important;
   font-weight: 400 !important;
