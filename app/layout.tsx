@@ -107,11 +107,6 @@ export default async function RootLayout({
                             <hr />
                         </section>
 
-                        <div className="footer-buttons">
-                            <AuthButtonsServer variant="footer" />
-                            <Link href="/login" className="btn btn-demo footer-btn-demo">Демо</Link>
-                        </div>
-
                         <section className="footer-legal" aria-labelledby="footer-legal-heading">
                             <h2 id="footer-legal-heading" className="visually-hidden">Правовая информация</h2>
                             <div className="legal-link">
