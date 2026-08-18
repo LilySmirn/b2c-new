@@ -13,8 +13,8 @@ interface AuthButtonsClientProps {
 
 export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: AuthButtonsClientProps) {
     const pathname = usePathname();
-    const [renderedPathname, setRenderedPathname] = useState<string | null>(null);
     const [hasActiveSession, setHasActiveSession] = useState(isLoggedIn);
+    const [isCompletingLogin, setIsCompletingLogin] = useState(false);
     const isCheckingSession = useRef(false);
     const isHandlingReplacedSession = useRef(false);
     const loginClass =
@@ -57,13 +57,6 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
     }, []);
 
     useEffect(() => {
-        // The pathname available during SSR can differ from the browser pathname
-        // (for example after a rewrite). Defer route-specific markup until after
-        // hydration so React receives the same initial tree on both sides.
-        setRenderedPathname(pathname);
-    }, [pathname]);
-
-    useEffect(() => {
         if (variant !== 'header') {
             return;
         }
@@ -75,20 +68,29 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
                 void checkSession();
             }
         };
+        const checkSessionAfterLogin = () => {
+            // signIn completes before the client-side navigation to /profile.
+            // Keep the header in its logout state during that short interval.
+            setIsCompletingLogin(true);
+            setHasActiveSession(true);
+            void checkSession();
+        };
 
         window.addEventListener('focus', checkSession);
+        window.addEventListener('b2c-login-success', checkSessionAfterLogin);
         document.addEventListener('visibilitychange', checkVisibleSession);
 
         return () => {
             window.removeEventListener('focus', checkSession);
+            window.removeEventListener('b2c-login-success', checkSessionAfterLogin);
             document.removeEventListener('visibilitychange', checkVisibleSession);
         };
-    }, [checkSession, variant]);
+    }, [checkSession, pathname, variant]);
 
     if (variant === 'header' && hasActiveSession) {
         return (
             <div className="auth-buttons-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {renderedPathname === '/profile' ? (
+                {pathname === '/profile' || (pathname === '/login' && isCompletingLogin) ? (
                     <LogoutButton className={loginClass} />
                 ) : (
                     <Link href="/profile" className={loginClass}>Личный кабинет</Link>
