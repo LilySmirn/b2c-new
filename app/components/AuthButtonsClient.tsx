@@ -88,7 +88,12 @@ export default function AuthButtonsClient({ isLoggedIn, variant = 'header' }: Au
             )}
 
             {hasActiveSession ? (
-                <LogoutButton className={loginClass} />
+                <>
+                    <LogoutButton className={loginClass} />
+                    {variant === 'header' && (
+                        <Link href="/login" className="btn btn-demo">Демо</Link>
+                    )}
+                </>
             ) : (
                 <Link href="/login" className={loginClass}>Войти</Link>
             )}

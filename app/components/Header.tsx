@@ -96,10 +96,6 @@ export default function Header() {
                 <Link href="/login" className="btn btn-login btn-auth">
                         Войти
                     </Link>
-
-                    <Link href="/login" className="btn btn-demo">
-                        Демо
-                    </Link>
                 </div>
 
                 <HeaderMenuClient />

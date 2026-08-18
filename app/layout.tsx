@@ -43,7 +43,6 @@ export default async function RootLayout({
                         </nav>
                         <div className="header-buttons">
                             <AuthButtonsServer variant="header" />
-                            <Link href="/login" className="btn btn-demo">Демо</Link>
                             <button type="button" className="btn btn-logout-preview">Выйти</button>
                             <Link href="/mkb" className="btn btn-back-preview">←Назад</Link>
                         </div>
