@@ -305,6 +305,89 @@
     margin-bottom: 50px;
 }
 
+.verifySection {
+    width: min(100%, 620px);
+    margin: 48px auto 70px;
+    padding: 56px 64px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #d9ecff;
+    border-radius: 24px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    box-shadow: 0 18px 50px rgba(0, 91, 173, 0.12);
+}
+
+.verifyIcon {
+    width: 76px;
+    height: 76px;
+    margin-bottom: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+}
+
+.verifyIconSuccess {
+    background: #e5f7ef;
+    color: #159765;
+}
+
+.verifyIconError {
+    background: #fff1eb;
+    color: #e16836;
+}
+
+.verifyIcon svg {
+    width: 42px;
+    height: 42px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.verifyTitle {
+    margin: 0;
+    color: #172b3d;
+    font-size: clamp(32px, 4vw, 42px);
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.verifyText {
+    max-width: 470px;
+    margin: 20px 0 34px;
+    color: #536576;
+    font-size: 19px;
+    line-height: 1.55;
+}
+
+.verifyButton {
+    min-width: 190px;
+    padding: 15px 32px;
+    border-radius: 10px;
+    background: #0085ff;
+    box-shadow: 0 8px 20px rgba(0, 133, 255, 0.22);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.verifyButton:hover {
+    background: #006fcf;
+    box-shadow: 0 10px 24px rgba(0, 101, 194, 0.28);
+    transform: translateY(-1px);
+}
+
+.verifyButton:focus-visible {
+    outline: 3px solid rgba(0, 133, 255, 0.3);
+    outline-offset: 4px;
+}
+
 .successPopupOverlay {
     position: fixed;
     inset: 0;
