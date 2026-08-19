@@ -30,22 +30,29 @@ export async function getB2cSessionStatus(): Promise<B2cSessionStatus> {
         typeof sessionId === "string" &&
         sessionId.length > 0;
 
-     let isActive = false;
+    let hasActiveDatabaseSession = false;
+    let hasCurrentLogin = false;
     if (hasB2cClaims) {
         const database = new db();
-        const [hasActiveSession, currentUser] = await Promise.all([
+        const [activeDatabaseSession, currentUser] = await Promise.all([
             database.hasActiveB2cSession(sessionId, userId),
             database.getCurrentUser(userId),
         ]);
+        hasActiveDatabaseSession = activeDatabaseSession;
         // A login is part of the JWT. A changed database login makes every old
         // JWT stale, including a token opened from a different browser.
-        isActive = hasActiveSession && currentUser?.login === session?.user?.email;
+        hasCurrentLogin = currentUser?.login === session?.user?.email;
     }
 
-        return {
+    const isActive = hasB2cClaims && hasActiveDatabaseSession && hasCurrentLogin;
+
+    return {
         session,
         isActive,
-        wasReplaced: Boolean(hasB2cClaims && !isActive),
+        // Only a revoked/missing user_sessions row means another device replaced
+        // this login. An email change merely makes the JWT stale and must not
+        // show the "new device" warning.
+        wasReplaced: Boolean(hasB2cClaims && !hasActiveDatabaseSession),
     };
 }
 
