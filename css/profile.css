@@ -280,7 +280,7 @@ input:checked + .slider::before {
 }
 
 #confirmPasswordInput {
-    margin-top: 0; !important;
+    margin-top: 0;
 }
 
 #modalInputs {

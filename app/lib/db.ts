@@ -413,6 +413,39 @@ export default class db {
         return subscriptions;
     }
 
+    public async getLatestUserSubscription(userId: string): Promise<Subscription | null> {
+        const [rows] = await connection.query(
+            `SELECT s.id, s.user_id, t.title, s.expiration_date, s.is_auto_renewal
+             FROM subscriptions s
+             INNER JOIN tariffs t ON t.tariff_id = s.last_paid_tariff_id
+             WHERE s.user_id = ?
+             ORDER BY s.expiration_date DESC, s.start_date DESC
+             LIMIT 1`,
+            [userId]
+        );
+        const [subscription] = rows as Array<{
+            id: string;
+            user_id: string;
+            title: string | null;
+            expiration_date: Date | string;
+            is_auto_renewal: number | boolean;
+        }>;
+
+        if (subscription === undefined) {
+            return null;
+        }
+
+        return {
+            id: String(subscription.id),
+            user_id: String(subscription.user_id),
+            title: subscription.title ?? "",
+            expiration_date: subscription.expiration_date instanceof Date
+                ? subscription.expiration_date.toISOString()
+                : String(subscription.expiration_date),
+            is_auto_renewal: Boolean(subscription.is_auto_renewal),
+        };
+    }
+
     public async updateAutoRenewal(id: string, isEnabled: boolean): Promise<void> {
         await connection.query('UPDATE subscriptions SET is_auto_renewal = ? WHERE id = ?', [
             isEnabled ? 1 : 0,

@@ -1,6 +1,5 @@
 import styles from './profile.module.css';
 import Link from 'next/link';
-import Image from 'next/image';
 import AutoRenewToggle from "@/app/profile/AutoRenewToggle";
 import db from "@/app/lib/db";
 import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
@@ -18,7 +17,7 @@ export default async function AccountPage() {
     const session = await requireActiveB2cSession("page");
 
     const database = new db();
-    const subscriptions = await database.getUserSubscriptions(session.user.id);
+    const latestSubscription = await database.getLatestUserSubscription(session.user.id);
     const user = await database.getCurrentUser(session.user.id);
     const expirationReminder = await database.getSubscriptionExpirationReminder(session.user.id);
     const reminder: SubscriptionReminder | null = expirationReminder ? {
@@ -28,11 +27,10 @@ export default async function AccountPage() {
         tariffTitle: expirationReminder.tariffTitle,
     } : null;
 
-    const lastSubscription = subscriptions?.reduce((latest, current) => {
-        return new Date(current.expiration_date) > new Date(latest.expiration_date)
-            ? current
-            : latest;
-    }, subscriptions[0]);
+    const tariffTitle = latestSubscription?.title || "Демо";
+    const tariffExpiration = latestSubscription
+        ? new Intl.DateTimeFormat("ru-RU").format(new Date(latestSubscription.expiration_date))
+        : "—";
 
     return (
         <div className={styles.pageWrapper}>
@@ -115,7 +113,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxValue}>
                                                 <div
                                                     className={styles.infoBoxText}>
-                                                    {lastSubscription?.title}
+                                                    {tariffTitle}
                                                 </div>
                                             </div>
                                         </div>
@@ -124,7 +122,7 @@ export default async function AccountPage() {
                                             <div className={styles.infoBoxTitle}>Срок действия:</div>
                                             <div className={styles.infoBoxValue}>
                                                 <div className={styles.infoBoxText}>
-                                                    {lastSubscription?.expiration_date}
+                                                    {tariffExpiration}
                                                 </div>
                                             </div>
                                         </div>
@@ -135,8 +133,8 @@ export default async function AccountPage() {
                                             </div>
                                             <div className={styles.infoBoxSwitch}>
                                                 <AutoRenewToggle userId={session.user.id}
-                                                                 subscriptionId={lastSubscription?.id ?? null}
-                                                                 subscriptionRenewalStatus={lastSubscription?.is_auto_renewal ?? false}/>
+                                                                 subscriptionId={latestSubscription?.id ?? null}
+                                                                 subscriptionRenewalStatus={latestSubscription?.is_auto_renewal ?? false}/>
                                             </div>
                                         </div>
                                     </div>
