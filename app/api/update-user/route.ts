@@ -16,12 +16,11 @@ export async function POST(req: NextRequest) {
             return await NextErrorResponse(ErrorType.UserUpdateUnauthorized, 'Unauthorized', 401, userId);
         }
 
-        const { name, login, password } = await req.json();
+        const { name, password } = await req.json();
 
         const updateData: any = {};
 
         if (name?.trim()) updateData.name = name.trim();
-        if (login?.trim()) updateData.login = login.trim();
         if (password?.trim()) {
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(password.trim(), salt);

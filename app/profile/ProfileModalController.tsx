@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import styles from './profile.module.css';
-import {useRouter} from "next/navigation";
 
 type ModalType = 'name' | 'login' | 'password';
 
@@ -13,9 +12,11 @@ export default function ProfileModalController({ onUserUpdate }: { onUserUpdate:
     const inputsRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [emailSent, setEmailSent] = useState(false);
 
     const openModal = (type: ModalType) => {
         setModalType(type);
+        setEmailSent(false);
         renderFields(type);
         if (overlayRef.current) overlayRef.current.style.display = 'flex';
     };
@@ -54,16 +55,22 @@ export default function ProfileModalController({ onUserUpdate }: { onUserUpdate:
         }
 
         try {
-            const res = await fetch('/api/update-user', {
+            const isEmailChange = modalType === 'login';
+            const res = await fetch(isEmailChange ? '/api/profile/email-change' : '/api/update-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
+                body: JSON.stringify(isEmailChange ? { email: body.login } : body),
             });
 
             const data = await res.json();
 
             if (!res.ok || !data.success) {
                 throw new Error(data.error || 'Ошибка при обновлении данных');
+            }
+
+            if (isEmailChange) {
+                setEmailSent(true);
+                return;
             }
 
             if (data.user) {
@@ -146,18 +153,26 @@ export default function ProfileModalController({ onUserUpdate }: { onUserUpdate:
 
                 <div className={styles.modalHeader}>
                     <h2 id="profile-modal-title" ref={titleRef}>Введите новое значение</h2>
-                    <p>Укажите новые данные и сохраните изменения.</p>
+                    <p>{emailSent
+                        ? 'Мы отправили на вашу почту письмо со ссылкой для подтверждения нового email.'
+                        : 'Укажите новые данные и сохраните изменения.'}</p>
                 </div>
 
-                <div className={styles.modalInputs} ref={inputsRef}></div>
+                {!emailSent && <div className={styles.modalInputs} ref={inputsRef}></div>}
 
-                {error && <div className={styles.modalError}>{error}</div>}
+                {!emailSent && error && <div className={styles.modalError}>{error}</div>}
 
                 <div className={styles.modalButtons}>
-                    <button onClick={closeModal} className={styles.cancelBtn}>Отмена</button>
-                    <button onClick={handleSubmit} disabled={loading} className={styles.changeBtn}>
-                        {loading ? 'Сохранение...' : 'Сохранить'}
-                    </button>
+                    {emailSent ? (
+                        <button onClick={closeModal} className={styles.changeBtn}>ОК</button>
+                    ) : (
+                        <>
+                            <button onClick={closeModal} className={styles.cancelBtn}>Отмена</button>
+                            <button onClick={handleSubmit} disabled={loading} className={styles.changeBtn}>
+                                {loading ? 'Сохранение...' : 'Сохранить'}
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

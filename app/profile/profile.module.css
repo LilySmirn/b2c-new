@@ -357,6 +357,39 @@ input:checked + .slider::before {
     margin-top: 24px;
 }
 
+.resultPage {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #f4f8fc;
+}
+
+.resultCard {
+    width: min(560px, 100%);
+    padding: 48px 32px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 12px 40px rgba(0, 24, 47, 0.1);
+    text-align: center;
+    color: #00182f;
+}
+
+.resultCard p { margin: 16px 0 28px; color: #596a7d; }
+
+.resultButton {
+    display: inline-flex;
+    min-width: 140px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #1182ee;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
 .changeBtn,
 .cancelBtn {
     display: flex;

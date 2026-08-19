@@ -237,6 +237,13 @@ export default class db {
         return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     }
 
+    /** Lookup used by email changes; it never performs schema-management work. */
+    public async findUserByLogin(email: string): Promise<User | null> {
+        const [rows] = await connection.query('SELECT * FROM users WHERE login = ? LIMIT 1', [email]);
+        const users = rows as User[];
+        return users[0] ?? null;
+    }
+
     public async renewEmailVerificationToken(userId: string, token: string): Promise<boolean> {
         await this.ensureEmailVerificationColumns();
         const [result] = await connection.query(
@@ -387,6 +394,18 @@ export default class db {
 
         const query = `UPDATE users SET ${fields.join(', ')} WHERE user_id = ?`;
         await connection.query(query, values);
+    }
+
+    public async changeUserEmail(userId: string, oldEmail: string, newEmail: string): Promise<number> {
+        const [result] = await connection.query(
+            `UPDATE users
+             SET login = ?
+             WHERE user_id = ?
+               AND login = ?`,
+            [newEmail, userId, oldEmail]
+        );
+
+        return "affectedRows" in result ? Number(result.affectedRows) : 0;
     }
 
     public async getUserSubscriptions(userId: string): Promise<Subscription[] | null> {

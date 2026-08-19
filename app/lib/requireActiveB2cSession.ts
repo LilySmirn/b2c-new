@@ -30,9 +30,17 @@ export async function getB2cSessionStatus(): Promise<B2cSessionStatus> {
         typeof sessionId === "string" &&
         sessionId.length > 0;
 
-    const isActive = hasB2cClaims
-        ? await new db().hasActiveB2cSession(sessionId, userId)
-        : false;
+    let isActive = false;
+    if (hasB2cClaims) {
+        const database = new db();
+        const [hasActiveSession, currentUser] = await Promise.all([
+            database.hasActiveB2cSession(sessionId, userId),
+            database.getCurrentUser(userId),
+        ]);
+        // A login is part of the JWT. A changed database login makes every old
+        // JWT stale, including a token opened from a different browser.
+        isActive = hasActiveSession && currentUser?.login === session?.user?.email;
+    }
 
         return {
         session,
