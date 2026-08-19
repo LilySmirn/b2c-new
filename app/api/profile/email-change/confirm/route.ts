@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import db from "@/app/lib/db";
 import { verifyEmailChangeToken } from "@/app/lib/emailChangeToken";
 import { normalizeLogin } from "@/app/modules/userBlocking/server/loginAttemptLimiter";
+import { getApplicationBaseUrl } from "@/app/lib/applicationBaseUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function redirectTo(request: Request, path: string): NextResponse {
-    return NextResponse.redirect(new URL(path, request.url));
+    return NextResponse.redirect(new URL(path, getApplicationBaseUrl(request)));
 }
 
 function isDuplicateKeyError(error: unknown): boolean {

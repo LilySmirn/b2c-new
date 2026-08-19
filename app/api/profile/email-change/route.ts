@@ -4,6 +4,7 @@ import { createEmailChangeToken, EMAIL_CHANGE_TTL_MS } from "@/app/lib/emailChan
 import { sendMail } from "@/app/lib/mailer";
 import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 import { normalizeLogin } from "@/app/modules/userBlocking/server/loginAttemptLimiter";
+import { getApplicationBaseUrl } from "@/app/lib/applicationBaseUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -11,16 +12,6 @@ function escapeHtml(value: string): string {
     return value.replace(/[&<>"']/g, (character) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
     })[character]!);
-}
-
-function getBaseUrl(): string {
-    const configured = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-    if (!configured) throw new Error("Application URL is not configured");
-    const url = new URL(configured);
-    if (process.env.NODE_ENV === "production" && url.hostname === "localhost") {
-        throw new Error("Production application URL cannot use localhost");
-    }
-    return url.toString().replace(/\/$/, "");
 }
 
 export async function POST(request: Request) {
@@ -52,7 +43,7 @@ export async function POST(request: Request) {
             newEmail,
             expiresAt: Date.now() + EMAIL_CHANGE_TTL_MS,
         });
-        const confirmationUrl = `${getBaseUrl()}/api/profile/email-change/confirm?token=${encodeURIComponent(token)}`;
+        const confirmationUrl = `${getApplicationBaseUrl(request)}/api/profile/email-change/confirm?token=${encodeURIComponent(token)}`;
         const safeEmail = escapeHtml(newEmail);
         await sendMail(user.login, "Подтверждение изменения email", `
             <p>Вы запросили изменение email вашего аккаунта на ${safeEmail}.</p>

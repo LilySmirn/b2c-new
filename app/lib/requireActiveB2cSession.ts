@@ -30,7 +30,7 @@ export async function getB2cSessionStatus(): Promise<B2cSessionStatus> {
         typeof sessionId === "string" &&
         sessionId.length > 0;
 
-    let isActive = false;
+     let isActive = false;
     if (hasB2cClaims) {
         const database = new db();
         const [hasActiveSession, currentUser] = await Promise.all([

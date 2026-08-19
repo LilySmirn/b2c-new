@@ -55,6 +55,12 @@ instead of reporting success when these variables are missing, authentication
 fails, or the production host cannot connect to the SMTP server. An unverified
 user can submit the registration form again to receive a fresh confirmation link.
 
+Email-change links are resolved at request time. In local development they use
+the current local origin; in production they use `APP_URL`, then `NEXTAUTH_URL`,
+then the public `X-Forwarded-Host`/`X-Forwarded-Proto` supplied by the reverse
+proxy. Do not use `NEXT_PUBLIC_APP_URL` for these links and do not set `APP_URL`
+or `NEXTAUTH_URL` to `localhost` in production.
+
 ## If the build log is green but deployment still fails
 
 1. In Vercel, open the failed deployment and check the lines after `Collecting build traces`; those lines belong to the deployment packaging step, not to `next build`.
