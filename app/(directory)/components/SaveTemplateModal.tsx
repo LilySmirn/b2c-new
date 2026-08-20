@@ -11,6 +11,7 @@ const SERVICE_SYMBOLS_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/;
 type SaveTemplateModalProps = {
   selectedItems: SelectedPrescription[];
   customItems: CustomCartItem[];
+  generalComment: string;
   diagnosisCode: string;
   recommendationTitle?: string;
   onClose: () => void;
@@ -37,6 +38,7 @@ const validateTemplateName = (name: string) => {
 export default function SaveTemplateModal({
   selectedItems,
   customItems,
+  generalComment,
   diagnosisCode,
   recommendationTitle = "",
   onClose,
@@ -94,6 +96,7 @@ export default function SaveTemplateModal({
       createdAt: new Date().toISOString(),
       diagnosisCode,
       recommendationTitle: recommendationTitle.trim(),
+      generalComment,
       doctorComments: [...selectedItems, ...customItems]
         .map((item) => item.comment.trim())
         .filter(Boolean),

@@ -364,6 +364,7 @@ export default function SideCart({
           onSelectTemplate={(template) => {
             onApplyTemplate?.(template);
             setCustomItems(template.customItems ?? []);
+            setGeneralComment(template.generalComment ?? "");
             setIsSelectTemplateModalOpen(false);
           }}
           onClose={() => setIsSelectTemplateModalOpen(false)}
@@ -374,6 +375,7 @@ export default function SideCart({
         <SaveTemplateModal
           selectedItems={selectedItems}
           customItems={customItems}
+          generalComment={generalComment}
           diagnosisCode={diagnosisCode}
           recommendationTitle={recommendationTitle}
           onClose={() => setIsSaveTemplateModalOpen(false)}

@@ -15,6 +15,7 @@ export type CartTemplate = {
   createdAt: string;
   diagnosisCode: string;
   recommendationTitle?: string;
+  generalComment?: string;
   doctorComments: string[];
   items: SelectedPrescription[];
   customItems?: CartTemplateCustomItem[];
