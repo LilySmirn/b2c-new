@@ -118,6 +118,17 @@ export const authOptions: NextAuthOptions = {
                     const database = new db();
                     const user = await database.findUserByEmail(normalizedLogin);
 
+                    const rejectFailedCredentials = async () => {
+                        if (attempt.recordFailure() && user !== null) {
+                            await blockUser({
+                                userId: user.user_id.toString(),
+                                reason: USER_BLOCK_REASON_CODES.EXCESSIVE_LOGIN_ATTEMPTS,
+                            });
+                        }
+
+                        return null;
+                    };
+
                     if (attempt.limitReached) {
                         if (user !== null) {
                             await blockUser({
@@ -129,20 +140,29 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
-                    if (user === null || user.password_hash === null || user.blocked) {
+                    if (user === null || user.password_hash === null) {
+                        return rejectFailedCredentials();
+                    }
+
+                    if (user.blocked) {
                         return null;
                     }
 
                     if (user.account_type !== authFlow) {
-                        return null;
-                    }
-
-                    if (authFlow === "b2c" && user.email_verified_at === null) {
-                        return null;
+                        return rejectFailedCredentials();
                     }
 
                     const isValid = await bcrypt.compare(credentials.password ?? "", user.password_hash!);
                     if (!isValid) {
+                        return rejectFailedCredentials();
+                    }
+
+                    // A valid password must not contribute to the brute-force
+                    // threshold, even when sign-in is denied for another reason
+                    // such as a pending email confirmation.
+                    attempt.reset();
+
+                    if (authFlow === "b2c" && user.email_verified_at === null) {
                         return null;
                     }
 

@@ -22,6 +22,8 @@ const store = globalLoginAttemptStore.__loginAttemptStore ??= {
 
 export type RegisteredLoginAttempt = {
     limitReached: boolean;
+    recordFailure: () => boolean;
+    reset: () => void;
     release: () => void;
 };
 
@@ -46,9 +48,9 @@ function scheduleCleanup(login: string, entry: AttemptEntry): void {
 }
 
 /**
- * Registers an attempt and holds a per-login lock until the caller finishes
- * authentication. Holding the lock prevents concurrent successful requests
- * from racing past the tenth attempt before the user has been blocked.
+ * Acquires the per-login attempt state and holds its lock until the caller
+ * finishes authentication. Only rejected credentials should be recorded as a
+ * failure; successful authentication resets the failure window.
  */
 export async function registerLoginAttempt(
     login: string
@@ -71,14 +73,28 @@ export async function registerLoginAttempt(
     };
 
     entry.timestamps = entry.timestamps.filter((timestamp) => timestamp > windowStart);
-    entry.timestamps.push(now);
     store.attempts.set(normalizedLogin, entry);
-    scheduleCleanup(normalizedLogin, entry);
 
     let released = false;
 
     return {
         limitReached: entry.timestamps.length >= LOGIN_ATTEMPT_LIMIT,
+        recordFailure: () => {
+            entry.timestamps.push(Date.now());
+            store.attempts.set(normalizedLogin, entry);
+            scheduleCleanup(normalizedLogin, entry);
+
+            return entry.timestamps.length >= LOGIN_ATTEMPT_LIMIT;
+        },
+        reset: () => {
+            if (entry.cleanupTimer !== null) {
+                clearTimeout(entry.cleanupTimer);
+            }
+
+            if (store.attempts.get(normalizedLogin) === entry) {
+                store.attempts.delete(normalizedLogin);
+            }
+        },
         release: () => {
             if (released) {
                 return;
