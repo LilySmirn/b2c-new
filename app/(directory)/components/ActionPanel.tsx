@@ -174,8 +174,8 @@ const buildClipboardContent = (
   const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
 
   if (customItems.length > 0) {
-    groupedItems["Немедикаментозное лечение"] = [
-      ...(groupedItems["Немедикаментозное лечение"] ?? []),
+    groupedItems["Дополнительно"] = [
+      ...(groupedItems["Дополнительно"] ?? []),
       ...customItems.map((item) => ({
         id: item.id,
         groupTitle: "Лечение",
