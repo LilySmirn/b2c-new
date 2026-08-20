@@ -115,6 +115,7 @@ const copyHtmlWithSelectionFallback = (html: string) => {
   clipboardContainer.style.height = "1px";
   clipboardContainer.style.overflow = "hidden";
   clipboardContainer.style.opacity = "0";
+  clipboardContainer.style.textAlign = "left";
 
   document.body.appendChild(clipboardContainer);
 
@@ -234,7 +235,11 @@ const buildClipboardContent = (
     );
   }
 
-  const html = `<div>${htmlBlocks.join("<br><br>")}</div>`;
+  // The application body is centered, so make the alignment part of the copied
+  // fragment instead of allowing rich-text editors (and the DOM fallback) to
+  // inherit it. Otherwise wrapped lines appear centered while short lines can
+  // look deceptively left-aligned.
+  const html = `<div style="text-align: left;">${htmlBlocks.join("<br><br>")}</div>`;
 
   return { plainText, html };
 };
