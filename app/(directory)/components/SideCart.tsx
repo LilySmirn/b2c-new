@@ -5,7 +5,10 @@ import ActionPanel from "./ActionPanel";
 import CustomCartItemModal from "./CustomCartItemModal";
 import CartTemplateToggle from "./CartTemplateToggle";
 import Image from "next/image";
-import type { SelectedPrescription } from "./PrescriptionChecklist";
+import {
+  getChecklistCategoryPosition,
+  type SelectedPrescription,
+} from "./PrescriptionChecklist";
 import RecommendationField from "./RecommendationField";
 import SaveTemplateModal from "./SaveTemplateModal";
 import SelectTemplateModal from "./SelectTemplateModal";
@@ -102,6 +105,10 @@ const writeStoredGeneralComment = (storageKey: string, comment: string) => {
 };
 
 const getCartCategoryTitle = (item: SelectedPrescription) => {
+  if (item.categoryId === "scales") return "Диагностика";
+  if (item.categoryId === "vaccination") return "Лечение";
+  if (item.categoryId === "lifestyle") return "Прочее";
+
   const title = item.categoryTitle ?? item.groupTitle;
 
   if (title.toLocaleLowerCase("ru").includes("диагност")) {
@@ -116,11 +123,18 @@ const getCartCategoryTitle = (item: SelectedPrescription) => {
 };
 
 const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[]) =>
-  selectedItems.reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
-    const categoryTitle = getCartCategoryTitle(item);
-    acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
-    return acc;
-  }, {});
+  selectedItems
+    .slice()
+    .sort(
+      (left, right) =>
+        getChecklistCategoryPosition(left.categoryId) -
+        getChecklistCategoryPosition(right.categoryId),
+    )
+    .reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
+      const categoryTitle = getCartCategoryTitle(item);
+      acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
+      return acc;
+    }, {});
 
 const writeStoredCustomItems = (
   storageKey: string,
@@ -210,6 +224,43 @@ export default function SideCart({
     setIsSaveTemplateModalOpen(true);
   };
 
+  const renderCustomItems = (rowOffset = 0) =>
+    customItems.map((item, index) => (
+      <div
+        key={item.id}
+        className={`${styles.itemRow} ${
+          (rowOffset + index) % 2 === 1 ? styles.itemRowAlt : ""
+        }`}
+      >
+        <span className={styles.itemTitle}>{item.name}</span>
+        <span className={styles.customItemActions}>
+          <button
+            type="button"
+            className={styles.editButton}
+            aria-label={`Редактировать ${item.name}`}
+            onClick={() => {
+              setEditingCustomItem(item);
+              setIsCustomItemModalOpen(true);
+            }}
+          >
+            <span aria-hidden="true">✎</span>
+          </button>
+          <button
+            type="button"
+            className={styles.deleteButton}
+            aria-label={`Удалить ${item.name}`}
+            onClick={() =>
+              setCustomItems((prev) =>
+                prev.filter((customItem) => customItem.id !== item.id),
+              )
+            }
+          >
+            <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
+          </button>
+        </span>
+      </div>
+    ));
+
   return (
     <aside className={styles.sideCart}>
 
@@ -244,7 +295,9 @@ export default function SideCart({
       <section className={styles.listPlaceholder} aria-label="Список назначений">
         {Object.entries(groupedItems).map(([groupTitle, items]) => (
           <div key={groupTitle}>
-            <div className={styles.groupRow}>{groupTitle} ({items.length})</div>
+            <div className={styles.groupRow}>
+              {groupTitle} ({items.length + (groupTitle === "Прочее" ? customItems.length : 0)})
+            </div>
             {items.map((item, index) => (
               <div
                 key={item.id}
@@ -261,44 +314,14 @@ export default function SideCart({
                 </button>
               </div>
             ))}
+            {groupTitle === "Прочее" ? renderCustomItems(items.length) : null}
           </div>
         ))}
 
-        {customItems.map((item, index) => (
-          <div
-            key={item.id}
-            className={`${styles.itemRow} ${
-              (selectedItems.length + index) % 2 === 1 ? styles.itemRowAlt : ""
-            }`}
-          >
-            <span className={styles.itemTitle}>{item.name}</span>
-            <span className={styles.customItemActions}>
-              <button
-                type="button"
-                className={styles.editButton}
-                aria-label={`Редактировать ${item.name}`}
-                onClick={() => {
-                  setEditingCustomItem(item);
-                  setIsCustomItemModalOpen(true);
-                }}
-              >
-                <span aria-hidden="true">✎</span>
-              </button>
-              <button
-                type="button"
-                className={styles.deleteButton}
-                aria-label={`Удалить ${item.name}`}
-                onClick={() =>
-                  setCustomItems((prev) =>
-                    prev.filter((customItem) => customItem.id !== item.id),
-                  )
-                }
-              >
-                <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
-              </button>
-            </span>
-          </div>
-        ))}
+        {!groupedItems["Прочее"] && customItems.length > 0 ? (
+          <div className={styles.groupRow}>Прочее ({customItems.length})</div>
+        ) : null}
+        {!groupedItems["Прочее"] ? renderCustomItems() : null}
       </section>
 
       <button

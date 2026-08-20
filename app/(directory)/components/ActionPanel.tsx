@@ -49,10 +49,13 @@ const getClipboardCategoryTitle = (item: SelectedPrescription) => {
   const categoryId = item.categoryId ?? "";
   const title = item.categoryTitle ?? item.groupTitle;
 
+  if (categoryId === "lifestyle") return "Общие рекомендации";
+
   const normalizedTitle = title.toLocaleLowerCase("ru");
   if (
     categoryId === "required-diagnostics" ||
     categoryId === "indicated-diagnostics" ||
+    categoryId === "scales" ||
     normalizedTitle.includes("диагност")
   ) {
     return "Диагностические мероприятия";
@@ -60,7 +63,9 @@ const getClipboardCategoryTitle = (item: SelectedPrescription) => {
 
   if (
     categoryId === "medications" ||
-    title === "Препараты"
+    categoryId === "vaccination" ||
+    title === "Препараты" ||
+    title === "Лекарства"
   ) {
     return "Лекарственная терапия";
   }

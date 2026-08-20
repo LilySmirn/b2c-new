@@ -149,6 +149,14 @@ const defaultChecklistCategories = [
   { id: "appendix-a3", label: "Приложение А3" },
 ];
 
+export const getChecklistCategoryPosition = (categoryId?: string) => {
+  const position = defaultChecklistCategories.findIndex(
+    (category) => category.id === categoryId,
+  );
+
+  return position === -1 ? Number.MAX_SAFE_INTEGER : position;
+};
+
 const normalizeSectionTitle = (value: string) =>
   value
     .trim()
