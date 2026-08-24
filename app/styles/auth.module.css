@@ -496,6 +496,7 @@
 }
 
 .successPopupButton {
+    display: inline-block;
     padding: 12px 50px;
     border: 0;
     border-radius: 10px;
@@ -504,6 +505,7 @@
     cursor: pointer;
     font-size: 20px;
     font-weight: 600;
+    text-decoration: none;
 }
 
 .successPopupButton:hover,

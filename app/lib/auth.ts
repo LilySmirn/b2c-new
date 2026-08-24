@@ -10,6 +10,7 @@ import {
     normalizeLogin,
     registerLoginAttempt,
 } from "@/app/modules/userBlocking/server/loginAttemptLimiter";
+import { AUTH_ERROR_CODES } from "@/app/lib/authErrorCodes";
 
 const DEFAULT_NEXT_AUTH_JWT_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -163,7 +164,7 @@ export const authOptions: NextAuthOptions = {
                     attempt.reset();
 
                     if (authFlow === "b2c" && user.email_verified_at === null) {
-                        return null;
+                        throw new Error(AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED);
                     }
 
                     let sessionId: string | undefined;

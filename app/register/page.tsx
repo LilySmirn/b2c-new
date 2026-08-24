@@ -5,6 +5,35 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+type RegistrationStatus =
+    | 'already_verified'
+    | 'verification_pending'
+    | 'verification_resent'
+    | 'verification_sent';
+
+const registrationResult: Record<RegistrationStatus, { title: string; message: string }> = {
+    already_verified: {
+        title: 'Аккаунт уже существует',
+        message: 'Аккаунт с таким email уже существует. Войдите в личный кабинет.',
+    },
+    verification_pending: {
+        title: 'Проверьте почту',
+        message: 'Пользователь уже зарегистрирован. Проверьте почту и подтвердите email по ссылке из письма. Ссылка для подтверждения действует 24 часа с момента отправки.',
+    },
+    verification_resent: {
+        title: 'Проверьте почту',
+        message: 'Мы отправили вам на почту новое письмо для подтверждения email.',
+    },
+    verification_sent: {
+        title: 'Проверьте почту',
+        message: 'Мы отправили вам на почту письмо для подтверждения email.',
+    },
+};
+
+function isRegistrationStatus(value: unknown): value is RegistrationStatus {
+    return typeof value === 'string' && value in registrationResult;
+}
+
 export default function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -13,7 +42,7 @@ export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
+    const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus | null>(null);
 
     const router = useRouter();
 
@@ -51,7 +80,12 @@ export default function Register() {
                 return;
             }
 
-            setIsSuccessPopupOpen(true);
+            if (!isRegistrationStatus(data?.status)) {
+                alert('Получен неизвестный ответ сервера');
+                return;
+            }
+
+            setRegistrationStatus(data.status);
 
         } catch (err) {
             console.error(err);
@@ -62,7 +96,7 @@ export default function Register() {
     };
 
     const closeSuccessPopup = () => {
-        setIsSuccessPopupOpen(false);
+        setRegistrationStatus(null);
         router.push('/login');
     };
 
@@ -196,7 +230,7 @@ export default function Register() {
                 </section>
             </div>
             <div id="footer"></div>
-            {isSuccessPopupOpen && (
+            {registrationStatus && (
                 <div className={styles.successPopupOverlay}>
                     <section
                         className={styles.successPopup}
@@ -205,14 +239,19 @@ export default function Register() {
                         aria-labelledby="registration-success-title"
                         aria-describedby="registration-success-description"
                     >
-                        <h2 id="registration-success-title">Проверьте почту</h2>
+                        <h2 id="registration-success-title">{registrationResult[registrationStatus].title}</h2>
                         <p id="registration-success-description">
-                            Мы отправили на указанный email ссылку для подтверждения регистрации.
-                            Перейдите по ней, подтвердите адрес электронной почты, а затем войдите в аккаунт.
+                            {registrationResult[registrationStatus].message}
                         </p>
-                        <button type="button" className={styles.successPopupButton} onClick={closeSuccessPopup} autoFocus>
-                            Понятно
-                        </button>
+                        {registrationStatus === 'already_verified' ? (
+                            <Link className={styles.successPopupButton} href="/login" autoFocus>
+                                Войти
+                            </Link>
+                        ) : (
+                            <button type="button" className={styles.successPopupButton} onClick={closeSuccessPopup} autoFocus>
+                                Понятно
+                            </button>
+                        )}
                     </section>
                 </div>
             )}

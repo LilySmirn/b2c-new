@@ -284,7 +284,11 @@ export default class db {
                  email_verification_expires_at = DATE_ADD(NOW(), INTERVAL 24 HOUR)
              WHERE user_id = ?
                AND account_type = 'b2c'
-               AND email_verified_at IS NULL`,
+               AND email_verified_at IS NULL
+               AND (
+                   email_verification_expires_at IS NULL
+                   OR email_verification_expires_at <= NOW()
+               )`,
             [token, userId]
         );
 

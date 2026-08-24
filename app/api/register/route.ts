@@ -8,6 +8,12 @@ import { sendMail } from "@/app/lib/mailer";
 import { getPasswordValidationError } from "@/app/lib/passwordValidation";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+type RegistrationStatus =
+    | "already_verified"
+    | "verification_pending"
+    | "verification_resent"
+    | "verification_sent";
+
 function getPublicBaseUrl(req: Request): string {
     const configuredUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
 
@@ -85,17 +91,26 @@ export async function POST(req: Request) {
     const existingUser = await database.findUserByEmail(email);
     if (existingUser) {
         if (existingUser.account_type !== "b2c" || existingUser.email_verified_at !== null) {
-            return NextResponse.json({ error: "Пользователь с таким адресом уже существует" }, { status: 400 });
+            return NextResponse.json({ status: "already_verified" satisfies RegistrationStatus });
+        }
+
+        const expiresAt = existingUser.email_verification_expires_at instanceof Date
+            ? existingUser.email_verification_expires_at
+            : new Date(existingUser.email_verification_expires_at ?? 0);
+        const verificationExpired = Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now();
+
+        if (!verificationExpired) {
+            return NextResponse.json({ status: "verification_pending" satisfies RegistrationStatus });
         }
 
         const replacementToken = crypto.randomBytes(32).toString("hex");
         const renewed = await database.renewEmailVerificationToken(existingUser.user_id, replacementToken);
 
         if (!renewed) {
-            return NextResponse.json({ error: "Пользователь с таким адресом уже существует" }, { status: 400 });
+            return NextResponse.json({ status: "verification_pending" satisfies RegistrationStatus });
         }
 
-        return sendVerificationEmail(req, email, existingUser.name, replacementToken);
+        return sendVerificationEmail(req, email, existingUser.name, replacementToken, "verification_resent");
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -120,10 +135,16 @@ export async function POST(req: Request) {
         throw error;
     }
 
-    return sendVerificationEmail(req, email, name, emailVerificationToken);
+    return sendVerificationEmail(req, email, name, emailVerificationToken, "verification_sent");
 }
 
-    async function sendVerificationEmail(req: Request, email: string, name: string, token: string) {
+    async function sendVerificationEmail(
+    req: Request,
+    email: string,
+    name: string,
+    token: string,
+    status: "verification_resent" | "verification_sent"
+) {
     const verificationUrl = `${getPublicBaseUrl(req)}/register/verify?token=${token}`;
 
     try {
@@ -132,7 +153,7 @@ export async function POST(req: Request) {
             "Подтверждение регистрации EasyMed",
             buildVerificationEmail(name, verificationUrl)
         );
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ status });
     } catch {
         return NextResponse.json(
             { error: "Не удалось отправить письмо. Проверьте настройки почты на сервере и повторите регистрацию." },

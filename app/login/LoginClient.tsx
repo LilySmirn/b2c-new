@@ -7,6 +7,7 @@ import styles from '../styles/auth.module.css';
 import Link from 'next/link';
 import LoginErrorAlert from '../components/LoginErrorAlert';
 import { getB2cDeviceId } from '../lib/b2cDeviceId';
+import { AUTH_ERROR_CODES } from '../lib/authErrorCodes';
 
 export default function LoginClient() {
     const [email, setEmail] = useState('');
@@ -34,6 +35,8 @@ export default function LoginClient() {
             window.sessionStorage.setItem('showSubscriptionExpirationPopup', 'true');
             window.dispatchEvent(new Event('b2c-login-success'));
             router.push('/profile');
+        } else if (res?.error === AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED) {
+            alert('Пользователь уже зарегистрирован. Проверьте почту и подтвердите email по ссылке из письма.');
         } else {
             alert('Неверные данные');
         }
