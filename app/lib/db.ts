@@ -244,6 +244,38 @@ export default class db {
         return users[0] ?? null;
     }
 
+     /** Password-reset lookup; unlike getCurrentUser this includes the current hash. */
+    public async findUserById(userId: string): Promise<User | null> {
+        const [rows] = await connection.query('SELECT * FROM users WHERE user_id = ? LIMIT 1', [userId]);
+        return (rows as User[])[0] ?? null;
+    }
+
+    /** Changes only the password hash and revokes existing B2C sessions atomically. */
+    public async resetUserPassword(userId: string, login: string, currentPasswordHash: string, passwordHash: string): Promise<number> {
+        const trx = await connection.getConnection();
+        try {
+            await trx.beginTransaction();
+            const [result] = await trx.query(
+                'UPDATE users SET password_hash = ? WHERE user_id = ? AND login = ? AND password_hash = ?',
+                [passwordHash, userId, login, currentPasswordHash]
+            );
+            const affectedRows = "affectedRows" in result ? Number(result.affectedRows) : 0;
+            if (affectedRows === 1) {
+                await trx.query(
+                    'UPDATE user_sessions SET revoked_at = NOW() WHERE user_id = ? AND revoked_at IS NULL',
+                    [userId]
+                );
+            }
+            await trx.commit();
+            return affectedRows;
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        } finally {
+            trx.release();
+        }
+    }
+
     public async renewEmailVerificationToken(userId: string, token: string): Promise<boolean> {
         await this.ensureEmailVerificationColumns();
         const [result] = await connection.query(

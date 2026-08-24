@@ -5,7 +5,7 @@ import { User } from "@/app/types/User";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 import { sendMail } from "@/app/lib/mailer";
-const MIN_PASSWORD_LENGTH = 6;
+import { getPasswordValidationError } from "@/app/lib/passwordValidation";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function getPublicBaseUrl(req: Request): string {
@@ -63,8 +63,9 @@ function validateRegisterPayload(payload: unknown) {
         return { error: "Valid email is required" };
     }
 
-    if (!password || password.length < MIN_PASSWORD_LENGTH) {
-        return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` };
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+        return { error: passwordError };
     }
 
     return { value: { email, password, name } };
