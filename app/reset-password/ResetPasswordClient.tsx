@@ -42,5 +42,34 @@ export default function ResetPasswordClient({ token }: { token: string }) {
     if (validity === 'invalid') return <main className={styles.recoveryResult}><h1>Ссылка недействительна</h1><p>Ссылка для восстановления пароля недействительна или срок её действия истёк.</p><Link className={styles.verifyButton} href="/forgot-password">Запросить новую ссылку</Link></main>;
     if (success) return <main className={styles.recoveryResult}><h1>Пароль успешно изменён.</h1><p>Теперь вы можете войти с новым паролем.</p><Link className={styles.verifyButton} href="/login">Войти</Link></main>;
 
-    return <main className={styles.mainLogin}><section className={styles.loginFormSection}><form onSubmit={submit} className={`${styles.loginForm} ${styles.recoveryForm}`}><h2>Создание нового пароля</h2><div className={`${styles.loginFormGroup} ${styles.recoveryFields}`}><div className={styles.inputWrapper}><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Новый пароль" autoComplete="new-password" required minLength={6} /></div><div className={styles.inputWrapper}><input type="password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Повторите новый пароль" autoComplete="new-password" required minLength={6} /></div>{error && <p className={styles.recoveryError} role="alert">{error}</p>}<button className={styles.btnLoginPage} disabled={submitting}>{submitting ? 'Сохранение…' : 'Сохранить новый пароль'}</button></div></form></section></main>;
+    return <main className={styles.mainLogin}>
+        <section className={`${styles.loginFormSection} ${styles.recoverySection}`}>
+            <form onSubmit={submit} className={`${styles.loginForm} ${styles.recoveryForm}`}>
+                <h2>Создание нового пароля</h2>
+                <div className={`${styles.loginFormGroup} ${styles.recoveryFields}`}>
+                    <div className={styles.inputWrapper}>
+                        <input type="password" 
+                        value={password} 
+                        onChange={(event) => setPassword(event.target.value)} 
+                        placeholder="Новый пароль" 
+                        autoComplete="new-password" 
+                        required minLength={6} 
+                        />
+                        </div>
+                        <div className={styles.inputWrapper}>
+                            <input type="password" 
+                            value={confirmation} 
+                            onChange={(event) => setConfirmation(event.target.value)} 
+                            placeholder="Повторите новый пароль" 
+                            autoComplete="new-password" required minLength={6} 
+                            />
+                            </div>
+                            {error && <p className={styles.recoveryError} role="alert">{error}</p>}
+                            <button className={styles.btnLoginPage} 
+                            disabled={submitting}>{submitting ? 'Сохранение…' : 'Сохранить новый пароль'}
+                            </button>
+                        </div>
+                </form>
+        </section>
+    </main>;
 }

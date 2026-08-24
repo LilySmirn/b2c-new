@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
     return (
         <main className={styles.mainLogin}>
             <section className={styles.breadCrumbs}><Link href="/login" className={`${styles.btn} ${styles.btnToMainPage}`}>← Вернуться ко входу</Link></section>
-            <section className={styles.loginFormSection}>
+            <section className={`${styles.loginFormSection} ${styles.recoverySection}`}>
                 <form onSubmit={submit} className={`${styles.loginForm} ${styles.recoveryForm}`}>
                     <h2>Восстановление пароля</h2>
                     <p className={styles.recoveryHint}>Укажите email, который используется для входа.</p>
