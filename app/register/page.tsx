@@ -50,7 +50,7 @@ export default function Register() {
         e.preventDefault();
 
         if (!name.trim()) {
-            alert('Введите имя и фамилию');
+            alert('Введите имя');
             return;
         }
 
@@ -122,7 +122,7 @@ export default function Register() {
                                         type="text"
                                         id="firstName"
                                         name="firstName"
-                                        placeholder="Введите имя и фамилию*"
+                                        placeholder="Введите имя*"
                                         required
                                         autoComplete="given-name"
                                         onChange={(e) => setName(e.target.value)}

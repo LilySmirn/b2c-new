@@ -4,6 +4,7 @@ import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
 import Head from 'next/head';
 import { Metadata } from "next";
+import heroImage from "@/assets/images/hero-img-new.png";
 
 export const metadata: Metadata = {
   title: "Клинические рекомендации по МКБ-10",
@@ -171,7 +172,7 @@ export default function Home() {
               </div>
             </div>
             <div className="hero-img">
-              <Image src="/images/hero-img.png"
+              <Image src={heroImage}
                      alt="Клинические рекомендации Минздрава РФ - иллюстрация"
                      width="638" height="442" loading="lazy"/>
             </div>

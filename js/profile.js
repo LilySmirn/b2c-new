@@ -94,7 +94,7 @@ function openModal(title, type) {
         submitBtn.onclick = () => {
             const firstName = fn.value.trim();
             const lastName = ln.value.trim();
-            if (!firstName || !lastName) return alert('Введите имя и фамилию');
+            if (!firstName || !lastName) return alert('Введите имя');
             updateName(firstName, lastName);
         };
     }

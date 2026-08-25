@@ -71,7 +71,7 @@ export default async function AccountPage() {
                                                 </div>
                                                 <div className={styles.infoBoxChange}>
                                                     <button className={styles.infoBoxChangeBtn} data-modal="name">
-                                                        Изменить имя или фамилию
+                                                        Редактировать
                                                     </button>
                                                 </div>
                                             </div>
