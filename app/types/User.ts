@@ -9,6 +9,7 @@ export interface User {
     is_active?: boolean;
     password_hash?: string;
     account_type?: AccountType;
+    ip?: string | null;
     blocked?: boolean;
     blocked_reason?: UserBlockReasonCode | null;
     blocked_at?: Date | null;

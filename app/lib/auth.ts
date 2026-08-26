@@ -11,6 +11,7 @@ import {
     registerLoginAttempt,
 } from "@/app/modules/userBlocking/server/loginAttemptLimiter";
 import { AUTH_ERROR_CODES } from "@/app/lib/authErrorCodes";
+import { getForwardedIp, normalizeIp } from "@/app/lib/requestIp";
 
 const DEFAULT_NEXT_AUTH_JWT_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -74,14 +75,6 @@ function getDeviceName(userAgent: string | undefined): string | null {
     }
 
     return `${getBrowserName(normalizedUserAgent)} on ${getOperatingSystemName(normalizedUserAgent)}`.slice(0, 255);
-}
-
-function getForwardedIp(headers: Record<string, string | string[] | undefined> | undefined): string | null {
-    const forwardedFor = headers?.["x-forwarded-for"];
-    const rawValue = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
-    const firstIp = rawValue?.split(",")[0]?.trim();
-
-    return firstIp === undefined || firstIp === "" ? null : firstIp.slice(0, 45);
 }
 
 export const authOptions: NextAuthOptions = {
@@ -165,6 +158,16 @@ export const authOptions: NextAuthOptions = {
 
                     if (authFlow === "b2c" && user.email_verified_at === null) {
                         throw new Error(AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED);
+                    }
+
+                    if (authFlow === "b2b") {
+                        const allowedIp = normalizeIp(user.ip);
+                        const clientIp = getForwardedIp(req.headers);
+
+                        if (allowedIp !== null && allowedIp !== clientIp) {
+                            console.warn("B2B login rejected: IP mismatch");
+                            return null;
+                        }
                     }
 
                     let sessionId: string | undefined;
