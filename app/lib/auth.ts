@@ -166,7 +166,7 @@ export const authOptions: NextAuthOptions = {
 
                         if (allowedIp !== null && allowedIp !== clientIp) {
                             console.warn("B2B login rejected: IP mismatch");
-                            return null;
+                            throw new Error(AUTH_ERROR_CODES.B2B_IP_NOT_ALLOWED);
                         }
                     }
 

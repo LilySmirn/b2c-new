@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getB2cDeviceId } from '../lib/b2cDeviceId';
 import styles from './auth.module.css';
+import { AUTH_ERROR_CODES } from '../lib/authErrorCodes';
 
 function buildDirectoryUrl(code: string | null) {
   const params = code ? `?code=${encodeURIComponent(code)}` : '';
@@ -83,7 +84,11 @@ export default function AuthClient() {
       });
 
       if (!result?.ok) {
-        setErrorText('Неверный логин или пароль');
+        setErrorText(
+          result?.error === AUTH_ERROR_CODES.B2B_IP_NOT_ALLOWED
+            ? 'Вход с текущего IP-адреса не разрешён.'
+            : 'Неверный логин или пароль'
+        );
         return;
       }
 
