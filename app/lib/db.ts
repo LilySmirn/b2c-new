@@ -188,6 +188,19 @@ export default class db {
         await connection.query('INSERT INTO users (user_id, login, name, password_hash, account_type) VALUES (?, ?, ?, ?, ?)', [user_id, login, name, password_hash, user.account_type ?? 'b2c']);
     }
 
+        /** Creates a B2B user without ever accepting or storing a plain-text password. */
+    public async createB2bUser(user: {
+        userId: string;
+        login: string;
+        passwordHash: string;
+        ip: string | null;
+    }): Promise<void> {
+        await connection.query(
+            `INSERT INTO users (user_id, login, password_hash, account_type, ip)
+             VALUES (?, ?, ?, 'b2b', ?)`,
+            [user.userId, user.login, user.passwordHash, user.ip]
+        );
+    }
 
     public async createB2cUserWithRequestRecord(user: User): Promise<void> {
         await this.ensureEmailVerificationColumns();

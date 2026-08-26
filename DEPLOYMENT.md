@@ -28,6 +28,7 @@ environment-loading behavior. The application does not explicitly load
 Add the same values for Production and Preview unless intentionally different:
 
 - `AUTH_SECRET`
+- `B2B_ADMIN_SECRET` — private high-entropy secret accepted only by the server-side B2B provisioning endpoint
 - `EMAIL_CHANGE_SECRET` — permanent, private HMAC secret used only to sign email-change links
 - `NEXTAUTH_URL` — production URL, for example `https://klinicheskie-rekomendatsii.ru`
 - `NEXT_PUBLIC_APP_URL` — public production origin used in absolute email links (for example `https://klinrec.ru`)
