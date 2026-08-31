@@ -226,6 +226,31 @@ input:checked + .slider::before {
     margin-bottom: 35px;
 }
 
+.paymentNotice {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    margin: 0 0 20px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+
+.paymentNoticePending {
+    color: #715300;
+    background: #fff7d6;
+    border: 1px solid #ead27a;
+}
+
+.paymentNoticeCanceled {
+    color: #8a1f1f;
+    background: #fff0f0;
+    border: 1px solid #e6aaaa;
+}
+
 .infoBoxPassword {
     margin-bottom: 0;
 }

@@ -8,6 +8,7 @@ import TariffModal from "./TariffModal";
 import LogoutButton from "@/app/components/LogoutButton";
 import SubscriptionExpirationPopup from "@/app/components/SubscriptionExpirationPopup";
 import { getDaysUntilExpiration, type SubscriptionReminder } from "@/app/lib/subscriptionReminder";
+import PaymentStateNotice from "./PaymentStateNotice";
 
 export default async function AccountPage() {
 
@@ -139,6 +140,7 @@ export default async function AccountPage() {
                                         </div>
                                     </div>
 
+                                    <PaymentStateNotice />
                                     {/*<Link href="/" className={styles.tariffLink}>Продлить тариф</Link>*/}
                                     <TariffModal />
                                 </div>

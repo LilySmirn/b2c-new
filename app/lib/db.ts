@@ -36,6 +36,14 @@ export type SubscriptionExpirationReminder = {
     tariffTitle: string | null;
 };
 
+export type CurrentPayment = {
+    paymentId: string;
+    tariffId: string;
+    tariffName: string;
+    status: "pending" | "canceled";
+    cancellationReason: string | null;
+};
+
 export async function checkDatabaseConnection(): Promise<boolean> {
     const [rows] = await pool.query('SELECT 1 AS ok');
     return Array.isArray(rows) && rows.length > 0;
@@ -177,6 +185,63 @@ export default class db {
         const users = rows as User[];
 
         return users[0] ?? null;
+    }
+    
+    public async getCurrentPayment(userId: string): Promise<CurrentPayment | null> {
+        const [rows] = await connection.query<RowDataPacket[]>(
+            `SELECT
+                p.payment_id,
+                p.tariff_id,
+                p.status,
+                p.cancellation_reason,
+                t.title AS tariff_name
+             FROM payments p
+             INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
+             WHERE p.user_id = ?
+               AND (
+                   p.status = 'pending'
+                   OR (
+                       p.status = 'canceled'
+                       AND p.canceled_at >= CONVERT_TZ(
+                           DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+03:00')),
+                           '+03:00', '+00:00'
+                       )
+                       AND p.canceled_at < DATE_ADD(
+                           CONVERT_TZ(
+                               DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+03:00')),
+                               '+03:00', '+00:00'
+                           ),
+                           INTERVAL 1 DAY
+                       )
+                   )
+               )
+             ORDER BY
+                CASE WHEN p.status = 'pending' THEN 0 ELSE 1 END,
+                p.updated_at DESC,
+                p.created_at DESC
+             LIMIT 1`,
+            [userId]
+        );
+
+        const payment = rows[0] as (RowDataPacket & {
+            payment_id: string;
+            tariff_id: string;
+            tariff_name: string;
+            status: "pending" | "canceled";
+            cancellation_reason: string | null;
+        }) | undefined;
+
+        if (!payment) {
+            return null;
+        }
+
+        return {
+            paymentId: String(payment.payment_id),
+            tariffId: String(payment.tariff_id),
+            tariffName: payment.tariff_name,
+            status: payment.status,
+            cancellationReason: payment.cancellation_reason,
+        };
     }
 
     public async createUser(user: User): Promise<void> {
