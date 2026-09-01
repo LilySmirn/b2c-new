@@ -44,6 +44,14 @@ export type CurrentPayment = {
     cancellationReason: string | null;
 };
 
+export type PaymentStatus = {
+    paymentId: string;
+    tariffId: string;
+    tariffName: string;
+    status: "pending" | "succeeded" | "canceled";
+    cancellationReason: string | null;
+};
+
 export type PaymentDetails = {
     paymentId: string;
     tariffId: string;
@@ -241,6 +249,46 @@ export default class db {
             tariff_id: string;
             tariff_name: string;
             status: "pending" | "canceled";
+            cancellation_reason: string | null;
+        }) | undefined;
+
+        if (!payment) {
+            return null;
+        }
+
+        return {
+            paymentId: String(payment.payment_id),
+            tariffId: String(payment.tariff_id),
+            tariffName: payment.tariff_name,
+            status: payment.status,
+            cancellationReason: payment.cancellation_reason,
+        };
+    }
+
+    public async getPaymentStatus(
+        userId: string,
+        paymentId: string,
+    ): Promise<PaymentStatus | null> {
+        const [rows] = await connection.query<RowDataPacket[]>(
+            `SELECT
+                p.payment_id,
+                p.tariff_id,
+                p.status,
+                p.cancellation_reason,
+                t.title AS tariff_name
+             FROM payments p
+             INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
+             WHERE p.payment_id = ?
+               AND p.user_id = ?
+             LIMIT 1`,
+            [paymentId, userId],
+        );
+
+        const payment = rows[0] as (RowDataPacket & {
+            payment_id: string;
+            tariff_id: string;
+            tariff_name: string;
+            status: "pending" | "succeeded" | "canceled";
             cancellation_reason: string | null;
         }) | undefined;
 
