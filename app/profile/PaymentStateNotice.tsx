@@ -34,6 +34,16 @@ export default function PaymentStateNotice() {
         return () => controller.abort();
     }, []);
 
+    useEffect(() => {
+        const handleCreated = (event: Event) => {
+            const payment = (event as CustomEvent<{ tariffName: string }>).detail;
+            setPayment({ state: "pending", tariffName: payment.tariffName });
+        };
+
+        window.addEventListener("payment-created", handleCreated);
+        return () => window.removeEventListener("payment-created", handleCreated);
+    }, []);
+
     if (payment.state === "normal") {
         return null;
     }

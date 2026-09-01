@@ -2,21 +2,19 @@
 
 import { useState } from "react";
 import styles from "./TariffModal.module.css";
-import { useRouter } from "next/navigation";
 
 interface Tariff {
     id: string;
     title: string;
     duration: string;
     price: number;
-    paymentUrl: string;
 }
 
 const tariffs: Tariff[] = [
-    { id: "basic", title: "Базовый", duration: "1 месяц", price: 300, paymentUrl: "/pay/basic" },
-    { id: "optimal", title: "Оптимальный", duration: "3 месяца", price: 750, paymentUrl: "/pay/optimal" },
-    { id: "extended", title: "Расширенный", duration: "6 месяцев", price: 1200, paymentUrl: "/pay/extended" },
-    { id: "pro", title: "Премиум", duration: "12 месяцев", price: 1800, paymentUrl: "/pay/pro" }
+    { id: "1", title: "Базовый", duration: "1 месяц", price: 100 },
+    { id: "2", title: "Оптимальный", duration: "3 месяца", price: 750 },
+    { id: "3", title: "Расширенный", duration: "6 месяцев", price: 1200 },
+    { id: "4", title: "Премиум", duration: "12 месяцев", price: 1800 }
 ];
 
 interface TariffModalProps {
@@ -30,12 +28,40 @@ export default function TariffModal({
 }: TariffModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedTariff, setSelectedTariff] = useState<string>(tariffs[0].id);
-    const router = useRouter();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const handleBuy = () => {
-        const tariff = tariffs.find(t => t.id === selectedTariff);
-        if (tariff) {
-            router.push(tariff.paymentUrl);
+    const handleBuy = async () => {
+        setIsSubmitting(true);
+        setErrorMessage(null);
+
+        try {
+            const response = await fetch("/api/payments/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tariffId: selectedTariff }),
+            });
+            const result = await response.json();
+
+            if (response.status === 409 && result.code === "PAYMENT_ALREADY_PENDING") {
+                setErrorMessage(
+                    `Дождитесь окончания оплаты тарифа «${result.payment.tariffName}».\n` +
+                    "После этого можно совершить новую оплату.",
+                );
+                return;
+            }
+
+            if (!response.ok) {
+                setErrorMessage(result.error ?? "Не удалось создать платёж. Попробуйте ещё раз.");
+                return;
+            }
+
+            window.dispatchEvent(new CustomEvent("payment-created", { detail: result }));
+            setIsOpen(false);
+        } catch {
+            setErrorMessage("Не удалось создать платёж. Проверьте соединение и попробуйте ещё раз.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -43,7 +69,10 @@ export default function TariffModal({
         <>
             <button
             type="button"
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                    setErrorMessage(null);
+                    setIsOpen(true);
+                }}
                 className={triggerClassName}
             >
                 {triggerText}
@@ -104,10 +133,16 @@ export default function TariffModal({
                             <button onClick={() => setIsOpen(false)} className={styles.cancelBtn}>
                                 Отмена
                             </button>
-                            <button onClick={handleBuy} className={styles.buyBtn}>
-                                Купить
+                            <button onClick={handleBuy} className={styles.buyBtn} disabled={isSubmitting}>
+                                {isSubmitting ? "Создаём платёж…" : "Купить"}
                             </button>
                         </div>
+
+                        {errorMessage && (
+                            <div className={styles.paymentError} role="alert">
+                                {errorMessage}
+                            </div>
+                        )}
 
                     </div>
                 </div>

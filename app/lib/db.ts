@@ -44,6 +44,19 @@ export type CurrentPayment = {
     cancellationReason: string | null;
 };
 
+export type PaymentDetails = {
+    paymentId: string;
+    tariffId: string;
+    tariffName: string;
+    amount: number;
+    status: "pending";
+};
+
+export type CreatePendingPaymentResult =
+    | { outcome: "created"; payment: PaymentDetails }
+    | { outcome: "already_pending"; payment: PaymentDetails }
+    | { outcome: "tariff_not_found" };
+
 export async function checkDatabaseConnection(): Promise<boolean> {
     const [rows] = await pool.query('SELECT 1 AS ok');
     return Array.isArray(rows) && rows.length > 0;
@@ -242,6 +255,105 @@ export default class db {
             status: payment.status,
             cancellationReason: payment.cancellation_reason,
         };
+    }
+
+    /**
+     * Creates at most one pending payment per user.
+     *
+     * Locking the user's row makes the pending check and insert a serialized
+     * operation for that user, including when two requests arrive together.
+     */
+    public async createPendingPayment(
+        userId: string,
+        tariffId: string,
+        paymentId: string,
+    ): Promise<CreatePendingPaymentResult> {
+        const trx = await connection.getConnection();
+
+        try {
+            await trx.beginTransaction();
+
+            // The user always exists for an active session. This stable row is
+            // used as a per-user mutex for every payment creation transaction.
+            await trx.query<RowDataPacket[]>(
+                `SELECT user_id FROM users WHERE user_id = ? FOR UPDATE`,
+                [userId],
+            );
+
+            const [pendingRows] = await trx.query<RowDataPacket[]>(
+                `SELECT
+                    p.payment_id,
+                    p.tariff_id,
+                    p.amount,
+                    t.title AS tariff_name
+                 FROM payments p
+                 INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
+                 WHERE p.user_id = ? AND p.status = 'pending'
+                 ORDER BY p.created_at DESC
+                 LIMIT 1`,
+                [userId],
+            );
+            const pending = pendingRows[0] as (RowDataPacket & {
+                payment_id: string;
+                tariff_id: string;
+                tariff_name: string;
+                amount: number | string;
+            }) | undefined;
+
+            if (pending) {
+                await trx.commit();
+                return {
+                    outcome: "already_pending",
+                    payment: {
+                        paymentId: String(pending.payment_id),
+                        tariffId: String(pending.tariff_id),
+                        tariffName: pending.tariff_name,
+                        amount: Number(pending.amount),
+                        status: "pending",
+                    },
+                };
+            }
+
+            const [tariffRows] = await trx.query<RowDataPacket[]>(
+                `SELECT tariff_id, title, price FROM tariffs WHERE tariff_id = ? LIMIT 1`,
+                [tariffId],
+            );
+            const tariff = tariffRows[0] as (RowDataPacket & {
+                tariff_id: string;
+                title: string;
+                price: number | string;
+            }) | undefined;
+
+            if (!tariff) {
+                await trx.rollback();
+                return { outcome: "tariff_not_found" };
+            }
+
+            await trx.query(
+                `INSERT INTO payments (
+                    user_id, tariff_id, amount, payment_id, status,
+                    created_at, updated_at
+                 ) VALUES (?, ?, ?, ?, 'pending', UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+                [userId, tariffId, tariff.price, paymentId],
+            );
+            await trx.commit();
+
+            return {
+                outcome: "created",
+                payment: {
+                    paymentId,
+                    tariffId: String(tariff.tariff_id),
+                    tariffName: tariff.title,
+                    amount: Number(tariff.price),
+                    status: "pending",
+                },
+            };
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        } finally {
+            trx.release();
+        }
     }
 
     public async createUser(user: User): Promise<void> {

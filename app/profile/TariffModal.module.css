@@ -183,6 +183,18 @@
     background-color: #0f73d1;
 }
 
+.buyBtn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.paymentError {
+    margin-top: 16px;
+    color: #a51d2d;
+    font: 600 15px/1.45 Arial, sans-serif;
+    white-space: pre-line;
+}
+
 .cancelBtn {
     background-color: white;
     color: #595959;
