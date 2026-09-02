@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/app/lib/db";
 import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
+import { processPaymentStatus } from "@/app/lib/processPaymentStatus";
 
 type MockWebhookBody = {
     paymentId?: unknown;
@@ -52,11 +52,11 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    const payment = await new db().applyMockPaymentStatus(
+    const payment = await processPaymentStatus({
         paymentId,
-        fields.status,
-        fields.status === "canceled" ? reason : null,
-    );
+        status: fields.status,
+        cancellationReason: fields.status === "canceled" ? reason : null,
+    });
 
     if (!payment) {
         return NextResponse.json(
@@ -64,6 +64,12 @@ export async function POST(request: NextRequest) {
             { status: 404 },
         );
     }
+
+    await logPaymentEvent("payment_status_processed", paymentId, {
+        status: payment.status,
+        alreadyProcessed: payment.alreadyProcessed,
+        subscriptionChanged: payment.subscriptionChanged,
+    });
 
     return NextResponse.json({
         paymentId: payment.paymentId,

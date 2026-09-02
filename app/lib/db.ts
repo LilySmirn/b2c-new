@@ -1,4 +1,4 @@
-import mysql, { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import mysql, { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
@@ -49,12 +49,6 @@ export type PaymentStatus = {
     tariffId: string;
     tariffName: string;
     status: "pending" | "succeeded" | "canceled";
-    cancellationReason: string | null;
-};
-
-export type MockPaymentResult = {
-    paymentId: string;
-    status: "succeeded" | "canceled";
     cancellationReason: string | null;
 };
 
@@ -308,45 +302,6 @@ export default class db {
             tariffName: payment.tariff_name,
             status: payment.status,
             cancellationReason: payment.cancellation_reason,
-        };
-    }
-
-    public async applyMockPaymentStatus(
-        paymentId: string,
-        status: "succeeded" | "canceled",
-        cancellationReason: string | null,
-    ): Promise<MockPaymentResult | null> {
-        const [result] = status === "succeeded"
-            ? await connection.execute<ResultSetHeader>(
-                `UPDATE payments
-                 SET status = 'succeeded',
-                     paid_at = UTC_TIMESTAMP(),
-                     updated_at = UTC_TIMESTAMP(),
-                     canceled_at = NULL,
-                     cancellation_reason = NULL,
-                     cancellation_party = NULL
-                 WHERE payment_id = ?`,
-                [paymentId],
-            )
-            : await connection.execute<ResultSetHeader>(
-                `UPDATE payments
-                 SET status = 'canceled',
-                     paid_at = NULL,
-                     updated_at = UTC_TIMESTAMP(),
-                     canceled_at = UTC_TIMESTAMP(),
-                     cancellation_reason = ?
-                 WHERE payment_id = ?`,
-                [cancellationReason, paymentId],
-            );
-
-        if (result.affectedRows === 0) {
-            return null;
-        }
-
-        return {
-            paymentId,
-            status,
-            cancellationReason: status === "canceled" ? cancellationReason : null,
         };
     }
 

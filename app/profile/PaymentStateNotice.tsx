@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./profile.module.css";
 
 type PaymentState =
@@ -30,6 +31,7 @@ function getCancellationMessage(reason: string | null): string {
 }
 
 export default function PaymentStateNotice() {
+    const router = useRouter();
     const [payment, setPayment] = useState<PaymentState>({ state: "normal" });
 
     useEffect(() => {
@@ -117,6 +119,9 @@ export default function PaymentStateNotice() {
                 const status = await response.json() as PaymentStatus;
                 if (status.status === "succeeded") {
                     setPayment({ state: "normal" });
+                    // Re-render server components from the subscription in DB;
+                    // the payment response itself is never used as tariff state.
+                    router.refresh();
                     stop();
                     return;
                 }
@@ -141,7 +146,7 @@ export default function PaymentStateNotice() {
 
         scheduleNext();
         return stop;
-    }, [payment.state === "pending" ? payment.paymentId : null]);
+    }, [payment.state === "pending" ? payment.paymentId : null, router]);
 
     if (payment.state === "normal") {
         return null;
