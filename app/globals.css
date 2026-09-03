@@ -1873,3 +1873,201 @@ body.preview-directory-access-error-route .footer,
 body.auth-route .footer {
   display: none;
 }
+
+/* Homepage visual system: restrained, spacious, and consistent with the directory UI. */
+.main {
+  --home-ink: #172b3f;
+  --home-muted: #587086;
+  --home-blue: #1182ee;
+  --home-blue-dark: #086ecb;
+  --home-line: #dce8f3;
+  --home-soft: #f5f9fd;
+  color: var(--home-ink);
+  background: #fff;
+}
+
+.main .hero-section {
+  min-height: 640px;
+  padding: 70px 48px;
+  background: #f4f9fd;
+}
+
+.main .hero-container {
+  max-width: 1240px;
+  gap: 72px;
+}
+
+.main .hero-content {
+  flex: 0 1 590px;
+}
+
+.main h1 {
+  max-width: 650px;
+  margin-bottom: 24px;
+  color: var(--home-ink);
+  font-size: clamp(46px, 4.4vw, 64px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
+
+.main .lead-text {
+  max-width: 590px;
+  margin: 0 0 34px;
+  color: var(--home-muted);
+  font-size: 20px;
+  line-height: 1.55;
+}
+
+.main .hero-img {
+  min-width: 0;
+  flex: 0 1 560px;
+}
+
+.main .hero-img img {
+  filter: drop-shadow(0 24px 30px rgba(44, 87, 126, .13));
+}
+
+.main .hero-buttons { gap: 12px; }
+.main .btn-hero-demo,
+.main .btn-pricing,
+.main .btn-select,
+.main .contact-button,
+.main .btn-demo-cta {
+  min-height: 54px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.main .btn-hero-demo { height: 54px; padding: 0 24px; background: var(--home-blue); }
+.main .btn-pricing { width: auto; height: 54px; margin-left: 0; padding: 0 24px; background: transparent; }
+.main .btn-hero-demo:hover,
+.main .btn-select:hover,
+.main .contact-button:hover { background: var(--home-blue-dark); transform: translateY(-1px); }
+.main .btn-pricing:hover { background: #e8f3fd; transform: translateY(-1px); }
+
+.main .welcome-section {
+  min-height: 0;
+  padding: 74px 20px;
+  align-items: center;
+}
+.main .welcome-container { max-width: 900px; }
+.main .description { color: var(--home-muted); font-size: 20px; line-height: 1.55; }
+.main .welcome-section .description:first-of-type { color: var(--home-ink); font-size: 25px; line-height: 1.45; }
+.main .welcome-container hr { display: none; }
+.main h2 {
+  color: var(--home-ink);
+  font-size: clamp(34px, 3.4vw, 46px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+
+.main .usp-section { min-height: 0; padding: 84px 0 92px; background: var(--home-soft); }
+.main .usp-container { max-width: 1180px; }
+.main .usp-list { gap: 0; margin-top: 46px; border-top: 1px solid var(--home-line); }
+.main .line-1,
+.main .line-2 { width: 100%; gap: 0; align-items: stretch; }
+.main .usp-item {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 29px 28px 31px;
+  border-right: 1px solid var(--home-line);
+  border-bottom: 1px solid var(--home-line);
+  text-align: left;
+}
+.main .line-1 .usp-item:first-child,
+.main .line-2 .usp-item:first-child { border-left: 1px solid var(--home-line); }
+.main .line-2 { justify-content: center; }
+.main .line-2 .usp-item { max-width: 393px; }
+.main .usp-item-title {
+  min-height: 48px;
+  margin-bottom: 13px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--home-ink);
+  font-size: 18px;
+  text-align: left;
+}
+.main .usp-item-text { color: var(--home-muted); font-size: 16px; line-height: 1.5; text-align: left; }
+
+.main .clients-section { min-height: 0; padding: 92px 20px; background: #fff; }
+.main .clients-container { min-height: 0; max-width: 1100px; padding: 0; background-image: none; }
+.main .clients-list { width: 100%; gap: 0; margin-top: 42px; border-top: 1px solid var(--home-line); }
+.main .clients-item { width: 100%; padding: 28px 24px; border-bottom: 1px solid var(--home-line); }
+.main .clients-item-title { width: 210px; color: var(--home-ink); font-size: 18px; }
+.main .vertical-line { height: 90px; margin: 0 32px; background: var(--home-line); }
+.main .item-text { flex: 1; width: auto; color: var(--home-muted); font-size: 16px; line-height: 1.75; }
+
+.main .pricing-section { min-height: 0; padding: 90px 20px; background: var(--home-soft); }
+.main .pricing-container { max-width: 1180px; }
+.main .pricing-table {
+  margin-top: 42px;
+  overflow: hidden;
+  border: 1px solid var(--home-line);
+  border-radius: 12px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+.main .pricing-table tr { height: 88px; font-size: 18px; }
+.main .pricing-table th { color: var(--home-muted); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.main .pricing-table td { border-top: 1px solid var(--home-line); }
+.main .table-bg { background: #f8fbfe; }
+.main .btn-select { width: 180px; height: 48px; min-height: 48px; padding: 0 20px; background: var(--home-blue); font-size: 15px; }
+
+.main .corporate-access-section { min-height: 0; padding: 84px 20px; background: #fff; }
+.main .corporate-access-container { max-width: 900px; padding: 58px 32px; border: 1px solid var(--home-line); border-radius: 16px; background: #fff; }
+.main .contact-button { width: 230px; height: 54px; margin-top: 12px; background: var(--home-blue); }
+
+.main .faq-section { min-height: 0; padding: 86px 20px 96px; background: var(--home-soft); }
+.main .faq-container { max-width: 1000px; padding: 0; background-image: none; }
+.main .faq-content { margin-top: 30px; border-top: 1px solid var(--home-line); }
+.main .faq-item { padding: 0; border-color: var(--home-line); }
+.main .faq-question { padding: 22px 4px; color: var(--home-ink); font-size: 18px; text-align: left; }
+.main .faq-item:hover { background: transparent; }
+.main .faq-answer { padding: 0 4px 22px; color: var(--home-muted); font-size: 16px; line-height: 1.55; }
+
+.main .cta-section { min-height: 340px; background-color: var(--home-blue); }
+.main .cta-title { color: #fff; }
+.main .btn-demo-cta { width: 190px; height: 54px; color: var(--home-blue); }
+.main .video-section { padding: 88px 20px; }
+.main .video-container { margin: 0; }
+.main .video { overflow: hidden; border-radius: 12px; box-shadow: 0 18px 44px rgba(23,43,63,.12); }
+.main .why-us-section { min-height: 0; padding: 88px 20px; background: var(--home-soft); }
+.main .why-us-btn { color: var(--home-blue); font-size: inherit; }
+.main .why-us-list { margin-top: 26px; }
+.main .why-us-item { color: var(--home-muted); font-size: 18px; line-height: 2; }
+.main .cta-banner { min-height: 340px; background-color: #fff; background-size: cover; }
+.main .cta-banner-title { color: var(--home-blue); font-size: 20px; letter-spacing: .02em; }
+.main .cta-banner-item { color: var(--home-muted); font-size: 18px; }
+
+@media (max-width: 768px) {
+  .main .hero-section { padding: 0; }
+  .main .hero-container { gap: 36px; padding: 54px 20px 48px; }
+  .main h1 { font-size: 36px; }
+  .main .lead-text { font-size: 17px; }
+  .main .hero-buttons { width: 100%; }
+  .main .btn-hero-demo, .main .btn-pricing { flex: 1; width: auto; height: 52px; padding: 0 12px; font-size: 15px; }
+  .main .welcome-section { padding: 58px 20px; }
+  .main .welcome-section .description:first-of-type { font-size: 20px; }
+  .main .usp-section, .main .clients-section, .main .pricing-section, .main .faq-section { padding: 64px 20px; }
+  .main .usp-container, .main .clients-container { padding: 0; }
+  .main .line-1, .main .line-2 { width: 100%; gap: 0; }
+  .main .usp-item, .main .line-2 .usp-item { width: 100%; max-width: none; border-left: 1px solid var(--home-line); }
+  .main .clients-item { padding: 25px 8px; }
+  .main .clients-item-title { margin-bottom: 14px; }
+  .main .pricing-mobile { gap: 14px; }
+  .main .pricing-item { border: 1px solid var(--home-line); border-radius: 12px; background: #fff; }
+  .main .bg-blue { background: #f4f9fd; }
+  .main .corporate-access-section { padding: 64px 20px; }
+  .main .corporate-access-container { padding: 42px 20px; }
+  .main .video-section, .main .why-us-section { padding: 64px 20px; }
+  .main .video { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .main .video iframe { width: 100%; height: 100%; }
+  .main .why-us-item { font-size: 16px; line-height: 1.65; margin-bottom: 10px; }
+}
