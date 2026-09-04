@@ -77,6 +77,21 @@ export async function getUsersCount(): Promise<number> {
     return Number(result[0]?.users_count ?? 0);
 }
 
+/** Resolves an external provider identifier without trusting webhook metadata. */
+export async function getPaymentIdByYookassaPaymentId(
+    yookassaPaymentId: string,
+): Promise<string | null> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+        `SELECT payment_id
+         FROM payments
+         WHERE yookassa_payment_id = ?
+         LIMIT 1`,
+        [yookassaPaymentId],
+    );
+
+    return rows[0] ? String(rows[0].payment_id) : null;
+}
+
 export default class db {
     private static emailVerificationColumnsReady = false;
 
