@@ -57,11 +57,18 @@ export type PaymentDetails = {
     tariffId: string;
     tariffName: string;
     amount: number;
-    status: "pending";
+    status: "creating" | "pending";
+};
+
+export type CreatedPaymentDetails = PaymentDetails & {
+    status: "creating";
+    idempotencyKey: string;
+    orderNumber: string;
+    customerEmail: string;
 };
 
 export type CreatePendingPaymentResult =
-    | { outcome: "created"; payment: PaymentDetails }
+    | { outcome: "created"; payment: CreatedPaymentDetails }
     | { outcome: "already_pending"; payment: PaymentDetails }
     | { outcome: "tariff_not_found" };
 
@@ -338,20 +345,22 @@ export default class db {
 
             // The user always exists for an active session. This stable row is
             // used as a per-user mutex for every payment creation transaction.
-            await trx.query<RowDataPacket[]>(
-                `SELECT user_id FROM users WHERE user_id = ? FOR UPDATE`,
+            const [userRows] = await trx.query<RowDataPacket[]>(
+                `SELECT user_id, login FROM users WHERE user_id = ? FOR UPDATE`,
                 [userId],
             );
+            const customerEmail = String(userRows[0].login);
 
             const [pendingRows] = await trx.query<RowDataPacket[]>(
                 `SELECT
                     p.payment_id,
                     p.tariff_id,
                     p.amount,
+                    p.status,
                     t.title AS tariff_name
                  FROM payments p
                  INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
-                 WHERE p.user_id = ? AND p.status = 'pending'
+                 WHERE p.user_id = ? AND p.status IN ('creating', 'pending')
                  ORDER BY p.created_at DESC
                  LIMIT 1`,
                 [userId],
@@ -361,6 +370,7 @@ export default class db {
                 tariff_id: string;
                 tariff_name: string;
                 amount: number | string;
+                status: "creating" | "pending";
             }) | undefined;
 
             if (pending) {
@@ -372,7 +382,7 @@ export default class db {
                         tariffId: String(pending.tariff_id),
                         tariffName: pending.tariff_name,
                         amount: Number(pending.amount),
-                        status: "pending",
+                        status: pending.status,
                     },
                 };
             }
@@ -392,12 +402,25 @@ export default class db {
                 return { outcome: "tariff_not_found" };
             }
 
+            const idempotencyKey = uuidv4();
+            const [sequenceRows] = await trx.query<RowDataPacket[]>(
+                `SELECT next_value
+                 FROM payment_order_sequence
+                 WHERE sequence_name = 'payments'
+                 FOR UPDATE`,
+            );
+            const orderNumber = String(sequenceRows[0].next_value);
+            await trx.query(
+                `UPDATE payment_order_sequence
+                 SET next_value = next_value + 1
+                 WHERE sequence_name = 'payments'`,
+            );
             await trx.query(
                 `INSERT INTO payments (
-                    user_id, tariff_id, amount, payment_id, status,
+                    user_id, tariff_id, amount, payment_id, status, idempotency_key, order_number,
                     created_at, updated_at
-                 ) VALUES (?, ?, ?, ?, 'pending', UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-                [userId, tariffId, tariff.price, paymentId],
+                 ) VALUES (?, ?, ?, ?, 'creating', ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+                [userId, tariffId, tariff.price, paymentId, idempotencyKey, orderNumber],
             );
             await trx.commit();
 
@@ -408,7 +431,10 @@ export default class db {
                     tariffId: String(tariff.tariff_id),
                     tariffName: tariff.title,
                     amount: Number(tariff.price),
-                    status: "pending",
+                    status: "creating",
+                    idempotencyKey,
+                    orderNumber,
+                    customerEmail,
                 },
             };
         } catch (error) {
@@ -417,6 +443,23 @@ export default class db {
         } finally {
             trx.release();
         }
+    }
+
+    public async markPaymentError(paymentId: string): Promise<void> {
+        await connection.query(
+            `UPDATE payments SET status = 'error', updated_at = UTC_TIMESTAMP()
+             WHERE payment_id = ? AND status = 'creating'`,
+            [paymentId],
+        );
+    }
+
+    public async markPaymentPending(paymentId: string, yookassaPaymentId: string): Promise<void> {
+        await connection.query(
+            `UPDATE payments
+             SET yookassa_payment_id = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
+             WHERE payment_id = ? AND status = 'creating'`,
+            [yookassaPaymentId, paymentId],
+        );
     }
 
     public async createUser(user: User): Promise<void> {

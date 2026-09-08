@@ -3,6 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import db from "@/app/lib/db";
 import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
 import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
+import { notifyPaymentInfrastructureFailure } from "@/app/lib/paymentInfrastructureNotifier";
+import { checkWebhookHealth, createYookassaPayment } from "@/app/lib/yookassaPaymentClient";
+
+const publicError = {
+    error: "PAYMENT_CREATION_FAILED",
+    message: "Произошла ошибка, попробуйте позже",
+};
 
 export async function POST(request: NextRequest) {
     const session = await requireActiveB2cSession("api");
@@ -34,9 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     const paymentId = uuidv4();
-    await logPaymentEvent("payment_create_started", paymentId, null);
+    const database = new db();
 
-    const result = await new db().createPendingPayment(
+    const result = await database.createPendingPayment(
         session.user.id,
         tariffId,
         paymentId,
@@ -50,12 +57,83 @@ export async function POST(request: NextRequest) {
     }
 
     if (result.outcome === "already_pending") {
+        await logPaymentEvent("payment_creation_blocked", result.payment.paymentId, {
+            userId: session.user.id,
+            tariffId,
+            category: "unfinished_payment_exists",
+            status: result.payment.status,
+        });
         return NextResponse.json(
             { code: "PAYMENT_ALREADY_PENDING", payment: result.payment },
             { status: 409 },
         );
     }
 
-    await logPaymentEvent("payment_created", paymentId, null);
-    return NextResponse.json(result.payment, { status: 201 });
+    const context = {
+        userId: session.user.id,
+        tariffId,
+        orderNumber: result.payment.orderNumber,
+    };
+    await logPaymentEvent("payment_create_started", paymentId, context);
+
+    const health = await checkWebhookHealth();
+    if (!health.ok) {
+        await database.markPaymentError(paymentId);
+        await logPaymentEvent("webhook_health_failed", paymentId, { ...context, ...health });
+        await logPaymentEvent("payment_creation_blocked", paymentId, {
+            ...context,
+            category: `webhook_health_${health.category}`,
+        });
+        await notifyPaymentInfrastructureFailure({
+            paymentId,
+            ...context,
+            category: health.category,
+        });
+        return NextResponse.json(
+            { error: "PAYMENT_SERVICE_UNAVAILABLE", message: publicError.message },
+            { status: 503 },
+        );
+    }
+
+    await logPaymentEvent("webhook_health_ok", paymentId, context);
+    await logPaymentEvent("yookassa_create_started", paymentId, context);
+    const yookassa = await createYookassaPayment({
+        amount: result.payment.amount,
+        idempotencyKey: result.payment.idempotencyKey,
+        orderNumber: result.payment.orderNumber,
+        tariffName: result.payment.tariffName,
+        customerEmail: result.payment.customerEmail,
+    });
+
+    if (yookassa.outcome === "created") {
+        await database.markPaymentPending(paymentId, yookassa.id);
+        await logPaymentEvent("yookassa_create_succeeded", paymentId, {
+            ...context,
+            yookassaPaymentId: yookassa.id,
+            status: yookassa.status,
+        });
+        return NextResponse.json({
+            paymentId,
+            status: "pending",
+            confirmationUrl: yookassa.confirmationUrl,
+        }, { status: 201 });
+    }
+
+    if (yookassa.outcome === "rejected") {
+        await database.markPaymentError(paymentId);
+    }
+    await logPaymentEvent("yookassa_create_failed", paymentId, {
+        ...context,
+        httpStatus: yookassa.httpStatus,
+        errorCategory: yookassa.outcome === "ambiguous" ? yookassa.category : "rejected",
+        ...(yookassa.error ?? {}),
+    });
+
+    const unavailable = yookassa.outcome === "rejected" && yookassa.error.code === "configuration_missing";
+    return NextResponse.json(
+        unavailable
+            ? { error: "PAYMENT_SERVICE_UNAVAILABLE", message: publicError.message }
+            : publicError,
+        { status: unavailable ? 503 : 502 },
+    );
 }

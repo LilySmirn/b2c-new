@@ -52,12 +52,15 @@ export default function TariffModal({
             }
 
             if (!response.ok) {
-                setErrorMessage(result.error ?? "Не удалось создать платёж. Попробуйте ещё раз.");
+                setErrorMessage(result.message ?? "Произошла ошибка, попробуйте позже");
                 return;
             }
 
-            window.dispatchEvent(new CustomEvent("payment-created", { detail: result }));
-            setIsOpen(false);
+            if (typeof result.confirmationUrl !== "string" || !result.confirmationUrl) {
+                setErrorMessage("Произошла ошибка, попробуйте позже");
+                return;
+            }
+            window.location.assign(result.confirmationUrl);
         } catch {
             setErrorMessage("Не удалось создать платёж. Проверьте соединение и попробуйте ещё раз.");
         } finally {
