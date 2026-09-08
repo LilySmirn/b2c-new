@@ -1,10 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
-import type { FinalPaymentStatus } from "@/app/lib/processPaymentStatus";
-
 export type InternalPaymentStatusInput = {
     yookassaPaymentId: string;
-    status: FinalPaymentStatus;
-    cancellationReason: string | null;
+    event: string | null;
 };
 
 export function hasValidInternalSecret(authorization: string | null, secret: string | undefined): boolean {
@@ -20,17 +17,10 @@ export function parseInternalPaymentStatus(body: unknown): InternalPaymentStatus
     const yookassaPaymentId = typeof fields.yookassaPaymentId === "string"
         ? fields.yookassaPaymentId.trim()
         : "";
-    if (!yookassaPaymentId || (fields.status !== "succeeded" && fields.status !== "canceled")) {
-        return null;
-    }
-    const cancellationReason = typeof fields.cancellationReason === "string"
-        ? fields.cancellationReason.trim()
-        : "";
-    if (fields.status === "canceled" && !cancellationReason) return null;
+    if (!yookassaPaymentId) return null;
 
     return {
         yookassaPaymentId,
-        status: fields.status,
-        cancellationReason: fields.status === "canceled" ? cancellationReason : null,
+        event: typeof fields.event === "string" ? fields.event : null,
     };
 }

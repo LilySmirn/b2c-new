@@ -99,6 +99,24 @@ export async function getPaymentIdByYookassaPaymentId(
     return rows[0] ? String(rows[0].payment_id) : null;
 }
 
+export type ProviderPaymentContext = {
+    paymentId: string; yookassaPaymentId: string; userId: string; tariffId: string;
+    amount: string; orderNumber: string | null;
+};
+
+export async function getProviderPaymentContext(yookassaPaymentId: string): Promise<ProviderPaymentContext | null> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+        `SELECT payment_id, yookassa_payment_id, user_id, tariff_id, amount, order_number
+         FROM payments WHERE yookassa_payment_id = ? LIMIT 1`, [yookassaPaymentId],
+    );
+    const row = rows[0];
+    return row ? {
+        paymentId: String(row.payment_id), yookassaPaymentId: String(row.yookassa_payment_id),
+        userId: String(row.user_id), tariffId: String(row.tariff_id), amount: String(row.amount),
+        orderNumber: row.order_number == null ? null : String(row.order_number),
+    } : null;
+}
+
 export default class db {
     private static emailVerificationColumnsReady = false;
 

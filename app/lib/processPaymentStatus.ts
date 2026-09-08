@@ -40,9 +40,6 @@ type SubscriptionRow = RowDataPacket & {
 export async function processPaymentStatus(
     input: ProcessPaymentStatusInput,
 ): Promise<ProcessPaymentStatusResult | null> {
-    if (input.status === "canceled" && !input.cancellationReason) {
-        throw new Error("cancellationReason is required for a canceled payment");
-    }
 
     const trx = await pool.getConnection();
 
@@ -85,13 +82,12 @@ export async function processPaymentStatus(
             return null;
         }
 
-        // A succeeded payment is immutable: otherwise succeeded -> canceled ->
-        // succeeded could grant the same payment twice.
-        if (payment.status === "succeeded") {
+        // Both YooKassa final states are immutable.
+        if (payment.status === "succeeded" || payment.status === "canceled") {
             await trx.commit();
             return {
                 paymentId: String(payment.payment_id),
-                status: "succeeded",
+                status: payment.status,
                 cancellationReason: null,
                 subscriptionChanged: false,
                 alreadyProcessed: true,

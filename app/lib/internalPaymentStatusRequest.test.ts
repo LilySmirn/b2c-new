@@ -9,13 +9,12 @@ test("internal authorization accepts only the configured bearer secret", () => {
     assert.equal(hasValidInternalSecret("Bearer right", undefined), false);
 });
 
-test("internal payload accepts only provider id and final statuses", () => {
+test("internal payload accepts a provider id and does not trust a supplied status", () => {
     assert.deepEqual(parseInternalPaymentStatus({ yookassaPaymentId: " yk-1 ", status: "succeeded", userId: "ignored" }), {
-        yookassaPaymentId: "yk-1", status: "succeeded", cancellationReason: null,
+        yookassaPaymentId: "yk-1", event: null,
     });
-    assert.deepEqual(parseInternalPaymentStatus({ yookassaPaymentId: "yk-2", status: "canceled", cancellationReason: "expired" }), {
-        yookassaPaymentId: "yk-2", status: "canceled", cancellationReason: "expired",
+    assert.deepEqual(parseInternalPaymentStatus({ yookassaPaymentId: "yk-2", event: "payment.canceled" }), {
+        yookassaPaymentId: "yk-2", event: "payment.canceled",
     });
-    assert.equal(parseInternalPaymentStatus({ yookassaPaymentId: "yk-2", status: "canceled" }), null);
-    assert.equal(parseInternalPaymentStatus({ yookassaPaymentId: "yk-2", status: "pending" }), null);
+    assert.equal(parseInternalPaymentStatus({ status: "succeeded" }), null);
 });

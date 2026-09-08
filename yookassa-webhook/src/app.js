@@ -3,13 +3,10 @@ import { timingSafeEqual } from "node:crypto";
 
 const MAX_BODY_BYTES = 64 * 1024;
 const UPSTREAM_TIMEOUT_MS = 5_000;
-const supportedEvents = new Map([
-    ["payment.succeeded", "succeeded"],
-    ["payment.canceled", "canceled"],
-]);
+const supportedEvents = new Set(["payment.succeeded", "payment.canceled"]);
 
 function log(fields) {
-    process.stdout.write(`${JSON.stringify({ timestamp: new Date().toISOString(), ...fields })}\n`);
+    process.stdout.write(`${JSON.stringify({ timestamp: new Date().toISOString(), event: null, yookassaPaymentId: null, result: null, httpStatus: null, errorCategory: null, ...fields })}\n`);
 }
 
 function sendJson(response, status, body) {
@@ -48,12 +45,7 @@ function parseNotification(body) {
         ? object.id.trim()
         : "";
     if (!yookassaPaymentId) return null;
-    const reason = object.cancellation_details && typeof object.cancellation_details === "object" &&
-        typeof object.cancellation_details.reason === "string"
-        ? object.cancellation_details.reason.trim()
-        : "";
-    if (event === "payment.canceled" && !reason) return null;
-    return { event, supported: true, yookassaPaymentId, status: supportedEvents.get(event), cancellationReason: reason || null };
+    return { event, supported: true, yookassaPaymentId };
 }
 
 function validateConfig(config) {
@@ -105,10 +97,9 @@ export function createWebhookServer(config, dependencies = {}) {
             return sendJson(response, 200, { ok: true, ignored: true });
         }
 
-        const { event, yookassaPaymentId, status, cancellationReason } = notification;
+        const { event, yookassaPaymentId } = notification;
         log({ event, yookassaPaymentId, result: "received" });
-        const payload = { yookassaPaymentId, status };
-        if (status === "canceled") payload.cancellationReason = cancellationReason;
+        const payload = { yookassaPaymentId, event };
 
         try {
             const upstream = await fetchImpl(
@@ -124,17 +115,13 @@ export function createWebhookServer(config, dependencies = {}) {
                 log({ event, yookassaPaymentId, result: "processed", httpStatus: upstream.status });
                 return sendJson(response, 200, { ok: true });
             }
-            if (upstream.status === 400 || upstream.status === 404) {
-                log({ event, yookassaPaymentId, result: "permanent_rejection", errorCategory: upstream.status === 404 ? "payment_not_found" : "invalid_request", httpStatus: upstream.status });
-                return sendJson(response, 200, { ok: true, ignored: true });
-            }
             const configurationError = upstream.status === 401 || upstream.status === 403;
             log({ event, yookassaPaymentId, errorCategory: configurationError ? "invalid_configuration" : "upstream_error", httpStatus: upstream.status });
             return sendJson(response, 502, { error: "Upstream processing failed" });
         } catch (error) {
             const timedOut = error?.name === "TimeoutError" || error?.name === "AbortError";
             const statusCode = timedOut ? 504 : 502;
-            log({ event, yookassaPaymentId, errorCategory: timedOut ? "upstream_timeout" : "upstream_network_error", httpStatus: statusCode });
+            log({ event, yookassaPaymentId, result: "failed", errorCategory: timedOut ? "upstream_timeout" : "upstream_network_error", httpStatus: statusCode });
             return sendJson(response, statusCode, { error: "Upstream unavailable" });
         }
     });

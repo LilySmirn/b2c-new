@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPaymentIdByYookassaPaymentId } from "@/app/lib/db";
+import { getProviderPaymentContext } from "@/app/lib/db";
 import {
     hasValidInternalSecret,
     parseInternalPaymentStatus,
 } from "@/app/lib/internalPaymentStatusRequest";
 import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
 import { processPaymentStatus } from "@/app/lib/processPaymentStatus";
+import { finalStatusToProcess, getYookassaPayment, paymentIntegrityError } from "@/app/lib/yookassaStatusClient";
 
 export async function POST(request: NextRequest) {
     if (!hasValidInternalSecret(request.headers.get("authorization"), process.env.PAYMENT_INTERNAL_SECRET)) {
@@ -24,27 +25,46 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ code: "INVALID_REQUEST", error: "Invalid payment status payload" }, { status: 400 });
     }
 
-    const paymentId = await getPaymentIdByYookassaPaymentId(input.yookassaPaymentId);
-    if (!paymentId) {
+    await logPaymentEvent("yookassa_webhook_received", null, { yookassaPaymentId: input.yookassaPaymentId, event: input.event });
+    const local = await getProviderPaymentContext(input.yookassaPaymentId);
+    if (!local) {
         await logPaymentEvent("provider_payment_not_found", null, {
             yookassaPaymentId: input.yookassaPaymentId,
-            status: input.status,
         });
         return NextResponse.json({ code: "PAYMENT_NOT_FOUND", error: "Payment not found" }, { status: 404 });
     }
 
+    const paymentId = local.paymentId;
+    const context = { paymentId, yookassaPaymentId: local.yookassaPaymentId, userId: local.userId, tariffId: local.tariffId, orderNumber: local.orderNumber };
+    await logPaymentEvent("yookassa_status_check_started", paymentId, context);
+    const checked = await getYookassaPayment(input.yookassaPaymentId);
+    if (checked.outcome === "error") {
+        await logPaymentEvent("yookassa_status_check_failed", paymentId, { ...context, errorCategory: checked.category, httpStatus: checked.httpStatus });
+        return NextResponse.json({ code: "PROVIDER_CHECK_FAILED", error: "Provider verification unavailable" }, { status: 502 });
+    }
+    const providerStatus = checked.payment.status;
+    await logPaymentEvent("yookassa_status_check_succeeded", paymentId, { ...context, providerStatus });
+    const mismatch = paymentIntegrityError(local, checked.payment);
+    if (mismatch) {
+        await logPaymentEvent("yookassa_payment_integrity_failed", paymentId, { ...context, providerStatus, errorCategory: mismatch });
+        return NextResponse.json({ code: "PAYMENT_INTEGRITY_FAILED", error: "Payment integrity verification failed" }, { status: 503 });
+    }
+    const finalStatus = finalStatusToProcess(providerStatus);
+    if (!finalStatus) {
+        return NextResponse.json({ paymentId, status: providerStatus, processed: false });
+    }
     const payment = await processPaymentStatus({
         paymentId,
-        status: input.status,
-        cancellationReason: input.cancellationReason,
+        status: finalStatus,
+        cancellationReason: checked.payment.cancellation_details?.reason ?? null,
     });
     if (!payment) {
         return NextResponse.json({ code: "PAYMENT_NOT_FOUND", error: "Payment not found" }, { status: 404 });
     }
 
-    await logPaymentEvent("internal_payment_status_processed", paymentId, {
+    await logPaymentEvent("payment_status_processed", paymentId, {
         yookassaPaymentId: input.yookassaPaymentId,
-        status: payment.status,
+        providerStatus,
         alreadyProcessed: payment.alreadyProcessed,
         subscriptionChanged: payment.subscriptionChanged,
     });

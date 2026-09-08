@@ -19,7 +19,7 @@ test("health requires its own bearer secret", async () => withServer(fetch, asyn
     assert.deepEqual(await response.json(), { ok: true });
 }));
 
-test("forwards succeeded and canceled using only provider fields", async () => {
+test("forwards only the provider id and an untrusted event hint", async () => {
     const forwarded = [];
     await withServer(async (url, options) => {
         forwarded.push({ url: String(url), options });
@@ -31,16 +31,16 @@ test("forwards succeeded and canceled using only provider fields", async () => {
             { event: "payment.canceled", object: { id: "yk-2", cancellation_details: { reason: "expired_on_confirmation" } } },
         ]) assert.equal((await fetch(`${base}/yookassa/webhook`, { method: "POST", body: JSON.stringify(body) })).status, 200);
     });
-    assert.deepEqual(JSON.parse(forwarded[0].options.body), { yookassaPaymentId: "yk-1", status: "succeeded" });
-    assert.deepEqual(JSON.parse(forwarded[1].options.body), { yookassaPaymentId: "yk-1", status: "succeeded" });
-    assert.deepEqual(JSON.parse(forwarded[2].options.body), { yookassaPaymentId: "yk-2", status: "canceled", cancellationReason: "expired_on_confirmation" });
+    assert.deepEqual(JSON.parse(forwarded[0].options.body), { yookassaPaymentId: "yk-1", event: "payment.succeeded" });
+    assert.deepEqual(JSON.parse(forwarded[1].options.body), { yookassaPaymentId: "yk-1", event: "payment.succeeded" });
+    assert.deepEqual(JSON.parse(forwarded[2].options.body), { yookassaPaymentId: "yk-2", event: "payment.canceled" });
     assert.equal(forwarded[0].options.headers.authorization, "Bearer internal-secret");
 });
 
-test("acknowledges permanent errors and unsupported events", async () => {
+test("does not acknowledge B2C verification errors but ignores unsupported events", async () => {
     await withServer(async () => new Response("{}", { status: 404 }), async (base) => {
         const unknown = await fetch(`${base}/yookassa/webhook`, { method: "POST", body: JSON.stringify({ event: "payment.succeeded", object: { id: "missing" } }) });
-        assert.equal(unknown.status, 200);
+        assert.equal(unknown.status, 502);
         const unsupported = await fetch(`${base}/yookassa/webhook`, { method: "POST", body: JSON.stringify({ event: "refund.succeeded", object: { id: "refund" } }) });
         assert.equal(unsupported.status, 200);
     });
@@ -53,7 +53,7 @@ test("returns non-2xx when B2C is unavailable", async () => {
     });
 });
 
-test("rejects malformed relevant notifications", async () => withServer(fetch, async (base) => {
+test("rejects malformed relevant notifications without requiring provider status fields", async () => withServer(async () => new Response("{}", { status: 200 }), async (base) => {
     assert.equal((await fetch(`${base}/yookassa/webhook`, { method: "POST", body: "{" })).status, 400);
-    assert.equal((await fetch(`${base}/yookassa/webhook`, { method: "POST", body: JSON.stringify({ event: "payment.canceled", object: { id: "yk" } }) })).status, 400);
+    assert.equal((await fetch(`${base}/yookassa/webhook`, { method: "POST", body: JSON.stringify({ event: "payment.canceled", object: { id: "yk" } }) })).status, 200);
 }));
