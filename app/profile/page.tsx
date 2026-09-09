@@ -10,6 +10,8 @@ import SubscriptionExpirationPopup from "@/app/components/SubscriptionExpiration
 import { getDaysUntilExpiration, type SubscriptionReminder } from "@/app/lib/subscriptionReminder";
 import PaymentStateNotice from "./PaymentStateNotice";
 
+const SHOW_AUTO_RENEWAL = false;
+
 export default async function AccountPage() {
 
     //ошибка для теста
@@ -128,16 +130,18 @@ export default async function AccountPage() {
                                             </div>
                                         </div>
 
-                                        <div className={styles.infoBoxAuto}>
-                                            <div
-                                                className={`${styles.infoBoxTitle} ${styles.infoBoxTitleAuto}`}>Автопродление:
+                                        {SHOW_AUTO_RENEWAL && (
+                                            <div className={styles.infoBoxAuto}>
+                                                <div
+                                                    className={`${styles.infoBoxTitle} ${styles.infoBoxTitleAuto}`}>Автопродление:
+                                                </div>
+                                                <div className={styles.infoBoxSwitch}>
+                                                    <AutoRenewToggle userId={session.user.id}
+                                                                     subscriptionId={latestSubscription?.id ?? null}
+                                                                     subscriptionRenewalStatus={latestSubscription?.is_auto_renewal ?? false}/>
+                                                </div>
                                             </div>
-                                            <div className={styles.infoBoxSwitch}>
-                                                <AutoRenewToggle userId={session.user.id}
-                                                                 subscriptionId={latestSubscription?.id ?? null}
-                                                                 subscriptionRenewalStatus={latestSubscription?.is_auto_renewal ?? false}/>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
 
                                     <PaymentStateNotice />
@@ -156,7 +160,7 @@ export default async function AccountPage() {
                             </div>
 
                             <div>
-                                <Link href="http://klinicheskie-rekomendatsii.ru/" className={styles.open}>Открыть справочник</Link>
+                                <Link href="/mkb" className={styles.open}>Открыть справочник</Link>
                             </div>
 
                             {/*<div className={styles.desktopIconDiv}>*/}
