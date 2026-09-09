@@ -109,20 +109,35 @@ export async function getPaymentIdByYookassaPaymentId(
 
 export type ProviderPaymentContext = {
     paymentId: string; yookassaPaymentId: string; userId: string; tariffId: string;
-    amount: string; orderNumber: string | null; status: string;
+    amount: string; orderNumber: string | null; status: string; userLabel: string; tariffTitle: string | null;
 };
 
 export async function getProviderPaymentContext(yookassaPaymentId: string): Promise<ProviderPaymentContext | null> {
     const [rows] = await pool.query<RowDataPacket[]>(
-        `SELECT payment_id, yookassa_payment_id, user_id, tariff_id, amount, order_number, status
-         FROM payments WHERE yookassa_payment_id = ? LIMIT 1`, [yookassaPaymentId],
+        `SELECT p.payment_id, p.yookassa_payment_id, p.user_id, p.tariff_id, p.amount,
+                p.order_number, p.status, u.login AS user_label, t.title AS tariff_title
+         FROM payments p
+         LEFT JOIN users u ON u.user_id = p.user_id
+         LEFT JOIN tariffs t ON t.tariff_id = p.tariff_id
+         WHERE p.yookassa_payment_id = ? LIMIT 1`, [yookassaPaymentId],
     );
     const row = rows[0];
     return row ? {
         paymentId: String(row.payment_id), yookassaPaymentId: String(row.yookassa_payment_id),
         userId: String(row.user_id), tariffId: String(row.tariff_id), amount: String(row.amount),
         orderNumber: row.order_number == null ? null : String(row.order_number), status: String(row.status),
+        userLabel: row.user_label == null ? String(row.user_id) : String(row.user_label),
+        tariffTitle: row.tariff_title == null ? null : String(row.tariff_title),
     } : null;
+}
+
+export async function getLatestSubscriptionExpiration(userId: string): Promise<Date | string | null> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+        `SELECT expiration_date FROM subscriptions
+         WHERE user_id = ? ORDER BY expiration_date DESC LIMIT 1`,
+        [userId],
+    );
+    return rows[0]?.expiration_date ?? null;
 }
 
 export default class db {
