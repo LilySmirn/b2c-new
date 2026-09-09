@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import db from "@/app/lib/db";
+import db, { getTariffPrice } from "@/app/lib/db";
 import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
 import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 import { notifyPaymentInfrastructureFailure } from "@/app/lib/paymentInfrastructureNotifier";
@@ -43,6 +43,31 @@ export async function POST(request: NextRequest) {
     const paymentId = uuidv4();
     const database = new db();
 
+    // Validate the requested tariff before checking payment infrastructure. Its
+    // price is still read exclusively from tariffs in the creation transaction.
+    const tariffPrice = await getTariffPrice(tariffId);
+    if (tariffPrice === null) {
+        return NextResponse.json(
+            { code: "TARIFF_NOT_FOUND", error: "Tariff not found" },
+            { status: 404 },
+        );
+    }
+
+    const health = await checkWebhookHealth();
+    if (!health.ok) {
+        const context = { userId: session.user.id, tariffId };
+        await logPaymentEvent("webhook_health_failed", paymentId, { ...context, ...health });
+        await logPaymentEvent("payment_creation_blocked", paymentId, {
+            ...context,
+            category: `webhook_health_${health.category}`,
+        });
+        await notifyPaymentInfrastructureFailure({ paymentId, ...context, category: health.category });
+        return NextResponse.json(
+            { error: "PAYMENT_SERVICE_UNAVAILABLE", message: publicError.message },
+            { status: 503 },
+        );
+    }
+
     const result = await database.createPendingPayment(
         session.user.id,
         tariffId,
@@ -76,25 +101,6 @@ export async function POST(request: NextRequest) {
     };
     await logPaymentEvent("payment_create_started", paymentId, context);
 
-    const health = await checkWebhookHealth();
-    if (!health.ok) {
-        await database.markPaymentError(paymentId);
-        await logPaymentEvent("webhook_health_failed", paymentId, { ...context, ...health });
-        await logPaymentEvent("payment_creation_blocked", paymentId, {
-            ...context,
-            category: `webhook_health_${health.category}`,
-        });
-        await notifyPaymentInfrastructureFailure({
-            paymentId,
-            ...context,
-            category: health.category,
-        });
-        return NextResponse.json(
-            { error: "PAYMENT_SERVICE_UNAVAILABLE", message: publicError.message },
-            { status: 503 },
-        );
-    }
-
     await logPaymentEvent("webhook_health_ok", paymentId, context);
     await logPaymentEvent("yookassa_create_started", paymentId, context);
     const yookassa = await createYookassaPayment({
@@ -106,7 +112,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (yookassa.outcome === "created") {
-        await database.markPaymentPending(paymentId, yookassa.id);
+        await database.markPaymentCheckoutCreated(paymentId, yookassa.id);
         await logPaymentEvent("yookassa_create_succeeded", paymentId, {
             ...context,
             yookassaPaymentId: yookassa.id,
@@ -114,7 +120,8 @@ export async function POST(request: NextRequest) {
         });
         return NextResponse.json({
             paymentId,
-            status: "pending",
+            status: "creating",
+            tariffName: result.payment.tariffName,
             confirmationUrl: yookassa.confirmationUrl,
         }, { status: 201 });
     }

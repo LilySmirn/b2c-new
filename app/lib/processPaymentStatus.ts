@@ -8,6 +8,7 @@ export type ProcessPaymentStatusInput = {
     paymentId: string;
     status: FinalPaymentStatus;
     cancellationReason?: string | null;
+    cancellationParty?: string | null;
 };
 
 export type ProcessPaymentStatusResult = {
@@ -102,9 +103,9 @@ export async function processPaymentStatus(
                      updated_at = UTC_TIMESTAMP(),
                      canceled_at = UTC_TIMESTAMP(),
                      cancellation_reason = ?,
-                     cancellation_party = NULL
+                     cancellation_party = ?
                  WHERE payment_id = ?`,
-                [input.cancellationReason, input.paymentId],
+                [input.cancellationReason, input.cancellationParty ?? null, input.paymentId],
             );
             await trx.commit();
             return {

@@ -6,12 +6,14 @@ import styles from "./profile.module.css";
 
 type PaymentState =
     | { state: "normal" }
+    | { state: "creating"; paymentId: string; tariffName: string }
     | { state: "pending"; paymentId: string; tariffName: string }
+    | { state: "succeeded"; tariffName: string }
     | { state: "canceled"; tariffName: string; cancellationReason: string | null };
 
 type PaymentStatus = {
     paymentId: string;
-    status: "pending" | "succeeded" | "canceled";
+    status: "creating" | "pending" | "succeeded" | "canceled";
     tariffId: string;
     tariffName: string;
     cancellationReason?: string | null;
@@ -36,6 +38,19 @@ export default function PaymentStateNotice() {
 
     useEffect(() => {
         const controller = new AbortController();
+
+        const stored = sessionStorage.getItem("currentPayment");
+        if (stored) {
+            try {
+                const candidate = JSON.parse(stored) as { paymentId?: unknown; tariffName?: unknown };
+                if (typeof candidate.paymentId === "string" && typeof candidate.tariffName === "string") {
+                    setPayment({ state: "creating", paymentId: candidate.paymentId, tariffName: candidate.tariffName });
+                    return () => controller.abort();
+                }
+            } catch {
+                sessionStorage.removeItem("currentPayment");
+            }
+        }
 
         fetch("/api/payments/current", { signal: controller.signal })
             .then((response) => response.ok ? response.json() : { state: "normal" })
@@ -64,7 +79,7 @@ export default function PaymentStateNotice() {
     }, []);
 
     useEffect(() => {
-        if (payment.state !== "pending") {
+        if (payment.state !== "pending" && payment.state !== "creating") {
             return;
         }
 
@@ -117,8 +132,18 @@ export default function PaymentStateNotice() {
                 }
 
                 const status = await response.json() as PaymentStatus;
+                if (status.status === "pending" && payment.state === "creating") {
+                    setPayment({
+                        state: "pending",
+                        paymentId: status.paymentId,
+                        tariffName: status.tariffName,
+                    });
+                    scheduleNext();
+                    return;
+                }
                 if (status.status === "succeeded") {
-                    setPayment({ state: "normal" });
+                    sessionStorage.removeItem("currentPayment");
+                    setPayment({ state: "succeeded", tariffName: status.tariffName });
                     // Re-render server components from the subscription in DB;
                     // the payment response itself is never used as tariff state.
                     router.refresh();
@@ -127,6 +152,7 @@ export default function PaymentStateNotice() {
                 }
 
                 if (status.status === "canceled") {
+                    sessionStorage.removeItem("currentPayment");
                     setPayment({
                         state: "canceled",
                         tariffName: status.tariffName,
@@ -146,16 +172,24 @@ export default function PaymentStateNotice() {
 
         scheduleNext();
         return stop;
-    }, [payment.state === "pending" ? payment.paymentId : null, router]);
+    }, [payment.state === "pending" || payment.state === "creating" ? payment.paymentId : null, router]);
 
-    if (payment.state === "normal") {
+    if (payment.state === "normal" || payment.state === "creating") {
         return null;
     }
 
     if (payment.state === "pending") {
         return (
             <div className={`${styles.paymentNotice} ${styles.paymentNoticePending}`} role="status">
-                Платёж тарифа «{payment.tariffName}» обрабатывается
+                Ваш платёж в обработке
+            </div>
+        );
+    }
+
+    if (payment.state === "succeeded") {
+        return (
+            <div className={`${styles.paymentNotice} ${styles.paymentNoticeSucceeded}`} role="status">
+                Вы успешно купили тариф „{payment.tariffName}“
             </div>
         );
     }

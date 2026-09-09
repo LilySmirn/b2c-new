@@ -2,7 +2,9 @@ import { createServer } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 
 const MAX_BODY_BYTES = 64 * 1024;
-const UPSTREAM_TIMEOUT_MS = 5_000;
+// B2C performs an authoritative YooKassa request with a 10-second timeout.
+// Leave enough time for that verification and the following DB transaction.
+const UPSTREAM_TIMEOUT_MS = 15_000;
 const supportedEvents = new Set(["payment.succeeded", "payment.canceled"]);
 
 function log(fields) {

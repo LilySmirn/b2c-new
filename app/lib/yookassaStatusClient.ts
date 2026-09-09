@@ -4,7 +4,7 @@ export type ProviderPayment = {
     id: string; status: string;
     amount?: { value?: string; currency?: string };
     metadata?: { order_id?: unknown };
-    cancellation_details?: { reason?: string };
+    cancellation_details?: { reason?: string; party?: string };
 };
 
 export type ProviderStatusResult =

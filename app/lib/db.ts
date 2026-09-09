@@ -48,7 +48,7 @@ export type PaymentStatus = {
     paymentId: string;
     tariffId: string;
     tariffName: string;
-    status: "pending" | "succeeded" | "canceled";
+    status: "creating" | "pending" | "succeeded" | "canceled";
     cancellationReason: string | null;
 };
 
@@ -71,6 +71,14 @@ export type CreatePendingPaymentResult =
     | { outcome: "created"; payment: CreatedPaymentDetails }
     | { outcome: "already_pending"; payment: PaymentDetails }
     | { outcome: "tariff_not_found" };
+
+export async function getTariffPrice(tariffId: string): Promise<number | null> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+        `SELECT price FROM tariffs WHERE tariff_id = ? LIMIT 1`,
+        [tariffId],
+    );
+    return rows[0] ? Number(rows[0].price) : null;
+}
 
 export async function checkDatabaseConnection(): Promise<boolean> {
     const [rows] = await pool.query('SELECT 1 AS ok');
@@ -101,19 +109,19 @@ export async function getPaymentIdByYookassaPaymentId(
 
 export type ProviderPaymentContext = {
     paymentId: string; yookassaPaymentId: string; userId: string; tariffId: string;
-    amount: string; orderNumber: string | null;
+    amount: string; orderNumber: string | null; status: string;
 };
 
 export async function getProviderPaymentContext(yookassaPaymentId: string): Promise<ProviderPaymentContext | null> {
     const [rows] = await pool.query<RowDataPacket[]>(
-        `SELECT payment_id, yookassa_payment_id, user_id, tariff_id, amount, order_number
+        `SELECT payment_id, yookassa_payment_id, user_id, tariff_id, amount, order_number, status
          FROM payments WHERE yookassa_payment_id = ? LIMIT 1`, [yookassaPaymentId],
     );
     const row = rows[0];
     return row ? {
         paymentId: String(row.payment_id), yookassaPaymentId: String(row.yookassa_payment_id),
         userId: String(row.user_id), tariffId: String(row.tariff_id), amount: String(row.amount),
-        orderNumber: row.order_number == null ? null : String(row.order_number),
+        orderNumber: row.order_number == null ? null : String(row.order_number), status: String(row.status),
     } : null;
 }
 
@@ -378,7 +386,7 @@ export default class db {
                     t.title AS tariff_name
                  FROM payments p
                  INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
-                 WHERE p.user_id = ? AND p.status IN ('creating', 'pending')
+                 WHERE p.user_id = ? AND p.status = 'pending'
                  ORDER BY p.created_at DESC
                  LIMIT 1`,
                 [userId],
@@ -388,7 +396,7 @@ export default class db {
                 tariff_id: string;
                 tariff_name: string;
                 amount: number | string;
-                status: "creating" | "pending";
+                status: "pending";
             }) | undefined;
 
             if (pending) {
@@ -471,12 +479,20 @@ export default class db {
         );
     }
 
-    public async markPaymentPending(paymentId: string, yookassaPaymentId: string): Promise<void> {
+    public async markPaymentCheckoutCreated(paymentId: string, yookassaPaymentId: string): Promise<void> {
         await connection.query(
             `UPDATE payments
-             SET yookassa_payment_id = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
+             SET yookassa_payment_id = ?, updated_at = UTC_TIMESTAMP()
              WHERE payment_id = ? AND status = 'creating'`,
             [yookassaPaymentId, paymentId],
+        );
+    }
+
+    public async markPaymentPending(paymentId: string): Promise<void> {
+        await connection.query(
+            `UPDATE payments SET status = 'pending', updated_at = UTC_TIMESTAMP()
+             WHERE payment_id = ? AND status = 'creating'`,
+            [paymentId],
         );
     }
 

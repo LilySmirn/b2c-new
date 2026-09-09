@@ -60,6 +60,10 @@ export default function TariffModal({
                 setErrorMessage("Произошла ошибка, попробуйте позже");
                 return;
             }
+            sessionStorage.setItem("currentPayment", JSON.stringify({
+                paymentId: result.paymentId,
+                tariffName: result.tariffName,
+            }));
             window.location.assign(result.confirmationUrl);
         } catch {
             setErrorMessage("Не удалось создать платёж. Проверьте соединение и попробуйте ещё раз.");

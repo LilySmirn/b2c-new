@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProviderPaymentContext } from "@/app/lib/db";
+import db, { getProviderPaymentContext } from "@/app/lib/db";
 import {
     hasValidInternalSecret,
     parseInternalPaymentStatus,
@@ -53,10 +53,21 @@ export async function POST(request: NextRequest) {
     if (!finalStatus) {
         return NextResponse.json({ paymentId, status: providerStatus, processed: false });
     }
+    // A checkout only becomes a genuinely processing purchase once YooKassa's
+    // authoritative API reports success. processPaymentStatus remains the sole
+    // owner of subscription mutation and the final succeeded transition.
+    if (finalStatus === "succeeded") {
+        if (local.status === "canceled" || local.status === "error") {
+            return NextResponse.json({ paymentId, status: local.status, processed: false });
+        }
+        await new db().markPaymentPending(paymentId);
+    }
+
     const payment = await processPaymentStatus({
         paymentId,
         status: finalStatus,
         cancellationReason: checked.payment.cancellation_details?.reason ?? null,
+        cancellationParty: checked.payment.cancellation_details?.party ?? null,
     });
     if (!payment) {
         return NextResponse.json({ code: "PAYMENT_NOT_FOUND", error: "Payment not found" }, { status: 404 });
