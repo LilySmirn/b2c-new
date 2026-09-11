@@ -55,6 +55,16 @@ export async function reserveB2cMkbRequest(userId: string): Promise<DemoMkbAcces
         await trx.beginTransaction();
 
         if (await hasActiveSubscription(userId, trx)) {
+            // Paid requests do not consume demo access. Clear only the reusable
+            // demo counter so a subsequently deleted subscription cannot expose
+            // the counter from before it was purchased. Historical usage stays
+            // intact in total_count.
+            await trx.query(
+                `UPDATE user_requests
+                 SET current_count = 0
+                 WHERE user_id = ?`,
+                [userId],
+            );
             await trx.commit();
             return { allowed: true, hasActiveSubscription: true };
         }
@@ -69,14 +79,22 @@ export async function reserveB2cMkbRequest(userId: string): Promise<DemoMkbAcces
 
         const [rows] = await trx.query<RowDataPacket[]>(
             `SELECT current_count,
-                    last_request IS NOT NULL AND DATE(last_request) = CURRENT_DATE() AS requested_today
+                    last_request IS NOT NULL
+                        AND DATE(last_request) = CURRENT_DATE()
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM subscriptions
+                            WHERE user_id = user_requests.user_id
+                              AND expiration_date <= NOW()
+                              AND expiration_date >= user_requests.last_request
+                        ) AS requested_in_current_demo_period_today
              FROM user_requests
              WHERE user_id = ?
              FOR UPDATE`,
             [userId],
         );
         const row = rows[0];
-        const currentCount = Number(row?.requested_today) === 1
+        const currentCount = Number(row?.requested_in_current_demo_period_today) === 1
             ? Number(row.current_count)
             : 0;
 

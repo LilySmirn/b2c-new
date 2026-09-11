@@ -2,6 +2,7 @@
 
 import { type FocusEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import SearchBar from "../components/SearchBar";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Filters from "../components/Filters";
@@ -702,7 +703,14 @@ export default function SearchPreviewPage() {
                   <LoadingSpinner>Загружаем клинические рекомендации...</LoadingSpinner>
                 </p>
               ) : cardsError ? (
-                <p className={styles.recommendationsMessage}>{cardsError}</p>
+                cardsError === DEMO_LIMIT_MESSAGE ? (
+                  <p className={styles.demoLimitMessage} role="alert">
+                    Бесплатные 5 запросов на сегодня закончились. Для снятия ограничения{" "}
+                    <Link href="/profile">приобретите подписку</Link>.
+                  </p>
+                ) : (
+                  <p className={styles.recommendationsMessage}>{cardsError}</p>
+                )
               ) : recommendationCards.length > 0 ? (
                 <div className={styles.recommendationsGrid}>
                   {recommendationCards.map((card) => (
