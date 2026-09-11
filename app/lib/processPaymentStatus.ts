@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
-import type { RowDataPacket } from "mysql2/promise";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { pool } from "@/app/lib/db";
+import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
 
 export type FinalPaymentStatus = "succeeded" | "canceled";
 
@@ -34,6 +35,33 @@ type SubscriptionRow = RowDataPacket & {
     id: string;
 };
 
+async function verifyCommittedPaymentStatus(
+    paymentId: string,
+    expectedStatus: FinalPaymentStatus,
+): Promise<void> {
+    // Deliberately use the pool rather than trx: this read must happen on a
+    // different checkout, after commit, so it verifies what other requests see.
+    const [rows] = await pool.query<PaymentRow[]>(
+        `SELECT payment_id, status
+         FROM payments
+         WHERE payment_id = ?
+         LIMIT 1`,
+        [paymentId],
+    );
+    const finalStatus = rows[0]?.status ?? null;
+
+    await logPaymentEvent("payment_status_after_commit", paymentId, {
+        expectedStatus,
+        finalStatus,
+    });
+
+    if (finalStatus !== expectedStatus) {
+        throw new Error(
+            `Payment ${paymentId} has status ${String(finalStatus)} after commit; expected ${expectedStatus}`,
+        );
+    }
+}
+
 /**
  * Applies a final provider status and, on the first succeeded transition only,
  * grants the tariff. Payment and subscription changes are one transaction.
@@ -43,9 +71,11 @@ export async function processPaymentStatus(
 ): Promise<ProcessPaymentStatusResult | null> {
 
     const trx = await pool.getConnection();
+    let transactionOpen = false;
 
     try {
         await trx.beginTransaction();
+        transactionOpen = true;
 
         // Read only the ownership key first, then use the user as a stable mutex.
         // This also serializes two different successful payments for one user.
@@ -60,6 +90,7 @@ export async function processPaymentStatus(
 
         if (!ownership) {
             await trx.rollback();
+            transactionOpen = false;
             return null;
         }
 
@@ -80,12 +111,15 @@ export async function processPaymentStatus(
 
         if (!payment) {
             await trx.rollback();
+            transactionOpen = false;
             return null;
         }
 
         // Both YooKassa final states are immutable.
         if (payment.status === "succeeded" || payment.status === "canceled") {
             await trx.commit();
+            transactionOpen = false;
+            await verifyCommittedPaymentStatus(input.paymentId, payment.status);
             return {
                 paymentId: String(payment.payment_id),
                 status: payment.status,
@@ -96,7 +130,7 @@ export async function processPaymentStatus(
         }
 
         if (input.status === "canceled") {
-            await trx.execute(
+            const [updateResult] = await trx.execute<ResultSetHeader>(
                 `UPDATE payments
                  SET status = 'canceled',
                      paid_at = NULL,
@@ -104,10 +138,18 @@ export async function processPaymentStatus(
                      canceled_at = UTC_TIMESTAMP(),
                      cancellation_reason = ?,
                      cancellation_party = ?
-                 WHERE payment_id = ?`,
+                 WHERE payment_id = ?
+                   AND status NOT IN ('succeeded', 'canceled')`,
                 [input.cancellationReason, input.cancellationParty ?? null, input.paymentId],
             );
+            if (updateResult.affectedRows !== 1) {
+                throw new Error(
+                    `Canceled transition updated ${updateResult.affectedRows} payment rows for ${input.paymentId}`,
+                );
+            }
             await trx.commit();
+            transactionOpen = false;
+            await verifyCommittedPaymentStatus(input.paymentId, "canceled");
             return {
                 paymentId: input.paymentId,
                 status: "canceled",
@@ -162,7 +204,7 @@ export async function processPaymentStatus(
             );
         }
 
-        await trx.execute(
+        const [updateResult] = await trx.execute<ResultSetHeader>(
             `UPDATE payments
              SET status = 'succeeded',
                  paid_at = UTC_TIMESTAMP(),
@@ -170,11 +212,19 @@ export async function processPaymentStatus(
                  canceled_at = NULL,
                  cancellation_reason = NULL,
                  cancellation_party = NULL
-             WHERE payment_id = ?`,
+             WHERE payment_id = ?
+               AND status IN ('creating', 'pending')`,
             [input.paymentId],
         );
+        if (updateResult.affectedRows !== 1) {
+            throw new Error(
+                `Succeeded transition updated ${updateResult.affectedRows} payment rows for ${input.paymentId}`,
+            );
+        }
 
         await trx.commit();
+        transactionOpen = false;
+        await verifyCommittedPaymentStatus(input.paymentId, "succeeded");
         return {
             paymentId: input.paymentId,
             status: "succeeded",
@@ -183,7 +233,9 @@ export async function processPaymentStatus(
             alreadyProcessed: false,
         };
     } catch (error) {
-        await trx.rollback();
+        if (transactionOpen) {
+            await trx.rollback();
+        }
         throw error;
     } finally {
         trx.release();
