@@ -19,6 +19,95 @@ export const pool = mysql.createPool({
 export const connection = pool;
 export const logConnection = pool;
 
+type QueryExecutor = Pick<PoolConnection, "query">;
+
+/** The canonical server-side definition of an active B2C subscription. */
+export async function hasActiveSubscription(
+    userId: string,
+    executor: QueryExecutor = pool,
+): Promise<boolean> {
+    const [rows] = await executor.query<RowDataPacket[]>(
+        `SELECT 1
+         FROM subscriptions
+         WHERE user_id = ?
+           AND expiration_date > NOW()
+         LIMIT 1`,
+        [userId],
+    );
+
+    return rows.length > 0;
+}
+
+export const B2C_DEMO_DAILY_LIMIT = 5;
+
+export type DemoMkbAccessResult =
+    | { allowed: true; hasActiveSubscription: boolean }
+    | { allowed: false; hasActiveSubscription: false; limit: number };
+
+/**
+ * Checks paid access and atomically reserves one daily demo request.
+ * MySQL's current date/time is used for both the rollover and timestamp.
+ */
+export async function reserveB2cMkbRequest(userId: string): Promise<DemoMkbAccessResult> {
+    const trx = await pool.getConnection();
+
+    try {
+        await trx.beginTransaction();
+
+        if (await hasActiveSubscription(userId, trx)) {
+            await trx.commit();
+            return { allowed: true, hasActiveSubscription: true };
+        }
+
+        // Registration normally creates this row. INSERT IGNORE also makes the
+        // recovery path safe when concurrent requests discover a missing row.
+        await trx.query(
+            `INSERT IGNORE INTO user_requests (user_id, current_count, last_request, total_count)
+             VALUES (?, 0, NULL, 0)`,
+            [userId],
+        );
+
+        const [rows] = await trx.query<RowDataPacket[]>(
+            `SELECT current_count,
+                    last_request IS NOT NULL AND DATE(last_request) = CURRENT_DATE() AS requested_today
+             FROM user_requests
+             WHERE user_id = ?
+             FOR UPDATE`,
+            [userId],
+        );
+        const row = rows[0];
+        const currentCount = Number(row?.requested_today) === 1
+            ? Number(row.current_count)
+            : 0;
+
+        if (currentCount >= B2C_DEMO_DAILY_LIMIT) {
+            await trx.commit();
+            return {
+                allowed: false,
+                hasActiveSubscription: false,
+                limit: B2C_DEMO_DAILY_LIMIT,
+            };
+        }
+
+        await trx.query(
+            `UPDATE user_requests
+             SET current_count = ?,
+                 total_count = total_count + 1,
+                 last_request = NOW()
+             WHERE user_id = ?`,
+            [currentCount + 1, userId],
+        );
+        await trx.commit();
+
+        return { allowed: true, hasActiveSubscription: false };
+    } catch (error) {
+        await trx.rollback();
+        throw error;
+    } finally {
+        trx.release();
+    }
+}
+
 type ActiveSessionRow = RowDataPacket & {
     session_id: string;
     user_id: string | number;

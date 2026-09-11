@@ -5,6 +5,8 @@ import { encryptPayload } from "@/app/lib/encryptedPayload/server";
 import { getCurrentUserAllowedMkbCodes, isMkbCodeAllowed } from "@/app/lib/mkbAccess";
 import { normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 import { registerClinicalRecommendationOpening } from "@/app/modules/clinicalRecommendationOpening/server/service";
+import { reserveB2cMkbRequest } from "@/app/lib/db";
+import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 
 const EASYMED_MKB_URL = "https://easymed.pro/php/API/get-mkb.php";
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
@@ -498,6 +500,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (session.user.accountType === "b2c") {
+    const activeB2cSession = await requireActiveB2cSession("api");
+    if (!activeB2cSession) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   const { blocked } = await registerClinicalRecommendationOpening(
     userId,
     normalizeMkbCode(code),
@@ -513,6 +522,16 @@ export async function GET(req: Request) {
         },
       },
     );
+  }
+
+  if (session.user.accountType === "b2c") {
+    const demoAccess = await reserveB2cMkbRequest(userId);
+    if (!demoAccess.allowed) {
+      return NextResponse.json(
+        { error: "demo_limit_reached", limit: demoAccess.limit },
+        { status: 429, headers: { "Cache-Control": "no-store" } },
+      );
+    }
   }
 
   try {

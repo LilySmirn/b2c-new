@@ -72,6 +72,16 @@ type MkbAccessResponse = {
   allowedCodes: string[] | null;
 };
 
+const DEMO_LIMIT_MESSAGE =
+  "Бесплатные 5 запросов на сегодня закончились. Для снятия ограничения приобретите подписку.";
+
+const isDemoLimitResponse = async (response: Response) => {
+  if (response.status !== 429) return false;
+
+  const body = await response.json().catch(() => null) as { error?: unknown } | null;
+  return body?.error === "demo_limit_reached";
+};
+
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
 const getCodeFromMatch = (item: string) => item.split(":")[0]?.trim() ?? item.trim();
 
@@ -247,14 +257,23 @@ export default function SearchPreviewPage() {
       restoredMatchesSearchRef.current = storedSearchState.query?.trim() ?? null;
     }
 
-    if (storedSearchState.mkbData && storedSearchState.submittedCode) {
-      setMkbData(storedSearchState.mkbData);
-      setFilterAvailability(storedSearchState.mkbData.availability);
-      restoredMkbDataCodeRef.current = storedSearchState.submittedCode;
+    const storedMkbData = storedSearchState.mkbData;
+    const storedSubmittedCode = storedSearchState.submittedCode;
+    const hasCompletedStoredSearch = Boolean(storedMkbData && storedSubmittedCode);
+
+    if (storedMkbData && storedSubmittedCode) {
+      setMkbData(storedMkbData);
+      setFilterAvailability(storedMkbData.availability);
+      restoredMkbDataCodeRef.current = storedSubmittedCode;
     }
 
-    setSubmittedCode(storedSearchState.submittedCode ?? null);
-    setSubmittedDiagnosisTitle(storedSearchState.submittedDiagnosisTitle ?? null);
+    // A code without its completed response represents an interrupted/failed
+    // request. Keep the query text, but require an explicit retry so a reload
+    // never consumes another demo request by itself.
+    setSubmittedCode(hasCompletedStoredSearch ? storedSubmittedCode ?? null : null);
+    setSubmittedDiagnosisTitle(
+      hasCompletedStoredSearch ? storedSearchState.submittedDiagnosisTitle ?? null : null,
+    );
 
     window.setTimeout(() => {
       hasRestoredSearchStateRef.current = true;
@@ -367,6 +386,12 @@ export default function SearchPreviewPage() {
 
         if (response.headers.get("X-User-Blocked") === "true") {
           window.dispatchEvent(new Event(USER_BLOCKING_REFRESH_EVENT));
+        }
+        if (await isDemoLimitResponse(response)) {
+          setMkbData(null);
+          setFilterAvailability(null);
+          setCardsError(DEMO_LIMIT_MESSAGE);
+          return;
         }
         if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
 
@@ -536,6 +561,10 @@ export default function SearchPreviewPage() {
         `/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`,
       );
 
+      if (await isDemoLimitResponse(response)) {
+        setCardsError(DEMO_LIMIT_MESSAGE);
+        return;
+      }
       if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
       const availableFilters = getAvailableFilters(
         data.availability,

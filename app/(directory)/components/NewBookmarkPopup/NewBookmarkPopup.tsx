@@ -136,7 +136,10 @@ export default function NewBookmarkPopup({
     setAgeGroup(editingBookmark?.ageGroup ?? "");
     setSelectedRecommendation(null);
     setNosologyTitle(editingBookmark?.title ?? "");
-    setSubmittedCode(editingBookmark?.code ?? null);
+    // Opening the editor must not run a directory search (and consume a demo
+    // request). The existing code remains in the form and can be searched
+    // explicitly with the existing search controls.
+    setSubmittedCode(null);
     setApiMatches([]);
     setFilterAvailability(null);
     setMkbData(null);
@@ -202,6 +205,18 @@ export default function NewBookmarkPopup({
           `/api/mkb-data?code=${encodeURIComponent(submittedCode)}`,
           { signal: controller.signal },
         );
+
+        if (response.status === 429) {
+          const body = await response.json().catch(() => null) as { error?: unknown } | null;
+          if (body?.error === "demo_limit_reached") {
+            setMkbData(null);
+            setFilterAvailability(null);
+            setCardsError(
+              "Бесплатные 5 запросов на сегодня закончились. Для снятия ограничения приобретите подписку.",
+            );
+            return;
+          }
+        }
 
         if (!response.ok || !data) throw new Error("Не удалось получить данные по коду МКБ");
 

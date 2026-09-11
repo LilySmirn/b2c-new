@@ -1,7 +1,7 @@
 import styles from './profile.module.css';
 import Link from 'next/link';
 import AutoRenewToggle from "@/app/profile/AutoRenewToggle";
-import db from "@/app/lib/db";
+import db, { hasActiveSubscription } from "@/app/lib/db";
 import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
 import ProfileClientWrapper from "./ProfileClientWrapper";
 import TariffModal from "./TariffModal";
@@ -20,9 +20,12 @@ export default async function AccountPage() {
     const session = await requireActiveB2cSession("page");
 
     const database = new db();
-    const latestSubscription = await database.getLatestUserSubscription(session.user.id);
-    const user = await database.getCurrentUser(session.user.id);
-    const expirationReminder = await database.getSubscriptionExpirationReminder(session.user.id);
+    const [latestSubscription, user, expirationReminder, hasActiveSubscriptionState] = await Promise.all([
+        database.getLatestUserSubscription(session.user.id),
+        database.getCurrentUser(session.user.id),
+        database.getSubscriptionExpirationReminder(session.user.id),
+        hasActiveSubscription(session.user.id),
+    ]);
     const reminder: SubscriptionReminder | null = expirationReminder ? {
         subscriptionId: expirationReminder.subscriptionId,
         expirationDate: expirationReminder.expirationDate.toISOString(),
@@ -150,14 +153,14 @@ export default async function AccountPage() {
                                 </div>
                             </div>
 
-                            <div className={styles.warnings}>
+                            {!hasActiveSubscriptionState && <div className={styles.warnings}>
                                 <div className={styles.warningsTitle}>
                                     <em>Внимание! Без подписки доступно 5 запросов в день.</em>
                                 </div>
                                 <div className={styles.warningsText}>
                                     Для отмены ограничений приобретите <TariffModal triggerText="подписку" triggerClassName={styles.warningsLink} />
                                 </div>
-                            </div>
+                            </div>}
 
                             <div>
                                 <Link href="/mkb" className={styles.open}>Открыть справочник</Link>
