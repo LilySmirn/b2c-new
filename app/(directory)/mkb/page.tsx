@@ -74,13 +74,6 @@ type MkbAccessResponse = {
   allowedCodes: string[] | null;
 };
 
-type DemoAccessStatus = {
-  hasActiveSubscription: boolean;
-  limit: number;
-  used: number;
-  remaining: number;
-};
-
 const DEMO_LIMIT_MESSAGE =
   "Бесплатные 5 запросов на сегодня закончились. Для снятия ограничения приобретите подписку.";
 
@@ -89,12 +82,6 @@ const isDemoLimitResponse = async (response: Response) => {
 
   const body = await response.json().catch(() => null) as { error?: unknown } | null;
   return body?.error === "demo_limit_reached";
-};
-
-const formatDemoRemaining = (remaining: number) => {
-  if (remaining === 1) return "Вам остался 1 запрос";
-  if (remaining >= 2 && remaining <= 4) return `Вам осталось ${remaining} запроса`;
-  return `Вам осталось ${remaining} запросов`;
 };
 
 const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
@@ -218,12 +205,10 @@ export default function SearchPreviewPage() {
   const [isMkbAccessLoaded, setIsMkbAccessLoaded] = useState(false);
   const [mkbAccessError, setMkbAccessError] = useState<string | null>(null);
   const [isCardsLoading, setIsCardsLoading] = useState(false);
-  const [demoRemaining, setDemoRemaining] = useState<number | null>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const hasRestoredSearchStateRef = useRef(false);
   const restoredMatchesSearchRef = useRef<string | null>(null);
   const restoredMkbDataCodeRef = useRef<string | null>(null);
-  const demoResponseVersionRef = useRef(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -246,42 +231,6 @@ export default function SearchPreviewPage() {
     loadMkbAccess();
     return () => controller.abort();
   }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const loadDemoAccess = async () => {
-      const responseVersion = demoResponseVersionRef.current;
-      try {
-        const response = await fetch("/api/mkb-demo-access", {
-          signal: controller.signal,
-          cache: "no-store",
-        });
-        if (!response.ok) return;
-
-        const status = (await response.json()) as DemoAccessStatus;
-        if (demoResponseVersionRef.current === responseVersion) {
-          setDemoRemaining(status.hasActiveSubscription ? null : status.remaining);
-        }
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") setDemoRemaining(null);
-      }
-    };
-
-    loadDemoAccess();
-    return () => controller.abort();
-  }, []);
-
-  const updateDemoRemainingFromResponse = (response: Response) => {
-    const headerValue = response.headers.get("X-Demo-Remaining");
-    if (headerValue === null) return;
-
-    const remaining = Number(headerValue);
-    if (Number.isInteger(remaining)) {
-      demoResponseVersionRef.current += 1;
-      setDemoRemaining(Math.max(0, remaining));
-    }
-  };
 
   useEffect(() => {
     if (hasRestoredSearchStateRef.current) return;
@@ -436,10 +385,6 @@ export default function SearchPreviewPage() {
           `/api/mkb-data?code=${encodeURIComponent(submittedCode)}`,
           { signal: controller.signal },
         );
-
-        updateDemoRemainingFromResponse(response);
-
-        if (await handleInvalidB2cSession(response)) return;
 
         if (response.headers.get("X-User-Blocked") === "true") {
           window.dispatchEvent(new Event(USER_BLOCKING_REFRESH_EVENT));
@@ -618,10 +563,6 @@ export default function SearchPreviewPage() {
         `/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`,
       );
 
-      updateDemoRemainingFromResponse(response);
-
-      if (await handleInvalidB2cSession(response)) return;
-
       if (await isDemoLimitResponse(response)) {
         setCardsError(DEMO_LIMIT_MESSAGE);
         return;
@@ -715,10 +656,6 @@ export default function SearchPreviewPage() {
       <main className={styles.wrapper}>
         <section className={styles.content}>
           <Image src={logoBig} alt="EasyMed" className={styles.logo} priority />
-
-          {demoRemaining !== null && cardsError !== DEMO_LIMIT_MESSAGE ? (
-            <p className={styles.demoRemaining}>{formatDemoRemaining(demoRemaining)}</p>
-          ) : null}
 
           <div
             className={styles.searchDropdown}
