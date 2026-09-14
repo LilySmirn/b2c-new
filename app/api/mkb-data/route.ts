@@ -6,7 +6,7 @@ import { getCurrentUserAllowedMkbCodes, isMkbCodeAllowed } from "@/app/lib/mkbAc
 import { normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 import { registerClinicalRecommendationOpening } from "@/app/modules/clinicalRecommendationOpening/server/service";
 import { reserveB2cMkbRequest } from "@/app/lib/db";
-import { requireActiveB2cSession } from "@/app/lib/requireActiveB2cSession";
+import { getB2cSessionStatus } from "@/app/lib/requireActiveB2cSession";
 
 const EASYMED_MKB_URL = "https://easymed.pro/php/API/get-mkb.php";
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
@@ -482,6 +482,22 @@ export async function GET(req: Request) {
     );
   }
 
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (session.user.accountType === "b2c") {
+    const { isActive, wasReplaced } = await getB2cSessionStatus();
+    if (!isActive) {
+      return NextResponse.json(
+        { error: "session_invalid", wasReplaced },
+        { status: 401, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
   const allowedCodes = await getCurrentUserAllowedMkbCodes();
   if (allowedCodes === undefined) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -492,19 +508,6 @@ export async function GET(req: Request) {
       { error: "MKB code is not allowed for this account", allowedCodes },
       { status: 403 },
     );
-  }
-
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (session.user.accountType === "b2c") {
-    const activeB2cSession = await requireActiveB2cSession("api");
-    if (!activeB2cSession) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
   }
 
   const { blocked } = await registerClinicalRecommendationOpening(

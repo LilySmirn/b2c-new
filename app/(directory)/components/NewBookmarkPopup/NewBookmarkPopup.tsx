@@ -12,6 +12,7 @@ import { newBookmarkAgeOptions, newBookmarkVisitOptions } from "./data";
 import styles from "./NewBookmarkPopup.module.css";
 import type { BookmarkItem } from "../Bookmarks";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
+import { handleInvalidB2cSession } from "@/app/lib/handleInvalidB2cSession";
 
 type MkbSearchResult = {
   code: string;
@@ -205,6 +206,8 @@ export default function NewBookmarkPopup({
           `/api/mkb-data?code=${encodeURIComponent(submittedCode)}`,
           { signal: controller.signal },
         );
+
+        if (await handleInvalidB2cSession(response)) return;
 
         if (response.status === 429) {
           const body = await response.json().catch(() => null) as { error?: unknown } | null;

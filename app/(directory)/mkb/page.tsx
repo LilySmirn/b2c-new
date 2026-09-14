@@ -18,6 +18,7 @@ import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 import { isMkbCodeAllowed, normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 import { USER_BLOCKING_REFRESH_EVENT } from "@/app/modules/userBlocking";
 import { beginCartVisit } from "@/app/modules/clinicalRecommendationOpening/client";
+import { handleInvalidB2cSession } from "@/app/lib/handleInvalidB2cSession";
 
 type MkbSearchResult = {
   code: string;
@@ -438,6 +439,8 @@ export default function SearchPreviewPage() {
 
         updateDemoRemainingFromResponse(response);
 
+        if (await handleInvalidB2cSession(response)) return;
+
         if (response.headers.get("X-User-Blocked") === "true") {
           window.dispatchEvent(new Event(USER_BLOCKING_REFRESH_EVENT));
         }
@@ -616,6 +619,8 @@ export default function SearchPreviewPage() {
       );
 
       updateDemoRemainingFromResponse(response);
+
+      if (await handleInvalidB2cSession(response)) return;
 
       if (await isDemoLimitResponse(response)) {
         setCardsError(DEMO_LIMIT_MESSAGE);

@@ -10,7 +10,7 @@ import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
 export const metadata: Metadata = {
   title: "Клинические рекомендации по МКБ-10",
   description:
-      "Быстрый доступ к актуальным клиническим рекомендациям Минздрава РФ 2024-2025 по МКБ-10. Удобный интерфейс, поиск, тарифы.",
+      "Быстрый доступ к актуальным клиническим рекомендациям Минздрава РФ 2024-2025 по МКБ-10. Удобный интерфейс, поиск, подписка.",
   alternates: {
     canonical: "https://klinrec.ru/",
   },
@@ -44,7 +44,7 @@ export default async function Home() {
         url: "https://klinrec.ru/",
         name: "Клинические рекомендации Минздрава по МКБ-10",
         description:
-            "Быстрый доступ к актуальным клиническим рекомендациям Минздрава РФ 2024-2025 по МКБ-10. Удобный интерфейс, поиск, тарифы.",
+            "Быстрый доступ к актуальным клиническим рекомендациям Минздрава РФ 2024-2025 по МКБ-10. Удобный интерфейс, поиск, подписка.",
         publisher: {
           "@id": "https://klinrec.ru/#organization",
         },
@@ -73,7 +73,7 @@ export default async function Home() {
       {
         "@type": "OfferCatalog",
         "@id": "https://klinrec.ru/#offers",
-        name: "Тарифы на подписку",
+        name: "Подписки",
         itemListElement: [
           {
             "@type": "Offer",
@@ -164,7 +164,7 @@ export default async function Home() {
                 <p className="lead-text">
                   Актуальный справочник, созданный для врачей,
                   клиник и студентов. Находите рекомендации
-                  по диагнозу, МКБ-10, направлению или
+                  по диагнозу, МКБ-10 или
                   ключевым словам — в один клик.
                 </p>
               </div>
@@ -202,7 +202,7 @@ export default async function Home() {
               Всё, что нужно врачу, в одном <span className="highlight">справочнике</span>
             </h2>
             <p className="description">
-              <span className="highlight bold">800+</span> актуальных клинических рекомендаций в удобном формате.
+              <span className="highlight bold">1000+</span> актуальных клинических рекомендаций от Минздрава РФ и СтАР.
             </p>
             <p className="description">
               Мы собрали, сократили, отфильтровали — чтобы вы могли сразу работать.
@@ -211,10 +211,10 @@ export default async function Home() {
               <div className="line-1">
                 <div className="usp-item">
                   <div className="item-title usp-item-title">
-                    Клинические<br/>рекомендации у детей
+                    Клинические рекомендации<br/>в структурированном виде
                   </div>
                   <div className="usp-item-text">
-                    Отдельный модуль для педиатрии,<br/>протоколы детских заболеваний.
+                    Информация собрана и представлена<br/>в удобном для работы формате.
                   </div>
                 </div>
                 <div className="usp-item">
@@ -222,33 +222,41 @@ export default async function Home() {
                     Поиск по коду<br/>МКБ-10
                   </p>
                   <p className="usp-item-text">
-                    Поддержка всех разделов<br/>и нозологий.
+                    Поддержка поиска по нозологиям<br/>и кодам МКБ-10.
                   </p>
                 </div>
                 <div className="usp-item">
                   <p className="item-title usp-item-title">
-                    Клинические рекомендации<br/>2024 и 2025 годов в работе
+                    Рекомендации с указанием<br/>даты утверждения
                   </p>
                   <p className="usp-item-text">
-                    Все документы с пометкой<br/>об утверждении и датой.
+                    Информация о документе<br/>и его официальном статусе.
                   </p>
                 </div>
               </div>
               <div className="line-2">
                 <div className="usp-item">
                   <p className="item-title usp-item-title">
-                    Утверждённые Минздравом<br/>РФ рекомендации
+                    Рекомендации<br/>Минздрава РФ
                   </p>
                   <p className="usp-item-text">
-                    Только официальные данные.<br/>Обновляются в режиме реального<br/>времени
+                    Официальные клинические рекомендации,<br/>представленные в справочнике.
                   </p>
                 </div>
                 <div className="usp-item">
                   <p className="item-title usp-item-title">
-                    Рубрикатор клинических<br/>рекомендаций
+                    Рекомендации Ассоциации<br/>стоматологов России
                   </p>
                   <p className="usp-item-text">
-                    Удобная навигация по темам:<br/>кардиология, гастроэнтерология,<br/>педиатрия и пр.
+                    Специализированные клинические<br/>рекомендации для стоматологической практики.
+                  </p>
+                </div>
+                <div className="usp-item">
+                  <p className="item-title usp-item-title">
+                    Автозаполнение<br/>протокола
+                  </p>
+                  <p className="usp-item-text">
+                    Заполняйте протокол приёма<br/>в один клик
                   </p>
                 </div>
               </div>
@@ -305,7 +313,7 @@ export default async function Home() {
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
             <h2 className="title">
-              Тарифы и <span className="highlight">цены</span>
+              Подписки и <span className="highlight">цены</span>
             </h2>
 
             <div className="pricing-mobile">
@@ -320,14 +328,14 @@ export default async function Home() {
                 </div>
                 {/*<form action="#" method="POST">*/}
                 {/*  <input type="hidden" name="tariff" value="base"/>*/}
-                {/*  <button type="submit" className="btn-select" aria-label="Выбрать тариф Базовый">Выбрать тариф</button>*/}
+                {/*  <button type="submit" className="btn-select" aria-label="Выбрать">Выбрать</button>*/}
                 {/*</form>*/}
                 <Link
                     href="/login"
                     className="btn-select"
-                    aria-label="Выбрать тариф Базовый"
+                    aria-label="Выбрать"
                 >
-                  Выбрать тариф
+                  Выбрать
                 </Link>
               </div>
               <div className="pricing-item bg-blue">
@@ -342,9 +350,9 @@ export default async function Home() {
                 <Link
                     href="/login"
                     className="btn-select"
-                    aria-label="Выбрать тариф Базовый"
+                    aria-label="Выбрать"
                 >
-                  Выбрать тариф
+                  Выбрать
                 </Link>
               </div>
               <div className="pricing-item">
@@ -359,9 +367,9 @@ export default async function Home() {
                 <Link
                     href="/login"
                     className="btn-select"
-                    aria-label="Выбрать тариф Базовый"
+                    aria-label="Выбрать"
                 >
-                  Выбрать тариф
+                  Выбрать
                 </Link>
               </div>
               <div className="pricing-item bg-blue">
@@ -376,9 +384,9 @@ export default async function Home() {
                 <Link
                     href="/login"
                     className="btn-select"
-                    aria-label="Выбрать тариф Базовый"
+                    aria-label="Выбрать"
                 >
-                  Выбрать тариф
+                  Выбрать
                 </Link>
               </div>
             </div>
@@ -400,9 +408,9 @@ export default async function Home() {
                   <Link
                       href="/login"
                       className="btn-select"
-                      aria-label="Выбрать тариф Базовый"
+                      aria-label="Выбрать"
                   >
-                    Выбрать тариф
+                    Выбрать
                   </Link>
                 </td>
               </tr>
@@ -414,9 +422,9 @@ export default async function Home() {
                   <Link
                       href="/login"
                       className="btn-select"
-                      aria-label="Выбрать тариф Базовый"
+                      aria-label="Выбрать"
                   >
-                    Выбрать тариф
+                    Выбрать
                   </Link>
                 </td>
               </tr>
@@ -428,9 +436,9 @@ export default async function Home() {
                   <Link
                       href="/login"
                       className="btn-select"
-                      aria-label="Выбрать тариф Базовый"
+                      aria-label="Выбрать"
                   >
-                    Выбрать тариф
+                    Выбрать
                   </Link>
                 </td>
               </tr>
@@ -442,9 +450,9 @@ export default async function Home() {
                   <Link
                       href="/login"
                       className="btn-select"
-                      aria-label="Выбрать тариф Базовый"
+                      aria-label="Выбрать"
                   >
-                    Выбрать тариф
+                    Выбрать
                   </Link>
                 </td>
               </tr>
@@ -467,19 +475,20 @@ export default async function Home() {
 
               <FaqItem
                   question="Можно ли отменить автосписание денежных средств в любое время?"
-                  answer="Да, автосписание можно отключить в личном кабинете в разделе «Тарифы» доступна кнопка «Отписаться»."
+                  answer="Да, автосписание можно отключить в личном кабинете в разделе «Подписка»"
               />
 
               <FaqItem
                   question="Как оформить подписку на сайт?"
-                  answer="Перейдите в раздел «Тарифы», выберите нужный вариант и нажмите кнопку «Оплатить тариф». После оплаты вы получите мгновенный доступ ко всем материалам. Дата окончания подписки будет отображаться в личном кабинете."
+                  answer="Перейдите в раздел «Подписка», выберите нужный вариант и нажмите кнопку «Оплатить». После оплаты вы получите мгновенный доступ ко всем материалам. Дата окончания подписки будет отображаться в личном кабинете."
               />
 
               <FaqItem
                   question="Что будет включать подписка на сайт?"
                   answer={
                     <>
-                      <p>Подписка открывает доступ к:</p>
+                    
+                      <p>Подписка на сайт открывает безлимитный доступ к:</p>
                       <ul>
                         <li><span className="highlight">✓</span> Всем актуальным клиническим рекомендациям</li>
                         <li><span className="highlight">✓</span> Ежемесячным обновлениям и новым публикациям</li>
@@ -492,13 +501,21 @@ export default async function Home() {
                   question="На основе каких источников представлена информация?"
                   answer={
                     <>
-                      Мы создаём сокращённые клинреки на основе официальных клинических рекомендаций Минздрава РФ (
+                      Мы создаём клинреки на основе официальных клинических рекомендаций Минздрава РФ (
                       <Link className="minzdrav-link"
                           href="https://cr.minzdrav.gov.ru"
                           target="_blank"
                           rel="noopener noreferrer"
                       >
                         сайт Минздрава РФ
+                      </Link>
+                      ) и Стоматологической Ассоциации России (
+                      <Link className="minzdrav-link"
+                          href="https://e-stomatology.ru/director/protokols/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                      >
+                        сайт СтАР
                       </Link>
                       ).
                     </>
@@ -521,7 +538,8 @@ export default async function Home() {
                   answer={
                     <>
                       Да, на сайте есть часть полезных материалов в открытом доступе.<br/>
-                      Однако полный доступ ко всем клиническим рекомендациям и функциям требует подписки.
+                      Все клинические рекомендации доступны бесплатно, но с ограниченным количество запросов в день.<br/>
+                      Для безлимитного доступа ко всем КР можете приобрести подписку.
                     </>
                   }
               />
@@ -530,14 +548,9 @@ export default async function Home() {
                   question="Куда писать, если возникли технические проблемы?"
                   answer={
                     <>
-                      <p>Свяжитесь с нами — мы поможем в ближайшее время:</p>
+                      <p>Оставьте заявку, мы свяжемся с вами</p>
                       <ul>
                         <li><strong>Email: </strong><Link href="mailto:info@easymed.pro">info@easymed.pro</Link></li>
-                        <li><strong>Telegram: </strong><Link
-                            href="https://t.me/easymed_admin"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >@easymed_admin</Link></li>
                       </ul>
                     </>
                   }
