@@ -40,9 +40,63 @@ export async function hasActiveSubscription(
 
 export const B2C_DEMO_DAILY_LIMIT = 5;
 
+export type B2cMkbDemoStatus = {
+    hasActiveSubscription: boolean;
+    limit: number;
+    used: number;
+    remaining: number;
+};
+
+type DemoUsageRow = RowDataPacket & {
+    current_count: number;
+    requested_in_current_demo_period_today: number;
+};
+
+/** Reads the effective counter shared by the status UI and atomic reservation. */
+async function getEffectiveDemoUsage(
+    userId: string,
+    executor: QueryExecutor,
+    lockForUpdate = false,
+): Promise<number> {
+    const [rows] = await executor.query<DemoUsageRow[]>(
+        `SELECT current_count,
+                last_request IS NOT NULL
+                    AND DATE(last_request) = CURRENT_DATE()
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM subscriptions
+                        WHERE user_id = user_requests.user_id
+                          AND expiration_date <= NOW()
+                          AND expiration_date >= user_requests.last_request
+                    ) AS requested_in_current_demo_period_today
+         FROM user_requests
+         WHERE user_id = ?${lockForUpdate ? " FOR UPDATE" : ""}`,
+        [userId],
+    );
+    const row = rows[0];
+
+    return Number(row?.requested_in_current_demo_period_today) === 1
+        ? Number(row.current_count)
+        : 0;
+}
+
+/** Returns the server-authoritative B2C MKB demo balance without consuming it. */
+export async function getB2cMkbDemoStatus(userId: string): Promise<B2cMkbDemoStatus> {
+    const activeSubscription = await hasActiveSubscription(userId);
+    const used = activeSubscription ? 0 : await getEffectiveDemoUsage(userId, pool);
+
+    return {
+        hasActiveSubscription: activeSubscription,
+        limit: B2C_DEMO_DAILY_LIMIT,
+        used,
+        remaining: activeSubscription ? B2C_DEMO_DAILY_LIMIT : Math.max(0, B2C_DEMO_DAILY_LIMIT - used),
+    };
+}
+
 export type DemoMkbAccessResult =
-    | { allowed: true; hasActiveSubscription: boolean }
-    | { allowed: false; hasActiveSubscription: false; limit: number };
+    | { allowed: true; hasActiveSubscription: true }
+    | { allowed: true; hasActiveSubscription: false; limit: number; used: number; remaining: number }
+    | { allowed: false; hasActiveSubscription: false; limit: number; used: number; remaining: 0 };
 
 /**
  * Checks paid access and atomically reserves one daily demo request.
@@ -77,26 +131,7 @@ export async function reserveB2cMkbRequest(userId: string): Promise<DemoMkbAcces
             [userId],
         );
 
-        const [rows] = await trx.query<RowDataPacket[]>(
-            `SELECT current_count,
-                    last_request IS NOT NULL
-                        AND DATE(last_request) = CURRENT_DATE()
-                        AND NOT EXISTS (
-                            SELECT 1
-                            FROM subscriptions
-                            WHERE user_id = user_requests.user_id
-                              AND expiration_date <= NOW()
-                              AND expiration_date >= user_requests.last_request
-                        ) AS requested_in_current_demo_period_today
-             FROM user_requests
-             WHERE user_id = ?
-             FOR UPDATE`,
-            [userId],
-        );
-        const row = rows[0];
-        const currentCount = Number(row?.requested_in_current_demo_period_today) === 1
-            ? Number(row.current_count)
-            : 0;
+        const currentCount = await getEffectiveDemoUsage(userId, trx, true);
 
         if (currentCount >= B2C_DEMO_DAILY_LIMIT) {
             await trx.commit();
@@ -104,6 +139,8 @@ export async function reserveB2cMkbRequest(userId: string): Promise<DemoMkbAcces
                 allowed: false,
                 hasActiveSubscription: false,
                 limit: B2C_DEMO_DAILY_LIMIT,
+                used: currentCount,
+                remaining: 0,
             };
         }
 
@@ -117,7 +154,13 @@ export async function reserveB2cMkbRequest(userId: string): Promise<DemoMkbAcces
         );
         await trx.commit();
 
-        return { allowed: true, hasActiveSubscription: false };
+        return {
+            allowed: true,
+            hasActiveSubscription: false,
+            limit: B2C_DEMO_DAILY_LIMIT,
+            used: currentCount + 1,
+            remaining: B2C_DEMO_DAILY_LIMIT - currentCount - 1,
+        };
     } catch (error) {
         await trx.rollback();
         throw error;

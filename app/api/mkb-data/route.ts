@@ -524,13 +524,22 @@ export async function GET(req: Request) {
     );
   }
 
+  let requestDemoRemaining: number | null = null;
+
   if (session.user.accountType === "b2c") {
     const demoAccess = await reserveB2cMkbRequest(userId);
     if (!demoAccess.allowed) {
       return NextResponse.json(
         { error: "demo_limit_reached", limit: demoAccess.limit },
-        { status: 429, headers: { "Cache-Control": "no-store" } },
+        {
+          status: 429,
+          headers: { "Cache-Control": "no-store", "X-Demo-Remaining": "0" },
+        },
       );
+    }
+
+    if (!demoAccess.hasActiveSubscription) {
+      requestDemoRemaining = demoAccess.remaining;
     }
   }
 
@@ -576,11 +585,19 @@ export async function GET(req: Request) {
           },
         },
       }),
+      requestDemoRemaining === null
+        ? undefined
+        : { headers: { "X-Demo-Remaining": String(requestDemoRemaining) } },
     );
   } catch {
     return NextResponse.json(
       { error: "EasyMed MKB data service is unavailable" },
-      { status: 503 },
+      {
+        status: 503,
+        headers: requestDemoRemaining === null
+          ? undefined
+          : { "X-Demo-Remaining": String(requestDemoRemaining) },
+      },
     );
   }
 }
