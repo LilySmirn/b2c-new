@@ -922,7 +922,7 @@ export default class db {
 
     public async getLatestUserSubscription(userId: string): Promise<Subscription | null> {
         const [rows] = await connection.query(
-            `SELECT s.id, s.user_id, t.title, s.expiration_date, s.is_auto_renewal
+            `SELECT s.id, s.user_id, t.title, t.duration, s.expiration_date, s.is_auto_renewal
              FROM subscriptions s
              INNER JOIN tariffs t ON t.tariff_id = s.last_paid_tariff_id
              WHERE s.user_id = ?
@@ -934,6 +934,7 @@ export default class db {
             id: string;
             user_id: string;
             title: string | null;
+            duration: number;
             expiration_date: Date | string;
             is_auto_renewal: number | boolean;
         }>;
@@ -946,6 +947,7 @@ export default class db {
             id: String(subscription.id),
             user_id: String(subscription.user_id),
             title: subscription.title ?? "",
+            duration: subscription.duration,
             expiration_date: subscription.expiration_date instanceof Date
                 ? subscription.expiration_date.toISOString()
                 : String(subscription.expiration_date),

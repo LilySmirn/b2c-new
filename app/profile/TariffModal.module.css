@@ -90,7 +90,7 @@
 .tariffHeader,
 .tariffOption {
     display: grid;
-    grid-template-columns: 18px minmax(140px, 1.2fr) minmax(110px, 0.8fr) auto;
+    grid-template-columns: 18px minmax(140px, 1fr) auto;
     align-items: center;
     gap: 16px;
     width: 100%;
@@ -127,15 +127,10 @@
     accent-color: #1182ee;
 }
 
-.tariffName {
-    min-width: 0;
-    font: 700 18px/1.25 Arial, sans-serif;
-}
-
 .tariffMeta {
     min-width: 0;
-    color: #596a7d;
-    font: 400 16px/1.3 Arial, sans-serif;
+    color: #00182f;
+    font: 700 18px/1.25 Arial, sans-serif;
 }
 
 .tariffPrice {
@@ -221,13 +216,9 @@
         grid-template-columns: auto minmax(0, 1fr) auto;
     }
 
-    .tariffMeta {
-        grid-column: 2;
-    }
-
     .tariffPrice {
         grid-column: 3;
-        grid-row: 1 / span 2;
+        grid-row: 1;
     }
 
     .buttons {

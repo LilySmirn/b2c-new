@@ -8,6 +8,8 @@ import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
 import SubscriptionExpirationWarning from '@/app/(directory)/components/SubscriptionExpirationWarning';
 import { logout } from '@/app/lib/logout';
+import { getSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 type DirectoryPageHeaderProps = {
   variant: 'search' | 'cart';
@@ -95,6 +97,15 @@ export default function DirectoryPageHeader({
   recommendationSource,
 }: DirectoryPageHeaderProps) {
   const sourceMeta = getSourceMeta(recommendationSource, recommendationId);
+  const [isB2cUser, setIsB2cUser] = useState(false);
+
+  useEffect(() => {
+    if (variant === 'search') {
+      void getSession().then((session) => {
+        setIsB2cUser(session?.user?.accountType === 'b2c');
+      });
+    }
+  }, [variant]);
 
   const handleBackToSearch = () => {
     clearCartState();
@@ -137,6 +148,10 @@ export default function DirectoryPageHeader({
           Вернуться к поиску
         </Link>
       </div>
+    ) : isB2cUser ? (
+      <Link href="/profile" className={styles.action}>
+        Личный кабинет
+      </Link>
     ) : (
       <Link href="/auth" className={styles.action} onClick={handleLogout}>
         Выйти

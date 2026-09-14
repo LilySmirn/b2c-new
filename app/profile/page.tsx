@@ -33,7 +33,9 @@ export default async function AccountPage() {
         tariffTitle: expirationReminder.tariffTitle,
     } : null;
 
-    const tariffTitle = latestSubscription?.title || "Демо";
+    const tariffTitle = latestSubscription?.duration
+        ? `${latestSubscription.duration} ${latestSubscription.duration === 1 ? "месяц" : latestSubscription.duration < 5 ? "месяца" : "месяцев"}`
+        : "Демо";
     const tariffExpiration = latestSubscription
         ? new Intl.DateTimeFormat("ru-RU").format(new Date(latestSubscription.expiration_date))
         : "—";
@@ -112,10 +114,10 @@ export default async function AccountPage() {
                                 </div>
 
                                 <div className={styles.tariffInfo}>
-                                    <div className={styles.personalInfoTitle}>Тариф</div>
+                                    <div className={styles.personalInfoTitle}>Подписка</div>
                                     <div className={styles.infoBox}>
                                         <div className={styles.infoBoxTariff}>
-                                            <div className={styles.infoBoxTitle}>Тариф:</div>
+                                            <div className={styles.infoBoxTitle}>Подписка:</div>
                                             <div className={styles.infoBoxValue}>
                                                 <div
                                                     className={styles.infoBoxText}>
@@ -125,7 +127,7 @@ export default async function AccountPage() {
                                         </div>
 
                                         <div className={styles.infoBoxDuration}>
-                                            <div className={styles.infoBoxTitle}>Срок действия:</div>
+                                            <div className={styles.infoBoxTitle}>Активно до:</div>
                                             <div className={styles.infoBoxValue}>
                                                 <div className={styles.infoBoxText}>
                                                     {tariffExpiration}

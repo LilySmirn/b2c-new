@@ -5,6 +5,7 @@ import CorporateAccess from "./components/CorporateAccess";
 import Head from 'next/head';
 import { Metadata } from "next";
 import heroImage from "@/assets/images/hero-img-new.png";
+import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
 
 export const metadata: Metadata = {
   title: "Клинические рекомендации по МКБ-10",
@@ -30,7 +31,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const { session, isActive } = await getB2cSessionStatus();
+  const recommendationsHref =
+      session?.user?.accountType === "b2b" || isActive ? "/mkb" : "/login";
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -165,7 +169,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="hero-buttons">
-                <Link href="/mkb" className="btn btn-hero-demo">Найти рекомендации</Link>
+                <Link href={recommendationsHref} className="btn btn-hero-demo">Найти рекомендации</Link>
                 <Link href="/login" className="btn btn-pricing">
                   Приобрести подписку
                 </Link>
@@ -306,9 +310,6 @@ export default function Home() {
 
             <div className="pricing-mobile">
               <div className="pricing-item">
-                <p className="pricing-item-title">
-                  Базовый
-                </p>
                 <div className="pricing-conditions">
                   <div className="duration">
                     1 месяц
@@ -330,9 +331,6 @@ export default function Home() {
                 </Link>
               </div>
               <div className="pricing-item bg-blue">
-                <p className="pricing-item-title">
-                  Оптимальный
-                </p>
                 <div className="pricing-conditions">
                   <div className="duration">
                     3 месяца
@@ -350,9 +348,6 @@ export default function Home() {
                 </Link>
               </div>
               <div className="pricing-item">
-                <p className="pricing-item-title">
-                  Расширенный
-                </p>
                 <div className="pricing-conditions">
                   <div className="duration">
                     6 месяцев
@@ -370,9 +365,6 @@ export default function Home() {
                 </Link>
               </div>
               <div className="pricing-item bg-blue">
-                <p className="pricing-item-title">
-                  Премиум
-                </p>
                 <div className="pricing-conditions">
                   <div className="duration">
                     12 месяцев
@@ -393,7 +385,6 @@ export default function Home() {
             <table className="pricing-table">
               <thead>
               <tr className="table-bg">
-                <th>Тариф</th>
                 <th>Срок</th>
                 <th>Цена</th>
                 <th>Экономия</th>
@@ -402,7 +393,6 @@ export default function Home() {
               </thead>
               <tbody>
               <tr>
-                <td>Базовый</td>
                 <td>1 месяц</td>
                 <td>300 ₽</td>
                 <td>—</td>
@@ -417,7 +407,6 @@ export default function Home() {
                 </td>
               </tr>
               <tr className="table-bg">
-                <td>Оптимальный</td>
                 <td>3 месяца</td>
                 <td>750 ₽</td>
                 <td>–150 ₽</td>
@@ -432,7 +421,6 @@ export default function Home() {
                 </td>
               </tr>
               <tr>
-                <td>Расширенный</td>
                 <td>6 месяцев</td>
                 <td>1 200 ₽</td>
                 <td>–600 ₽</td>
@@ -447,7 +435,6 @@ export default function Home() {
                 </td>
               </tr>
               <tr className="table-bg">
-                <td>Премиум</td>
                 <td>12 месяцев</td>
                 <td>1 800 ₽</td>
                 <td>–1 800 ₽</td>

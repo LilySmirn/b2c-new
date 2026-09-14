@@ -11,7 +11,7 @@ interface Tariff {
 }
 
 const tariffs: Tariff[] = [
-    { id: "1", title: "Базовый", duration: "1 месяц", price: 100 },
+    { id: "1", title: "Базовый", duration: "1 месяц", price: 300 },
     { id: "2", title: "Оптимальный", duration: "3 месяца", price: 750 },
     { id: "3", title: "Расширенный", duration: "6 месяцев", price: 1200 },
     { id: "4", title: "Премиум", duration: "12 месяцев", price: 1800 }
@@ -116,7 +116,6 @@ export default function TariffModal({
                         <div className={styles.tariffList}>
                             <div className={styles.tariffHeader} aria-hidden="true">
                                 <span />
-                                <span>Название тарифа</span>
                                 <span>Срок</span>
                                 <span>Цена</span>
                             </div>
@@ -129,7 +128,6 @@ export default function TariffModal({
                                         checked={selectedTariff === tariff.id}
                                         onChange={() => setSelectedTariff(tariff.id)}
                                     />
-                                    <span className={styles.tariffName}>{tariff.title}</span>
                                     <span className={styles.tariffMeta}>{tariff.duration}</span>
                                     <span className={styles.tariffPrice}>{tariff.price.toLocaleString("ru-RU")} ₽</span>
                                 </label>
