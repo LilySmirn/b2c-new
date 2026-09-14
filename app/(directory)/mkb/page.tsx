@@ -711,7 +711,7 @@ export default function SearchPreviewPage() {
         <section className={styles.content}>
           <Image src={logoBig} alt="EasyMed" className={styles.logo} priority />
 
-          {demoRemaining !== null ? (
+          {demoRemaining !== null && cardsError !== DEMO_LIMIT_MESSAGE ? (
             <p className={styles.demoRemaining}>{formatDemoRemaining(demoRemaining)}</p>
           ) : null}
 
