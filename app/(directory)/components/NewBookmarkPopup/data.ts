@@ -23,7 +23,7 @@ export const newBookmarkRecommendationCardData = {
   standardId: "277_2",
   status: "Действует",
   ageCategory: "Взрослые",
-  publicationDate: "13.01.2025",
-  approvalYear: "2024",
+  dateApprovement: "2024",
+  dateReview: "2026",
   classification: "K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0, K25, K26, K27.0",
 };

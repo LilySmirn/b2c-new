@@ -29,6 +29,8 @@ type RecommendationStandard = {
   status: string;
   source: string;
   mkbCodes: string[];
+  dateApprovement: string;
+  dateReview: string;
   ageCategory: string;
 };
 
@@ -441,6 +443,8 @@ export default function NewBookmarkPopup({
                   standardId={recommendation.id}
                   status={recommendation.status}
                   ageCategory={recommendation.ageCategory}
+                  dateApprovement={recommendation.dateApprovement}
+                  dateReview={recommendation.dateReview}
                   classification={recommendation.mkbCodes.length > 0 ? recommendation.mkbCodes.join(", ") : submittedCode}
                   selected={selectedRecommendation?.id === recommendation.id}
                   onSelect={() => handleRecommendationSelect(recommendation)}

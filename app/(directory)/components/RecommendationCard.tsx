@@ -13,8 +13,8 @@ type RecommendationCardProps = {
  standardId: string;
   status: string;
   ageCategory: string;
-  publicationDate?: string;
-  approvalYear?: string;
+  dateApprovement?: string;
+  dateReview?: string;
   classification: string;
   showBookmarkMenu?: boolean;
   onAddBookmark?: () => void;
@@ -24,8 +24,8 @@ const cardLabels = {
   id: "ID:",
   status: "Статус:",
   ageCategory: "Возрастная категория:",
-  publicationDate: "Дата размещения КР:",
-  approvalYear: "Год утверждения:",
+  dateApprovement: "Дата размещения КР:",
+  dateReview: "Год утверждения:",
   classification:
     "Кодирование по международной статистической классификации болезней и проблем, связанных со здоровьем:",
 };
@@ -36,8 +36,8 @@ export default function RecommendationCard({
   standardId,
   status,
   ageCategory,
-  publicationDate = "—",
-  approvalYear = "—",
+  dateApprovement = "—",
+  dateReview = "—",
   classification,
   selected = false,
   onSelect,
@@ -153,13 +153,13 @@ export default function RecommendationCard({
         </div>
 
         <div className={styles.infoPair}>
-          <span className={styles.label}>{cardLabels.publicationDate}</span>
-          <span className={styles.value}>{publicationDate}</span>
+          <span className={styles.label}>{cardLabels.dateApprovement}</span>
+          <span className={styles.value}>{dateApprovement}</span>
         </div>
 
         <div className={styles.infoPair}>
-          <span className={styles.label}>{cardLabels.approvalYear}</span>
-          <span className={styles.value}>{approvalYear}</span>
+          <span className={styles.label}>{cardLabels.dateReview}</span>
+          <span className={styles.value}>{dateReview}</span>
         </div>
 
         <div className={`${styles.infoPair} ${styles.classificationPair}`}>

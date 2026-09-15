@@ -60,6 +60,8 @@ type RecommendationStandard = {
   status: string;
   source: string;
   mkbCodes: string[];
+  dateApprovement: string;
+  dateReview: string;
   ageCategory: string;
   prescriptions: ChecklistSection[];
 };
@@ -784,6 +786,8 @@ export default function SearchPreviewPage() {
                       standardId={card.id}
                       status={card.status}
                       ageCategory={card.ageCategory}
+                      dateApprovement={card.dateApprovement}
+                      dateReview={card.dateReview}
                       classification={card.mkbCodes.length > 0 ? card.mkbCodes.join(", ") : submittedCode}
                       onSelect={() => handleCardSelect(card)}
                     />

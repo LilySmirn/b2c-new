@@ -52,6 +52,8 @@ type EasyMedAppointment = {
 type EasyMedStandard = {
   cr_m_id?: unknown;
   mkb_codes?: unknown;
+  date_approvement?: unknown;
+  date_review?: unknown;
   name?: unknown;
   status?: unknown;
   cr_source?: unknown;
@@ -121,6 +123,8 @@ type RecommendationCardStandard = {
   status: string;
   source: string;
   mkbCodes: string[];
+  dateApprovement: string;
+  dateReview: string;
   ageCategory: "Взрослые" | "Дети";
   prescriptions: PrescriptionSection[];
 };
@@ -415,6 +419,8 @@ const normalizeStandards = (
       status: getString(standard.status),
       source: getString(standard.cr_source),
       mkbCodes: getMkbCodes(standard.mkb_codes),
+      dateApprovement: getString(standard.date_approvement, "—"),
+      dateReview: getString(standard.date_review, "—"),
       ageCategory,
       prescriptions: normalizePrescriptionSections(standard, visit, crTextById),
     }))
