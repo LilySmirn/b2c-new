@@ -20,6 +20,7 @@ import { USER_BLOCKING_REFRESH_EVENT } from "@/app/modules/userBlocking";
 import { beginCartVisit } from "@/app/modules/clinicalRecommendationOpening/client";
 import { handleInvalidB2cSession } from "@/app/lib/handleInvalidB2cSession";
 import { readSearchState, writeSearchState } from "@/app/lib/searchStateStorage";
+import { normalizeMkbSearchInput } from "@/app/lib/normalizeMkbSearchInput";
 
 type MkbSearchResult = {
   code: string;
@@ -517,7 +518,7 @@ export default function SearchPreviewPage() {
   };
 
   const handleQueryChange = (value: string) => {
-    setQuery(value);
+    setQuery(normalizeMkbSearchInput(value));
     setMkbAccessError(null);
     setSubmittedCode(null);
     setSubmittedDiagnosisTitle(null);
