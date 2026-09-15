@@ -19,6 +19,7 @@ import { isMkbCodeAllowed, normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 import { USER_BLOCKING_REFRESH_EVENT } from "@/app/modules/userBlocking";
 import { beginCartVisit } from "@/app/modules/clinicalRecommendationOpening/client";
 import { handleInvalidB2cSession } from "@/app/lib/handleInvalidB2cSession";
+import { readSearchState, writeSearchState } from "@/app/lib/searchStateStorage";
 
 type MkbSearchResult = {
   code: string;
@@ -133,7 +134,6 @@ const getAvailableFilters = (
 };
 
 const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
-const SEARCH_STATE_STORAGE_KEY = "directorySearchState";
 
 type StoredSearchState = {
   query?: string;
@@ -162,21 +162,11 @@ const isAgeGroup = (value: unknown): value is AgeGroup =>
 const readStoredSearchState = (): StoredSearchState | null => {
   if (typeof window === "undefined") return null;
 
-  const storedValue = window.sessionStorage.getItem(SEARCH_STATE_STORAGE_KEY);
-  if (!storedValue) return null;
-
-  try {
-    const parsed = JSON.parse(storedValue);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as StoredSearchState)
-      : null;
-  } catch {
-    return null;
-  }
+  return readSearchState<StoredSearchState>(window.sessionStorage);
 };
 
 const writeStoredSearchState = (state: StoredSearchState) => {
-  window.sessionStorage.setItem(SEARCH_STATE_STORAGE_KEY, JSON.stringify(state));
+  writeSearchState(window.sessionStorage, state);
 };
 
 const getRecommendationExternalUrl = (source: string, id: string) => {
