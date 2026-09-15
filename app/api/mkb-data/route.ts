@@ -475,13 +475,6 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code")?.trim();
 
-  if (!code) {
-    return NextResponse.json(
-      { error: "Missing required parameter: code" },
-      { status: 400 },
-    );
-  }
-
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   if (!userId) {
@@ -489,13 +482,25 @@ export async function GET(req: Request) {
   }
 
   if (session.user.accountType === "b2c") {
-    const { isActive, wasReplaced } = await getB2cSessionStatus();
+    // Use the same database-backed check as /profile, before code validation,
+    // demo reservation, recommendation-opening registration, or EasyMed.
+    const { isActive, wasReplaced } = await getB2cSessionStatus(session);
     if (!isActive) {
       return NextResponse.json(
-        { error: "session_invalid", wasReplaced },
+        {
+          error: "session_invalid",
+          reason: wasReplaced ? "newer_login" : "invalid_session",
+        },
         { status: 401, headers: { "Cache-Control": "no-store" } },
       );
     }
+  }
+
+  if (!code) {
+    return NextResponse.json(
+      { error: "Missing required parameter: code" },
+      { status: 400 },
+    );
   }
 
   const allowedCodes = await getCurrentUserAllowedMkbCodes();

@@ -18,8 +18,12 @@ export type B2cSessionStatus = {
     wasReplaced: boolean;
 };
 
-export async function getB2cSessionStatus(): Promise<B2cSessionStatus> {
-    const session = await getServerSession(authOptions);
+export async function getB2cSessionStatus(
+    existingSession?: Session | null
+): Promise<B2cSessionStatus> {
+    const session = existingSession === undefined
+        ? await getServerSession(authOptions)
+        : existingSession;
     const userId = session?.user?.id;
     const sessionId = session?.sessionId;
 

@@ -9,7 +9,7 @@ export async function handleInvalidB2cSession(response: Response): Promise<boole
 
   const body = await response.clone().json().catch(() => null) as {
     error?: unknown;
-    wasReplaced?: unknown;
+    reason?: unknown;
   } | null;
   if (body?.error !== "session_invalid") return false;
 
@@ -18,7 +18,7 @@ export async function handleInvalidB2cSession(response: Response): Promise<boole
       .catch(() => undefined)
       .then(() => {
         window.location.replace(
-          body?.wasReplaced === true ? "/login?error=session-replaced" : "/login",
+          body?.reason === "newer_login" ? "/login?error=session-replaced" : "/login",
         );
       });
   }

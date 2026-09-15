@@ -428,6 +428,8 @@ export default function SearchPreviewPage() {
           { signal: controller.signal },
         );
 
+        if (await handleInvalidB2cSession(response)) return;
+
         updateDemoRemainingFromResponse(response);
 
         if (response.headers.get("X-User-Blocked") === "true") {
@@ -606,6 +608,8 @@ export default function SearchPreviewPage() {
       const { response, data } = await fetchEncryptedJson<MkbDataResponse>(
         `/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`,
       );
+
+      if (await handleInvalidB2cSession(response)) return;
 
       updateDemoRemainingFromResponse(response);
 
