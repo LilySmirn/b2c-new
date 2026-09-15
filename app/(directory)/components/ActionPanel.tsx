@@ -8,6 +8,7 @@ import documentIcon from "@/assets/images/action-panel-3.svg";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
 import DocumentTemplateModal from "@/app/(directory)/components/DocumentTemplateModal";
+import CorporateContactPopup from "@/app/components/CorporateContactPopup";
 import styles from "./ActionPanel.module.css";
 
 const actions = [
@@ -250,6 +251,7 @@ export default function ActionPanel({
   generalComment = "",
 }: ActionPanelProps) {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+  const [isContactPopupOpen, setIsContactPopupOpen] = useState(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [copyNotice, setCopyNotice] = useState("");
   const copyNoticeTimerRef = useRef<number | null>(null);
@@ -374,21 +376,26 @@ export default function ActionPanel({
               Хотите реализовать интеграцию
               <br />
               в ваш МИС?
-              <br />
-              Свяжитесь с нами
             </p>
 
             <div className={styles.modalActions}>
               <button
                 type="button"
                 className={styles.modalButton}
-                onClick={() => setIsIntegrationModalOpen(false)}
+                onClick={() => {
+                  setIsIntegrationModalOpen(false);
+                  setIsContactPopupOpen(true);
+                }}
               >
-                Закрыть
+                Свяжитесь с нами
               </button>
             </div>
           </div>
         </div>
+      ) : null}
+
+      {isContactPopupOpen ? (
+        <CorporateContactPopup onClose={() => setIsContactPopupOpen(false)} />
       ) : null}
     </>
   );
