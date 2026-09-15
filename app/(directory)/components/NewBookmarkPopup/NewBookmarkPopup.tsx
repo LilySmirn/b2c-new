@@ -307,6 +307,12 @@ export default function NewBookmarkPopup({
     return mkbData.standards[ageGroup][visitType] ?? [];
   }, [ageGroup, mkbData, visitType]);
 
+  useEffect(() => {
+    if (recommendationCards.length !== 1) return;
+
+    setSelectedRecommendation(recommendationCards[0]);
+  }, [recommendationCards]);
+
   const submitSearch = (code = selectedCode, sourceText = query) => {
     setIsMatchesOpen(false);
     setSelectedRecommendation(null);
@@ -421,19 +427,26 @@ export default function NewBookmarkPopup({
           ) : !visitType || !ageGroup ? (
             <p style={fullWidthGridItemStyle}>Выберите фильтры, чтобы увидеть рекомендации.</p>
           ) : recommendationCards.length > 0 ? (
-            recommendationCards.map((recommendation) => (
-              <RecommendationCard
-                key={`${recommendation.id}-${recommendation.title}`}
-                title={recommendation.title}
-                externalUrl={getRecommendationExternalUrl(recommendation.source, recommendation.id)}
-                standardId={recommendation.id}
-                status={recommendation.status}
-                ageCategory={recommendation.ageCategory}
-                classification={recommendation.mkbCodes.length > 0 ? recommendation.mkbCodes.join(", ") : submittedCode}
-                selected={selectedRecommendation?.id === recommendation.id}
-                onSelect={() => handleRecommendationSelect(recommendation)}
-              />
-            ))
+            <>
+              {!isEditMode && recommendationCards.length > 1 && !selectedRecommendation ? (
+                <p className={styles.selectionHint} role="status">
+                  Выберите карточку клинической рекомендации, чтобы добавить закладку.
+                </p>
+              ) : null}
+              {recommendationCards.map((recommendation) => (
+                <RecommendationCard
+                  key={`${recommendation.id}-${recommendation.title}`}
+                  title={recommendation.title}
+                  externalUrl={getRecommendationExternalUrl(recommendation.source, recommendation.id)}
+                  standardId={recommendation.id}
+                  status={recommendation.status}
+                  ageCategory={recommendation.ageCategory}
+                  classification={recommendation.mkbCodes.length > 0 ? recommendation.mkbCodes.join(", ") : submittedCode}
+                  selected={selectedRecommendation?.id === recommendation.id}
+                  onSelect={() => handleRecommendationSelect(recommendation)}
+                />
+              ))}
+            </>
           ) : (
             <p style={fullWidthGridItemStyle}>По выбранным фильтрам рекомендации не найдены.</p>
           )

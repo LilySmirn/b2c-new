@@ -574,8 +574,8 @@ export default async function Home() {
               Видео-<span className="highlight">инструкция</span>
             </h2>
             <div className="video">
-              <iframe width="720" height="405"
-                      src="https://dzen.ru/embed/oo0aWh_8IAAA?from_block=partner&from=zen&mute=0&autoplay=0&tv=0"
+              <iframe width="720" height="415"
+                      src="https://vkvideo.ru/video_ext.php?oid=-232253508&id=456239018&hd=2"
                       allow="autoplay; fullscreen; accelerometer; gyroscope; picture-in-picture; encrypted-media"
                       data-testid="embed-iframe" frameBorder="0" scrolling="no" allowFullScreen></iframe>
             </div>
