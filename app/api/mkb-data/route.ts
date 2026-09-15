@@ -8,6 +8,14 @@ import { registerClinicalRecommendationOpening } from "@/app/modules/clinicalRec
 import { reserveB2cMkbRequest } from "@/app/lib/db";
 import { getB2cSessionStatus } from "@/app/lib/requireActiveB2cSession";
 
+// MKB responses are user- and session-specific. In particular, allowing a
+// browser or an intermediary to reuse a successful GET response would bypass
+// the session check below after another device replaces the login.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const PRIVATE_NO_STORE_HEADERS = { "Cache-Control": "private, no-store" };
+
 const EASYMED_MKB_URL = "https://easymed.pro/php/API/get-mkb.php";
 const EASYMED_MKB_CR_URL = "https://easymed.pro/php/API/get-mkb-cr.php";
 const EASYMED_CR_TEXT_URL = "https://easymed.pro/php/API/get-cr-text.php";
@@ -491,7 +499,7 @@ export async function GET(req: Request) {
           error: "session_invalid",
           reason: wasReplaced ? "newer_login" : "invalid_session",
         },
-        { status: 401, headers: { "Cache-Control": "no-store" } },
+        { status: 401, headers: PRIVATE_NO_STORE_HEADERS },
       );
     }
   }
@@ -525,7 +533,7 @@ export async function GET(req: Request) {
       {
         status: 403,
         headers: {
-          "Cache-Control": "no-store",
+          ...PRIVATE_NO_STORE_HEADERS,
           "X-User-Blocked": "true",
         },
       },
@@ -541,7 +549,7 @@ export async function GET(req: Request) {
         { error: "demo_limit_reached", limit: demoAccess.limit },
         {
           status: 429,
-          headers: { "Cache-Control": "no-store", "X-Demo-Remaining": "0" },
+          headers: { ...PRIVATE_NO_STORE_HEADERS, "X-Demo-Remaining": "0" },
         },
       );
     }
@@ -593,18 +601,26 @@ export async function GET(req: Request) {
           },
         },
       }),
-      requestDemoRemaining === null
-        ? undefined
-        : { headers: { "X-Demo-Remaining": String(requestDemoRemaining) } },
+      {
+        headers: {
+          ...PRIVATE_NO_STORE_HEADERS,
+          ...(requestDemoRemaining === null
+            ? {}
+            : { "X-Demo-Remaining": String(requestDemoRemaining) }),
+        },
+      },
     );
   } catch {
     return NextResponse.json(
       { error: "EasyMed MKB data service is unavailable" },
       {
         status: 503,
-        headers: requestDemoRemaining === null
-          ? undefined
-          : { "X-Demo-Remaining": String(requestDemoRemaining) },
+        headers: {
+          ...PRIVATE_NO_STORE_HEADERS,
+          ...(requestDemoRemaining === null
+            ? {}
+            : { "X-Demo-Remaining": String(requestDemoRemaining) }),
+        },
       },
     );
   }

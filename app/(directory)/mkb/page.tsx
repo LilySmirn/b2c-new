@@ -375,8 +375,10 @@ export default function SearchPreviewPage() {
       try {
         const response = await fetch(
           `/api/search?search=${encodeURIComponent(search)}`,
-          { signal: controller.signal },
+          { signal: controller.signal, cache: "no-store" },
         );
+
+        if (await handleInvalidB2cSession(response)) return;
 
         if (!response.ok) {
           throw new Error("Не удалось получить данные поиска");
@@ -425,7 +427,7 @@ export default function SearchPreviewPage() {
       try {
         const { response, data } = await fetchEncryptedJson<MkbDataResponse>(
           `/api/mkb-data?code=${encodeURIComponent(submittedCode)}`,
-          { signal: controller.signal },
+          { signal: controller.signal, cache: "no-store" },
         );
 
         if (await handleInvalidB2cSession(response)) return;
@@ -607,6 +609,7 @@ export default function SearchPreviewPage() {
     try {
       const { response, data } = await fetchEncryptedJson<MkbDataResponse>(
         `/api/mkb-data?code=${encodeURIComponent(bookmark.code)}`,
+        { cache: "no-store" },
       );
 
       if (await handleInvalidB2cSession(response)) return;
