@@ -106,7 +106,13 @@ export default function CorporateContactPopup({ onClose }: CorporateContactPopup
                 </div>
             </div>
 
-            {showError && <ErrorModal message={errorMsg} onClose={() => setShowError(false)} />}
+            {showError && (
+                <ErrorModal
+                    message={errorMsg}
+                    onClose={() => setShowError(false)}
+                    reportToTelegram={false}
+                />
+            )}
         </>
     );
 }

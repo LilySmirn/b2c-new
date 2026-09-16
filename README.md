@@ -27,8 +27,27 @@
 - `TELEGRAM_PAYMENT_ERROR_CHAT_ID` — chat for caught internal payment errors
 - `TELEGRAM_PAYMENT_CARD_ERROR_CHAT_ID` — chat for authoritative YooKassa cancellations
 - `TELEGRAM_PAYMENT_SUCCESS_CHAT_ID` — chat for the first successfully processed payment transition
+- `TELEGRAM_PROXY_HOST` — optional HTTP(S) CONNECT proxy hostname or IP, without a URL scheme
+- `TELEGRAM_PROXY_PORT` — proxy TCP port
+- `TELEGRAM_PROXY_USERNAME` — proxy username (server-side only)
+- `TELEGRAM_PROXY_PASSWORD` — proxy password (server-side only)
 - `EASYMED_API_USERNAME` if not using the built-in fallback
 - `EASYMED_API_PASSWORD` if not using the built-in fallback
+
+All four `TELEGRAM_PROXY_*` variables must either be set together or be absent. When set,
+only requests to the Telegram Bot API use the authenticated HTTP CONNECT proxy. When
+absent, Telegram uses a direct HTTPS connection. Proxy credentials and bot tokens are
+never included in transport error messages.
+
+To send a test notification without making a payment, load the desired configuration
+into the root `.env` and run:
+
+```bash
+npm run telegram:test -- success
+```
+
+The successful output includes `transport: http_proxy` when the proxy was actually
+selected, or `transport: direct` when the proxy variables were absent.
 
 For the mail server, use the port/security pair required by the provider: usually
 `SMTP_PORT=465` with `SMTP_SECURE=true`, or `SMTP_PORT=587` with

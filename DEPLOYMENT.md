@@ -51,6 +51,10 @@ Add the same values for Production and Preview unless intentionally different:
 - `TELEGRAM_CHAT_ID`
 - `TELEGRAM_ERROR_BOT_TOKEN`
 - `TELEGRAM_ERROR_CHAT_ID`
+- `TELEGRAM_PROXY_HOST` — optional HTTP(S) CONNECT proxy hostname or IP (no `http://` prefix)
+- `TELEGRAM_PROXY_PORT`
+- `TELEGRAM_PROXY_USERNAME`
+- `TELEGRAM_PROXY_PASSWORD`
 - `EASYMED_API_USERNAME` if not using the built-in fallback
 - `EASYMED_API_PASSWORD` if not using the built-in fallback
 

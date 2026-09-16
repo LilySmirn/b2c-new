@@ -1,3 +1,8 @@
+import {
+    sendTelegramRequest,
+    getTelegramSafeErrorCode,
+} from "@/app/lib/telegramTransport";
+
 export async function sendTelegramMessage(message: string) {
     const token = process.env.TELEGRAM_ERROR_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_ERROR_CHAT_ID;
@@ -13,16 +18,12 @@ export async function sendTelegramMessage(message: string) {
     }
 
     try {
-        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'Markdown',
-            }),
+        await sendTelegramRequest(token, {
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'Markdown',
         });
-    } catch (err) {
-        console.error('Failed to send Telegram message', err);
+    } catch (error) {
+        console.error(getTelegramSafeErrorCode(error));
     }
 }

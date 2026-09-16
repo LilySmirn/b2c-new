@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import {logError, NextErrorResponse} from "@/app/lib/logger";
-import {ErrorType} from "@/app/types/ErrorType";
+import {getTelegramSafeErrorCode, sendTelegramRequest} from "@/app/lib/telegramTransport";
 
 export async function POST(req: Request) {
     try {
@@ -25,22 +24,20 @@ Email: ${email}
 Клиника: ${crm || "—"}
 `;
 
-        const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: "HTML",
-            }),
+        const tgRes = await sendTelegramRequest(token, {
+            chat_id: chatId,
+            text: message,
+            parse_mode: "HTML",
         });
 
         if (!tgRes.ok) {
-            return await NextErrorResponse(ErrorType.SendTelegramSendingFailed, 'Error sending to Telegram', 500, null);
+            console.error("telegram_http_error", tgRes.status);
+            return NextResponse.json({ message: "Не удалось отправить заявку" }, { status: 502 });
         }
 
         return NextResponse.json({ message: "Заявка успешно отправлена!" }, { status: 200 });
     } catch (error) {
-        return await NextErrorResponse(ErrorType.SendTelegramServerError, error, 500, null);
+        console.error(getTelegramSafeErrorCode(error));
+        return NextResponse.json({ message: "Не удалось отправить заявку" }, { status: 502 });
     }
 }

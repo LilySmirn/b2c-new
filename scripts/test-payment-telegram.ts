@@ -33,47 +33,25 @@ async function main(): Promise<void> {
 
     // Load the helper only after dotenv has populated process.env.
     const { sendPaymentTelegramNotification } = await import("../app/lib/paymentTelegramNotifier");
-    const originalFetch = globalThis.fetch;
-    const telegramResult: {
-        response: { ok: boolean; status: number } | null;
-        requestError: unknown;
-    } = { response: null, requestError: null };
+    const telegramResult = await sendPaymentTelegramNotification(type, {
+        user: "local-test@example.com",
+        paymentId: "local-test-payment",
+        yookassaPaymentId: "local-test-yookassa",
+        tariff: "Локальный тест (test-tariff)",
+        amount: "100.00",
+        cancellationReason: "test_cancellation_reason",
+        cancellationParty: "test",
+        subscriptionExpiration: "2030-01-01T00:00:00.000Z",
+        error: new Error("Тестовая внутренняя ошибка"),
+        stage: "локальная проверка",
+    });
 
-    globalThis.fetch = async (...args: Parameters<typeof fetch>) => {
-        try {
-            const response = await originalFetch(...args);
-            telegramResult.response = { ok: response.ok, status: response.status };
-            return response;
-        } catch (error) {
-            telegramResult.requestError = error;
-            throw error;
-        }
-    };
-
-    try {
-        await sendPaymentTelegramNotification(type, {
-            user: "local-test@example.com",
-            paymentId: "local-test-payment",
-            yookassaPaymentId: "local-test-yookassa",
-            tariff: "Локальный тест (test-tariff)",
-            amount: "100.00",
-            cancellationReason: "test_cancellation_reason",
-            cancellationParty: "test",
-            subscriptionExpiration: "2030-01-01T00:00:00.000Z",
-            error: new Error("Тестовая внутренняя ошибка"),
-            stage: "локальная проверка",
-        });
-    } finally {
-        globalThis.fetch = originalFetch;
+    if (!telegramResult.sent) {
+        throw new Error(`Telegram-сообщение типа ${type} не отправлено (HTTP ${telegramResult.status ?? "не получен"})`);
     }
-
-    if (telegramResult.requestError) {
-        throw new Error(`Telegram-сообщение типа ${type} не отправлено: ошибка сети или timeout`);
-    }
-    if (!telegramResult.response?.ok) {
-        throw new Error(`Telegram-сообщение типа ${type} не отправлено: HTTP ${telegramResult.response?.status ?? "не получен"}`);
-    }
-    console.log(`Telegram-сообщение типа ${type} успешно отправлено (HTTP ${telegramResult.response.status}).`);
+    console.log(
+        `Telegram-сообщение типа ${type} успешно отправлено (HTTP ${telegramResult.status}, transport: ${telegramResult.transport}).`,
+    );
 }
 
 main().catch((error) => {

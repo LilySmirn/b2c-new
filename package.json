@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test app/**/*.test.ts",
+    "telegram:test": "tsx scripts/test-payment-telegram.ts",
+    "telegram:form:test": "tsx scripts/test-telegram-form.ts",
     "cron": "tsx cron/cronRunner.ts",
     "smtp:check": "node scripts/check-smtp.mjs"
   },
