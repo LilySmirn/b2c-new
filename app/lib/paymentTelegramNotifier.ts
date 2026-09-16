@@ -92,7 +92,7 @@ export async function sendPaymentTelegramNotification(
         if (!response.ok) {
             await logPaymentEvent("telegram_payment_notification_failed", data.paymentId ?? null, {
                 notificationType: type,
-                reason: "telegram_http_error",
+                reason: "telegram_api_http_error",
                 httpStatus: response.status,
             });
         }

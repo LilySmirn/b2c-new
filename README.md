@@ -31,13 +31,23 @@
 - `TELEGRAM_PROXY_PORT` — proxy TCP port
 - `TELEGRAM_PROXY_USERNAME` — proxy username (server-side only)
 - `TELEGRAM_PROXY_PASSWORD` — proxy password (server-side only)
+- `TELEGRAM_PROXY_PROTOCOL` — proxy transport, one of `http`, `https`, or `socks5`
 - `EASYMED_API_USERNAME` if not using the built-in fallback
 - `EASYMED_API_PASSWORD` if not using the built-in fallback
 
-All four `TELEGRAM_PROXY_*` variables must either be set together or be absent. When set,
-only requests to the Telegram Bot API use the authenticated HTTP CONNECT proxy. When
+All five `TELEGRAM_PROXY_*` variables must either be set together or be absent. When set,
+only requests to the Telegram Bot API use the selected authenticated proxy. When
 absent, Telegram uses a direct HTTPS connection. Proxy credentials and bot tokens are
 never included in transport error messages.
+
+The proxy transport has a 10-second timeout for form/error notifications and a
+5-second timeout for payment notifications. A timeout while opening the proxy
+socket is logged as `telegram_proxy_tcp_timeout`; proxy HTTP 407 is
+`telegram_proxy_auth_failed`; other connection, TLS, Telegram timeout, and API
+response failures are logged as `telegram_proxy_connect_failed`,
+`telegram_proxy_tls_failed`, `telegram_api_timeout`, and
+`telegram_api_http_error`. These categories never contain proxy credentials or
+the bot-token URL.
 
 To send a test notification without making a payment, load the desired configuration
 into the root `.env` and run:
@@ -46,8 +56,9 @@ into the root `.env` and run:
 npm run telegram:test -- success
 ```
 
-The successful output includes `transport: http_proxy` when the proxy was actually
-selected, or `transport: direct` when the proxy variables were absent.
+The successful output includes `transport: http_proxy`, `https_proxy`, or
+`socks5_proxy` according to `TELEGRAM_PROXY_PROTOCOL`, or `transport: direct`
+when the proxy variables are absent.
 
 For the mail server, use the port/security pair required by the provider: usually
 `SMTP_PORT=465` with `SMTP_SECURE=true`, or `SMTP_PORT=587` with

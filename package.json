@@ -24,6 +24,7 @@
     "nodemailer": "^6.10.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "socks-proxy-agent": "^8.0.5",
     "tsx": "^4.20.6",
     "uuid": "^11.1.0",
     "yookassa": "^0.1.1"

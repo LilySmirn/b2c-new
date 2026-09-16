@@ -3,13 +3,14 @@ import net from "node:net";
 import tls from "node:tls";
 import type { ClientRequestArgs } from "node:http";
 import type { Duplex } from "node:stream";
+import { SocksProxyAgent } from "socks-proxy-agent";
 
 const TELEGRAM_HOST = "api.telegram.org";
 const DEFAULT_TIMEOUT_MS = 10_000;
 
-export type TelegramTransportMode = "direct" | "http_proxy";
+export type TelegramTransportMode = "direct" | "http_proxy" | "https_proxy" | "socks5_proxy";
 
-type TelegramProxyProtocol = "http" | "https";
+type TelegramProxyProtocol = "http" | "https" | "socks5";
 
 type ProxyConfiguration = {
     host: string;
@@ -38,9 +39,17 @@ export function getTelegramSafeErrorCode(error: unknown): string {
         return error.message;
     }
     if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) {
-        return "telegram_request_timeout";
+        return "telegram_api_timeout";
     }
     return "telegram_request_failed";
+}
+
+function proxySocketErrorCode(error: unknown): string {
+    if (error instanceof TelegramTransportError) return error.code;
+    if (error && typeof error === "object" && "code" in error && error.code === "ETIMEDOUT") {
+        return "telegram_proxy_tcp_timeout";
+    }
+    return "telegram_proxy_connect_failed";
 }
 
 function readProxyConfiguration(): ProxyConfiguration | null {
@@ -71,8 +80,8 @@ function readProxyConfiguration(): ProxyConfiguration | null {
     }
 
     const protocol = values.TELEGRAM_PROXY_PROTOCOL.toLowerCase();
-    if (protocol !== "http" && protocol !== "https") {
-        throw new TelegramProxyConfigurationError("telegram_proxy_configuration_invalid: TELEGRAM_PROXY_PROTOCOL must be http or https");
+    if (protocol !== "http" && protocol !== "https" && protocol !== "socks5") {
+        throw new TelegramProxyConfigurationError("telegram_proxy_configuration_invalid: TELEGRAM_PROXY_PROTOCOL must be http, https, or socks5");
     }
 
     return {
@@ -84,8 +93,14 @@ function readProxyConfiguration(): ProxyConfiguration | null {
     };
 }
 
+function transportMode(proxy: ProxyConfiguration | null): TelegramTransportMode {
+    if (!proxy) return "direct";
+    if (proxy.protocol === "socks5") return "socks5_proxy";
+    return proxy.protocol === "https" ? "https_proxy" : "http_proxy";
+}
+
 export function getTelegramTransportMode(): TelegramTransportMode {
-    return readProxyConfiguration() ? "http_proxy" : "direct";
+    return transportMode(readProxyConfiguration());
 }
 
 class TelegramHttpsProxyAgent extends https.Agent {
@@ -119,9 +134,9 @@ class TelegramHttpsProxyAgent extends https.Agent {
             });
 
         proxySocket.setTimeout(this.connectionTimeoutMs, () => {
-            proxySocket.destroy(new TelegramTransportError("telegram_proxy_connection_timeout"));
+            proxySocket.destroy(new TelegramTransportError("telegram_proxy_tcp_timeout"));
         });
-        proxySocket.once("error", () => finish(new TelegramTransportError("telegram_proxy_connection_failed")));
+        proxySocket.once("error", (error) => finish(new TelegramTransportError(proxySocketErrorCode(error))));
         const sendConnect = () => {
             const authorization = Buffer.from(`${this.proxy.username}:${this.proxy.password}`, "utf8").toString("base64");
             proxySocket.write(
@@ -143,9 +158,14 @@ class TelegramHttpsProxyAgent extends https.Agent {
 
             proxySocket.off("data", onData);
             const statusLine = response.subarray(0, response.indexOf("\r\n")).toString("ascii");
+            if (/^HTTP\/1\.[01] 407(?: |$)/.test(statusLine)) {
+                proxySocket.destroy();
+                finish(new TelegramTransportError("telegram_proxy_auth_failed"));
+                return;
+            }
             if (!/^HTTP\/1\.[01] 200(?: |$)/.test(statusLine)) {
                 proxySocket.destroy();
-                finish(new TelegramTransportError("telegram_proxy_connect_rejected"));
+                finish(new TelegramTransportError("telegram_proxy_connect_failed"));
                 return;
             }
 
@@ -157,7 +177,7 @@ class TelegramHttpsProxyAgent extends https.Agent {
                 servername: TELEGRAM_HOST,
             });
             telegramSocket.once("secureConnect", () => finish(null, telegramSocket));
-            telegramSocket.once("error", () => finish(new TelegramTransportError("telegram_tls_connection_failed")));
+            telegramSocket.once("error", () => finish(new TelegramTransportError("telegram_proxy_tls_failed")));
         };
         proxySocket.on("data", onData);
 
@@ -168,13 +188,37 @@ class TelegramHttpsProxyAgent extends https.Agent {
     }
 }
 
+function socksProxyAgent(proxy: ProxyConfiguration, timeoutMs: number): SocksProxyAgent {
+    const proxyUrl = new URL("socks5h://proxy.invalid");
+    proxyUrl.hostname = proxy.host;
+    proxyUrl.port = String(proxy.port);
+    proxyUrl.username = proxy.username;
+    proxyUrl.password = proxy.password;
+    return new SocksProxyAgent(proxyUrl, { timeout: timeoutMs });
+}
+
+function classifySocksError(error: unknown): TelegramTransportError {
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+    if (code === "ETIMEDOUT" || message.includes("timed out") || message.includes("timeout")) {
+        return new TelegramTransportError("telegram_proxy_tcp_timeout");
+    }
+    if (message.includes("authentication") || message.includes("no accepted auth")) {
+        return new TelegramTransportError("telegram_proxy_auth_failed");
+    }
+    if (code.startsWith("ERR_TLS") || code.includes("CERT") || message.includes("tls") || message.includes("ssl")) {
+        return new TelegramTransportError("telegram_proxy_tls_failed");
+    }
+    return new TelegramTransportError("telegram_proxy_connect_failed");
+}
+
 export async function sendTelegramRequest(
     token: string,
     body: Record<string, unknown>,
     timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<{ ok: boolean; status: number; transport: TelegramTransportMode }> {
     const proxy = readProxyConfiguration();
-    const transport: TelegramTransportMode = proxy ? "http_proxy" : "direct";
+    const transport = transportMode(proxy);
     const path = `/bot${token}/sendMessage`;
 
     if (!proxy) {
@@ -188,7 +232,9 @@ export async function sendTelegramRequest(
         return { ok: response.ok, status: response.status, transport };
     }
 
-    const agent = new TelegramHttpsProxyAgent(proxy, timeoutMs);
+    const agent: https.Agent = proxy.protocol === "socks5"
+        ? socksProxyAgent(proxy, timeoutMs) as unknown as https.Agent
+        : new TelegramHttpsProxyAgent(proxy, timeoutMs);
     return new Promise((resolve, reject) => {
         const request = https.request({
             hostname: TELEGRAM_HOST,
@@ -205,12 +251,14 @@ export async function sendTelegramRequest(
                 resolve({ ok: status >= 200 && status < 300, status, transport });
             });
         });
-        request.setTimeout(timeoutMs, () => request.destroy(new TelegramTransportError("telegram_request_timeout")));
+        request.setTimeout(timeoutMs, () => request.destroy(new TelegramTransportError("telegram_api_timeout")));
         request.once("error", (error) => {
             agent.destroy();
             reject(error instanceof TelegramTransportError
                 ? error
-                : new TelegramTransportError("telegram_request_failed"));
+                : proxy.protocol === "socks5"
+                    ? classifySocksError(error)
+                    : new TelegramTransportError("telegram_request_failed"));
         });
         request.end(JSON.stringify(body));
     });

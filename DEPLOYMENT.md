@@ -55,6 +55,7 @@ Add the same values for Production and Preview unless intentionally different:
 - `TELEGRAM_PROXY_PORT`
 - `TELEGRAM_PROXY_USERNAME`
 - `TELEGRAM_PROXY_PASSWORD`
+- `TELEGRAM_PROXY_PROTOCOL` — `http`, `https`, or `socks5`
 - `EASYMED_API_USERNAME` if not using the built-in fallback
 - `EASYMED_API_PASSWORD` if not using the built-in fallback
 

@@ -31,7 +31,7 @@ Email: ${email}
         });
 
         if (!tgRes.ok) {
-            console.error("telegram_http_error", tgRes.status);
+            console.error("telegram_api_http_error", tgRes.status);
             return NextResponse.json({ message: "Не удалось отправить заявку" }, { status: 502 });
         }
 
