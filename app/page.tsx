@@ -240,7 +240,7 @@ export default async function Home() {
                     Рекомендации<br/>Минздрава РФ
                   </p>
                   <p className="usp-item-text">
-                    Официальные клинические рекомендации,<br/>представленные в справочнике.
+                    Источники данных — официальные<br/>клинические рекомендации Минздрава РФ.
                   </p>
                 </div>
                 <div className="usp-item">
@@ -256,7 +256,7 @@ export default async function Home() {
                     Автозаполнение<br/>протокола
                   </p>
                   <p className="usp-item-text">
-                    Заполняйте протокол приёма<br/>в один клик
+                    Заполняйте протокол приёма<br/>в один клик.
                   </p>
                 </div>
               </div>
@@ -276,10 +276,9 @@ export default async function Home() {
                 </p>
                 <div className="vertical-line"></div>
                 <p className="item-text">
-                  <span className="highlight">✓</span> Быстрый доступ к протоколам Минздрава РФ<br/>
-                  <span className="highlight">✓</span> Поддержка при диагностике, выборе лечения, оформлении
-                  документации<br/>
+                  <span className="highlight">✓</span> Быстрее оформление — помогает сформировать план лечения
                   <span className="highlight">✓</span> Экономия времени и минимизация ошибок
+                  <span className="highlight">✓</span> Автоматическое заполнение протоколов
                 </p>
               </div>
 
@@ -313,7 +312,7 @@ export default async function Home() {
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
             <h2 className="title">
-              Подписки и <span className="highlight">цены</span>
+              Тарифы
             </h2>
 
             <div className="pricing-mobile">
@@ -490,8 +489,8 @@ export default async function Home() {
                     
                       <p>Подписка на сайт открывает безлимитный доступ к:</p>
                       <ul>
-                        <li><span className="highlight">✓</span> Всем актуальным клиническим рекомендациям</li>
-                        <li><span className="highlight">✓</span> Ежемесячным обновлениям и новым публикациям</li>
+                        <li> - Всем актуальным клиническим рекомендациям</li>
+                        <li> - Ежемесячным обновлениям и новым публикациям</li>
                       </ul>
                     </>
                   }
