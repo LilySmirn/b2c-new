@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:net";
 import test from "node:test";
-import { getTelegramSafeErrorCode, sendTelegramRequest } from "./telegramTransport";
+import {
+    getTelegramSafeErrorCode,
+    getTelegramSafeErrorDetails,
+    parseTelegramApiError,
+    sendTelegramRequest,
+    TelegramTransportError,
+} from "./telegramTransport";
 
 const proxyNames = [
     "TELEGRAM_PROXY_HOST",
@@ -84,4 +90,47 @@ test("selects SOCKS5 and classifies rejected username/password authentication", 
     } finally {
         await close(server);
     }
+});
+
+test("safe diagnostics expose the stage and system code but never an error message", () => {
+    const error = new TelegramTransportError("telegram_proxy_tls_failed", "tls", "CERT_HAS_EXPIRED", "Error");
+    assert.deepEqual(getTelegramSafeErrorDetails(error), {
+        reason: "telegram_proxy_tls_failed",
+        stage: "tls",
+        errorName: "Error",
+        errorCode: "CERT_HAS_EXPIRED",
+    });
+
+    const unknown = Object.assign(new Error("socks5://user:secret@proxy.invalid"), { code: "ECONNRESET" });
+    assert.deepEqual(getTelegramSafeErrorDetails(unknown), {
+        reason: "telegram_request_failed",
+        stage: "telegram_request",
+        errorName: "Error",
+        errorCode: "ECONNRESET",
+    });
+    assert.doesNotMatch(JSON.stringify(getTelegramSafeErrorDetails(unknown)), /user|secret|proxy\.invalid/);
+});
+
+test("extracts only safe Telegram Bot API error fields and redacts known secrets", () => {
+    const token = "123456:bot-token";
+    const password = "proxy-password";
+    const result = parseTelegramApiError(JSON.stringify({
+        ok: false,
+        error_code: 400,
+        description: `Bad Request for /bot${token}: ${password}\nchat not found`,
+        result: { text: "the complete outgoing message must not be exposed" },
+        parameters: { secret: "another value" },
+    }), [token, password]);
+
+    assert.deepEqual(result, {
+        ok: false,
+        errorCode: 400,
+        description: "Bad Request for /bot[REDACTED]: [REDACTED] chat not found",
+    });
+    assert.doesNotMatch(JSON.stringify(result), /bot-token|proxy-password|outgoing message|another value/);
+});
+
+test("ignores malformed and unrelated Telegram response bodies", () => {
+    assert.equal(parseTelegramApiError("not JSON"), undefined);
+    assert.equal(parseTelegramApiError(JSON.stringify({ result: { text: "message" } })), undefined);
 });

@@ -12,7 +12,7 @@ async function main(): Promise<void> {
     if (!chatId) throw new Error("В корневом .env отсутствует TELEGRAM_CHAT_ID");
 
     const {
-        getTelegramSafeErrorCode,
+        getTelegramSafeErrorDetails,
         getTelegramTransportMode,
         sendTelegramRequest,
     } = await import("../app/lib/telegramTransport");
@@ -23,10 +23,31 @@ async function main(): Promise<void> {
             chat_id: chatId,
             text: "Тест формы «Нужен корпоративный доступ?» (без создания заявки)",
         });
-        if (!result.ok) throw new Error(`telegram_http_error_${result.status}`);
+        if (!result.ok) {
+            const telegramDetails = [
+                result.telegramError?.errorCode !== undefined
+                    ? `telegram_error_code: ${result.telegramError.errorCode}`
+                    : "",
+                result.telegramError?.description
+                    ? `telegram_description: ${result.telegramError.description}`
+                    : "",
+            ].filter(Boolean).join(", ");
+            console.error(
+                `Тест формы не пройден (transport: ${result.transport}, reason: telegram_api_http_error, ` +
+                `stage: telegram_response, status: ${result.status}${telegramDetails ? `, ${telegramDetails}` : ""}).`,
+            );
+            process.exitCode = 1;
+            return;
+        }
         console.log(`Тестовое сообщение отправлено (HTTP ${result.status}, transport: ${result.transport}).`);
     } catch (error) {
-        console.error(`Тест формы не пройден (transport: ${transport}, reason: ${getTelegramSafeErrorCode(error)}).`);
+        const details = getTelegramSafeErrorDetails(error);
+        const metadata = [
+            `stage: ${details.stage}`,
+            details.errorName ? `error_name: ${details.errorName}` : "",
+            details.errorCode ? `error_code: ${details.errorCode}` : "",
+        ].filter(Boolean).join(", ");
+        console.error(`Тест формы не пройден (transport: ${transport}, reason: ${details.reason}, ${metadata}).`);
         process.exitCode = 1;
     }
 }
