@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 import { resolve } from "node:path";
+import { loadEnv } from "../config/load-env";
 
 type PaymentTelegramNotificationType = "error" | "card_error" | "success";
 
@@ -16,19 +17,15 @@ async function main(): Promise<void> {
         process.exitCode = 1;
         return;
     }
-
-    const envPath = resolve(__dirname, "..", ".env");
-    const loaded = config({ path: envPath, quiet: true });
-    if (loaded.error) {
-        throw new Error(`Не удалось загрузить корневой .env: ${envPath}`);
-    }
+    const projectDirectory = resolve(__dirname, "..");
+    loadEnv(projectDirectory, true);
 
     const chatIdEnvironmentVariable = chatIdEnvironmentVariables[type];
     if (!process.env.TELEGRAM_PAYMENT_BOT_TOKEN?.trim()) {
-        throw new Error("В корневом .env отсутствует TELEGRAM_PAYMENT_BOT_TOKEN");
+        throw new Error("В окружении приложения отсутствует TELEGRAM_PAYMENT_BOT_TOKEN");
     }
     if (!process.env[chatIdEnvironmentVariable]?.trim()) {
-        throw new Error(`В корневом .env отсутствует ${chatIdEnvironmentVariable}`);
+        throw new Error(`В окружении приложения отсутствует ${chatIdEnvironmentVariable}`);
     }
 
     // Load the helper only after dotenv has populated process.env.

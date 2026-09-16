@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import dotenv from "dotenv";
+import { loadEnvConfig } from "@next/env";
 
 /**
  * Keep the uploaded application on the same configuration as local development.
@@ -11,8 +12,13 @@ import dotenv from "dotenv";
  * of truth whenever it is included in the deployed project, even if a
  * `.env.local` file is also present.
  */
-export function loadEnv(): boolean {
-  const envPath = resolve(process.cwd(), ".env");
+export function loadEnv(projectDirectory = process.cwd(), development = process.env.NODE_ENV !== "production"): boolean {
+  // Scripts do not get Next.js' automatic .env* loading. Load the same files,
+  // with the same precedence, before applying the application's deliberate
+  // root .env override below.
+  loadEnvConfig(projectDirectory, development);
+
+  const envPath = resolve(projectDirectory, ".env");
 
   if (!existsSync(envPath)) {
     return false;

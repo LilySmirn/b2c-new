@@ -1,5 +1,5 @@
 import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
-import { getTelegramSafeErrorCode, sendTelegramRequest, type TelegramTransportMode } from "@/app/lib/telegramTransport";
+import { getTelegramSafeErrorDetails, sendTelegramRequest, type TelegramTransportMode } from "@/app/lib/telegramTransport";
 
 const TELEGRAM_TIMEOUT_MS = 5_000;
 
@@ -94,13 +94,23 @@ export async function sendPaymentTelegramNotification(
                 notificationType: type,
                 reason: "telegram_api_http_error",
                 httpStatus: response.status,
+                transport: response.transport,
+                telegramErrorCode: response.telegramError?.errorCode,
+                telegramDescription: response.telegramError?.description,
+            });
+        } else {
+            await logPaymentEvent("telegram_payment_notification_sent", data.paymentId ?? null, {
+                notificationType: type,
+                httpStatus: response.status,
+                transport: response.transport,
             });
         }
-    return { sent: response.ok, status: response.status, transport: response.transport };
+        return { sent: response.ok, status: response.status, transport: response.transport };
     } catch (error) {
+        const details = getTelegramSafeErrorDetails(error);
         await logPaymentEvent("telegram_payment_notification_failed", data.paymentId ?? null, {
             notificationType: type,
-            reason: getTelegramSafeErrorCode(error),
+            ...details,
         });
         return { sent: false };
     }
