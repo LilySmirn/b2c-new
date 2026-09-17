@@ -1,4 +1,4 @@
-import mysql, { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import mysql, { FieldPacket, PoolConnection, QueryResult, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
@@ -19,7 +19,39 @@ export const pool = mysql.createPool({
 export const connection = pool;
 export const logConnection = pool;
 
-type QueryExecutor = Pick<PoolConnection, "query">;
+type QueryExecutor = {
+    query<T extends QueryResult>(sql: string, values?: unknown[]): Promise<[T, FieldPacket[]]>;
+};
+
+export type PaymentCreationLocalStatus = "creating" | "pending" | "succeeded" | "canceled" | "error";
+
+/**
+ * Records a successfully created provider payment and advances the local
+ * technical state in the same guarded statement. A final state won by a fast
+ * webhook is therefore never moved backwards to pending.
+ */
+export async function persistCreatedYookassaPayment(
+    paymentId: string,
+    yookassaPaymentId: string,
+    executor: QueryExecutor = pool,
+): Promise<PaymentCreationLocalStatus> {
+    await executor.query(
+        `UPDATE payments
+         SET yookassa_payment_id = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
+         WHERE payment_id = ? AND status = 'creating'`,
+        [yookassaPaymentId, paymentId],
+    );
+
+    const [rows] = await executor.query<RowDataPacket[]>(
+        `SELECT status FROM payments WHERE payment_id = ? LIMIT 1`,
+        [paymentId],
+    );
+    const status = rows[0]?.status;
+    if (!["creating", "pending", "succeeded", "canceled", "error"].includes(status)) {
+        throw new Error(`Payment ${paymentId} was not found after YooKassa creation`);
+    }
+    return status as PaymentCreationLocalStatus;
+}
 
 /** The canonical server-side definition of an active B2C subscription. */
 export async function hasActiveSubscription(
@@ -696,13 +728,11 @@ export default class db {
         );
     }
 
-    public async markPaymentCheckoutCreated(paymentId: string, yookassaPaymentId: string): Promise<void> {
-        await connection.query(
-            `UPDATE payments
-             SET yookassa_payment_id = ?, updated_at = UTC_TIMESTAMP()
-             WHERE payment_id = ? AND status = 'creating'`,
-            [yookassaPaymentId, paymentId],
-        );
+    public async markPaymentCheckoutCreated(
+        paymentId: string,
+        yookassaPaymentId: string,
+    ): Promise<PaymentCreationLocalStatus> {
+        return persistCreatedYookassaPayment(paymentId, yookassaPaymentId, connection);
     }
 
     public async markPaymentPending(paymentId: string): Promise<void> {

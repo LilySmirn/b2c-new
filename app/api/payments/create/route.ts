@@ -114,15 +114,16 @@ export async function POST(request: NextRequest) {
         });
 
         if (yookassa.outcome === "created") {
-            await database.markPaymentCheckoutCreated(paymentId, yookassa.id);
+            const localStatus = await database.markPaymentCheckoutCreated(paymentId, yookassa.id);
             await logPaymentEvent("yookassa_create_succeeded", paymentId, {
                 ...context,
                 yookassaPaymentId: yookassa.id,
                 status: yookassa.status,
+                localStatus,
             });
             return NextResponse.json({
                 paymentId,
-                status: "creating",
+                status: localStatus,
                 tariffName: result.payment.tariffName,
                 confirmationUrl: yookassa.confirmationUrl,
             }, { status: 201 });
