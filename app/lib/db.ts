@@ -1,4 +1,4 @@
-import mysql, { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import mysql, { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
@@ -279,6 +279,58 @@ export async function getProviderPaymentContext(yookassaPaymentId: string): Prom
         userLabel: row.user_label == null ? String(row.user_id) : String(row.user_label),
         tariffTitle: row.tariff_title == null ? null : String(row.tariff_title),
     } : null;
+}
+
+/** Resolves provider data only after matching both the authenticated user and local payment id. */
+export async function getOwnedProviderPaymentContext(
+    userId: string,
+    paymentId: string,
+): Promise<ProviderPaymentContext | null> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+        `SELECT p.payment_id, p.yookassa_payment_id, p.user_id, p.tariff_id, p.amount,
+                p.order_number, p.status, u.login AS user_label, t.title AS tariff_title
+         FROM payments p
+         LEFT JOIN users u ON u.user_id = p.user_id
+         LEFT JOIN tariffs t ON t.tariff_id = p.tariff_id
+         WHERE p.payment_id = ?
+           AND p.user_id = ?
+           AND p.yookassa_payment_id IS NOT NULL
+         LIMIT 1`,
+        [paymentId, userId],
+    );
+    const row = rows[0];
+    return row ? {
+        paymentId: String(row.payment_id), yookassaPaymentId: String(row.yookassa_payment_id),
+        userId: String(row.user_id), tariffId: String(row.tariff_id), amount: String(row.amount),
+        orderNumber: row.order_number == null ? null : String(row.order_number), status: String(row.status),
+        userLabel: row.user_label == null ? String(row.user_id) : String(row.user_label),
+        tariffTitle: row.tariff_title == null ? null : String(row.tariff_title),
+    } : null;
+}
+
+/**
+ * Atomically claims a provider status check across all application processes.
+ * The short UPDATE transaction is complete before the network request starts.
+ */
+export async function claimPaymentProviderStatusCheck(
+    userId: string,
+    paymentId: string,
+    cooldownSeconds: number,
+): Promise<boolean> {
+    const [result] = await pool.execute<ResultSetHeader>(
+        `UPDATE payments
+         SET last_checked_at = UTC_TIMESTAMP()
+         WHERE payment_id = ?
+           AND user_id = ?
+           AND status IN ('creating', 'pending')
+           AND yookassa_payment_id IS NOT NULL
+           AND (
+               last_checked_at IS NULL
+               OR last_checked_at <= DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? SECOND)
+           )`,
+        [paymentId, userId, cooldownSeconds],
+    );
+    return result.affectedRows === 1;
 }
 
 export async function getLatestSubscriptionExpiration(userId: string): Promise<Date | string | null> {
