@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import {getTelegramSafeErrorCode, sendTelegramRequest} from "@/app/lib/telegramTransport";
+import { sendTelegramNotification } from "@/app/lib/telegramNotification";
 
 export async function POST(req: Request) {
     try {
@@ -7,13 +7,6 @@ export async function POST(req: Request) {
 
         if (!email || !name || !phone) {
             return NextResponse.json({ message: "Заполните обязательные поля" }, { status: 400 });
-        }
-
-        const token = process.env.TELEGRAM_BOT_TOKEN;
-        const chatId = process.env.TELEGRAM_CHAT_ID;
-
-        if (!token || !chatId) {
-            return NextResponse.json({ message: "Нет настроек Telegram" }, { status: 500 });
         }
 
         const message = `
@@ -24,20 +17,14 @@ Email: ${email}
 Клиника: ${crm || "—"}
 `;
 
-        const tgRes = await sendTelegramRequest(token, {
-            chat_id: chatId,
-            text: message,
-            parse_mode: "HTML",
-        });
+        const tgRes = await sendTelegramNotification("feedback", message, { parseMode: "HTML" });
 
-        if (!tgRes.ok) {
-            console.error("telegram_api_http_error", tgRes.status);
+        if (!tgRes.sent) {
             return NextResponse.json({ message: "Не удалось отправить заявку" }, { status: 502 });
         }
 
         return NextResponse.json({ message: "Заявка успешно отправлена!" }, { status: 200 });
-    } catch (error) {
-        console.error(getTelegramSafeErrorCode(error));
+    } catch {
         return NextResponse.json({ message: "Не удалось отправить заявку" }, { status: 502 });
     }
 }

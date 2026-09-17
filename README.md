@@ -18,15 +18,12 @@
 - `SMTP_USER`
 - `SMTP_PASS`
 - `SMTP_FROM`
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
-- `TELEGRAM_ERROR_BOT_TOKEN`
-- `TELEGRAM_ERROR_CHAT_ID`
-- `TELEGRAM_ERROR_CHAT_ID`
 - `TELEGRAM_PAYMENT_BOT_TOKEN` — token for `@easymed_notifications_bot` (server-side only)
-- `TELEGRAM_PAYMENT_ERROR_CHAT_ID` — chat for caught internal payment errors
-- `TELEGRAM_PAYMENT_CARD_ERROR_CHAT_ID` — chat for authoritative YooKassa cancellations
-- `TELEGRAM_PAYMENT_SUCCESS_CHAT_ID` — chat for the first successfully processed payment transition
+- `TELEGRAM_NOTIFICATIONS_CHAT_ID` — common Telegram supergroup ID (`284467225`)
+- `TELEGRAM_PAYMENTS_SUCCESS_THREAD_ID` — topic for successful payments
+- `TELEGRAM_PAYMENTS_ERRORS_THREAD_ID` — topic for card and payment-processing errors
+- `TELEGRAM_GENERAL_ERRORS_THREAD_ID` — topic for site errors
+- `TELEGRAM_FEEDBACK_THREAD_ID` — topic for contact-form requests
 - `TELEGRAM_PROXY_HOST` — optional HTTP(S) CONNECT proxy hostname or IP, without a URL scheme
 - `TELEGRAM_PROXY_PORT` — proxy TCP port
 - `TELEGRAM_PROXY_USERNAME` — proxy username (server-side only)
@@ -53,8 +50,15 @@ To send a test notification without making a payment, load the desired configura
 into the root `.env` and run:
 
 ```bash
-npm run telegram:test -- success
+npm run telegram:test -- payment-success
+npm run telegram:test -- payment-error
+npm run telegram:test -- general-error
+npm run telegram:test -- feedback
+npm run telegram:topics
 ```
+`telegram:topics` uses the same configured direct/proxy transport to call `getUpdates`
+and prints only `chat.id`, `message_thread_id`, and message text. It never prints the
+bot token or proxy credentials.
 
 The successful output includes `transport: http_proxy`, `https_proxy`, or
 `socks5_proxy` according to `TELEGRAM_PROXY_PROTOCOL`, or `transport: direct`

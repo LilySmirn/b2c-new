@@ -1,5 +1,6 @@
 import { logPaymentEvent } from "@/app/lib/paymentEventLogger";
-import { getTelegramSafeErrorDetails, sendTelegramRequest, type TelegramTransportMode } from "@/app/lib/telegramTransport";
+import { sendTelegramNotification } from "@/app/lib/telegramNotification";
+import type { TelegramTransportMode } from "@/app/lib/telegramTransport";
 
 const TELEGRAM_TIMEOUT_MS = 5_000;
 
@@ -25,11 +26,9 @@ export type PaymentTelegramNotificationResult = {
     transport?: TelegramTransportMode;
 };
 
-const chatIdEnvironmentVariables: Record<PaymentTelegramNotificationType, string> = {
-    error: "TELEGRAM_PAYMENT_ERROR_CHAT_ID",
-    card_error: "TELEGRAM_PAYMENT_CARD_ERROR_CHAT_ID",
-    success: "TELEGRAM_PAYMENT_SUCCESS_CHAT_ID",
-};
+export function paymentNotificationType(type: PaymentTelegramNotificationType): "payment_success" | "payment_error" {
+    return type === "success" ? "payment_success" : "payment_error";
+}
 
 function present(value: unknown): string {
     if (value === null || value === undefined || value === "") return "неизвестно";
@@ -72,31 +71,20 @@ export async function sendPaymentTelegramNotification(
     type: PaymentTelegramNotificationType,
     data: PaymentTelegramNotificationData,
 ): Promise<PaymentTelegramNotificationResult> {
-    const token = process.env.TELEGRAM_PAYMENT_BOT_TOKEN?.trim();
-    const chatEnvironmentVariable = chatIdEnvironmentVariables[type];
-    const chatId = process.env[chatEnvironmentVariable]?.trim();
-
-    if (!token || !chatId) {
-        await logPaymentEvent("telegram_payment_notification_skipped", data.paymentId ?? null, {
-            notificationType: type,
-            reason: token ? `missing_${chatEnvironmentVariable}` : "missing_bot_token",
-        });
-        return { sent: false };
-    }
-
     try {
-        const response = await sendTelegramRequest(token, {
-            chat_id: chatId,
-            text: formatPaymentTelegramNotification(type, data),
-        }, TELEGRAM_TIMEOUT_MS);
-        if (!response.ok) {
+        const response = await sendTelegramNotification(
+            paymentNotificationType(type),
+            formatPaymentTelegramNotification(type, data),
+            { timeoutMs: TELEGRAM_TIMEOUT_MS },
+        );
+        if (!response.sent) {
             await logPaymentEvent("telegram_payment_notification_failed", data.paymentId ?? null, {
                 notificationType: type,
-                reason: "telegram_api_http_error",
+                reason: response.reason,
                 httpStatus: response.status,
                 transport: response.transport,
-                telegramErrorCode: response.telegramError?.errorCode,
-                telegramDescription: response.telegramError?.description,
+                telegramErrorCode: response.telegramErrorCode,
+                telegramDescription: response.telegramDescription,
             });
         } else {
             await logPaymentEvent("telegram_payment_notification_sent", data.paymentId ?? null, {
@@ -105,12 +93,11 @@ export async function sendPaymentTelegramNotification(
                 transport: response.transport,
             });
         }
-        return { sent: response.ok, status: response.status, transport: response.transport };
+        return { sent: response.sent, status: response.status, transport: response.transport };
     } catch (error) {
-        const details = getTelegramSafeErrorDetails(error);
         await logPaymentEvent("telegram_payment_notification_failed", data.paymentId ?? null, {
             notificationType: type,
-            ...details,
+            reason: "telegram_notification_logging_failed",
         });
         return { sent: false };
     }

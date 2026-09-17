@@ -276,8 +276,8 @@ export default async function Home() {
                 </p>
                 <div className="vertical-line"></div>
                 <p className="item-text">
-                  <span className="highlight">✓</span> Быстрее оформление — помогает сформировать план лечения
-                  <span className="highlight">✓</span> Экономия времени и минимизация ошибок
+                  <span className="highlight">✓</span> Быстрее оформление — помогает сформировать план лечения<br/>
+                  <span className="highlight">✓</span> Экономия времени и минимизация ошибок<br/>
                   <span className="highlight">✓</span> Автоматическое заполнение протоколов
                 </p>
               </div>

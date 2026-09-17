@@ -60,6 +60,7 @@ export type TelegramRequestResult = {
     status: number;
     transport: TelegramTransportMode;
     telegramError?: TelegramApiError;
+    responseBody?: string;
 };
 
 function redactDiagnosticValue(value: string, secrets: readonly string[]): string {
@@ -304,14 +305,16 @@ function classifySocksError(error: unknown): TelegramTransportError {
     return new TelegramTransportError("telegram_proxy_connect_failed", "proxy_connect", code || undefined, name);
 }
 
-export async function sendTelegramRequest(
+export async function sendTelegramApiRequest(
     token: string,
+    method: string,
     body: Record<string, unknown>,
     timeoutMs = DEFAULT_TIMEOUT_MS,
+    includeResponseBody = false,
 ): Promise<TelegramRequestResult> {
     const proxy = readProxyConfiguration();
     const transport = transportMode(proxy);
-    const path = `/bot${token}/sendMessage`;
+    const path = `/bot${token}/${method}`;
 
     if (!proxy) {
         const response = await fetch(`https://${TELEGRAM_HOST}${path}`, {
@@ -321,11 +324,12 @@ export async function sendTelegramRequest(
             signal: AbortSignal.timeout(timeoutMs),
             cache: "no-store",
         });
-        const responseBody = response.ok ? "" : (await response.text()).slice(0, MAX_TELEGRAM_ERROR_BODY_BYTES);
+        const responseBody = (await response.text()).slice(0, MAX_TELEGRAM_ERROR_BODY_BYTES);
         return {
             ok: response.ok,
             status: response.status,
             transport,
+            ...(includeResponseBody ? { responseBody } : {}),
             ...(!response.ok ? {
                 telegramError: parseTelegramApiError(responseBody, [token]),
             } : {}),
@@ -353,7 +357,7 @@ export async function sendTelegramRequest(
             const chunks: Buffer[] = [];
             let capturedBytes = 0;
             response.on("data", (chunk: Buffer) => {
-                if (ok || capturedBytes >= MAX_TELEGRAM_ERROR_BODY_BYTES) return;
+                if ((!includeResponseBody && ok) || capturedBytes >= MAX_TELEGRAM_ERROR_BODY_BYTES) return;
                 const remaining = MAX_TELEGRAM_ERROR_BODY_BYTES - capturedBytes;
                 const captured = chunk.subarray(0, remaining);
                 chunks.push(captured);
@@ -366,6 +370,7 @@ export async function sendTelegramRequest(
                     ok,
                     status,
                     transport,
+                    ...(includeResponseBody ? { responseBody: Buffer.concat(chunks).toString("utf8") } : {}),
                     ...(!ok ? {
                         telegramError: parseTelegramApiError(Buffer.concat(chunks).toString("utf8"), diagnosticSecrets),
                     } : {}),
@@ -388,4 +393,12 @@ export async function sendTelegramRequest(
         });
         request.end(serializedBody);
     });
+}
+
+export async function sendTelegramRequest(
+    token: string,
+    body: Record<string, unknown>,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+): Promise<TelegramRequestResult> {
+    return sendTelegramApiRequest(token, "sendMessage", body, timeoutMs);
 }

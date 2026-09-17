@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "tsx --test app/**/*.test.ts",
     "telegram:test": "tsx scripts/test-payment-telegram.ts",
+    "telegram:topics": "tsx scripts/telegram-topics.ts",
     "telegram:form:test": "tsx scripts/test-telegram-form.ts",
     "cron": "tsx cron/cronRunner.ts",
     "smtp:check": "node scripts/check-smtp.mjs"

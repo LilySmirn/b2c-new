@@ -1,57 +1,34 @@
-import { config } from "dotenv";
 import { resolve } from "node:path";
 import { loadEnv } from "../config/load-env";
 
-type PaymentTelegramNotificationType = "error" | "card_error" | "success";
-
-const chatIdEnvironmentVariables: Record<PaymentTelegramNotificationType, string> = {
-    error: "TELEGRAM_PAYMENT_ERROR_CHAT_ID",
-    card_error: "TELEGRAM_PAYMENT_CARD_ERROR_CHAT_ID",
-    success: "TELEGRAM_PAYMENT_SUCCESS_CHAT_ID",
-};
+const routes = ["payment-success", "payment-error", "general-error", "feedback"] as const;
+type TestRoute = typeof routes[number];
 
 async function main(): Promise<void> {
-    const type = process.argv[2] as PaymentTelegramNotificationType | undefined;
-    if (type !== "error" && type !== "card_error" && type !== "success") {
-        console.error("Usage: npx tsx scripts/test-payment-telegram.ts <error|card_error|success>");
-        process.exitCode = 1;
-        return;
-    }
-    const projectDirectory = resolve(__dirname, "..");
-    loadEnv(projectDirectory, true);
-
-    const chatIdEnvironmentVariable = chatIdEnvironmentVariables[type];
-    if (!process.env.TELEGRAM_PAYMENT_BOT_TOKEN?.trim()) {
-        throw new Error("В окружении приложения отсутствует TELEGRAM_PAYMENT_BOT_TOKEN");
-    }
-    if (!process.env[chatIdEnvironmentVariable]?.trim()) {
-        throw new Error(`В окружении приложения отсутствует ${chatIdEnvironmentVariable}`);
+    const route = process.argv[2] as TestRoute | undefined;
+    if (!route || !routes.includes(route)) {
+        throw new Error(`Usage: npm run telegram:test -- <${routes.join("|")}>`);
     }
 
-    // Load the helper only after dotenv has populated process.env.
-    const { sendPaymentTelegramNotification } = await import("../app/lib/paymentTelegramNotifier");
-    const telegramResult = await sendPaymentTelegramNotification(type, {
-        user: "local-test@example.com",
-        paymentId: "local-test-payment",
-        yookassaPaymentId: "local-test-yookassa",
-        tariff: "Локальный тест (test-tariff)",
-        amount: "100.00",
-        cancellationReason: "test_cancellation_reason",
-        cancellationParty: "test",
-        subscriptionExpiration: "2030-01-01T00:00:00.000Z",
-        error: new Error("Тестовая внутренняя ошибка"),
-        stage: "локальная проверка",
-    });
-
-    if (!telegramResult.sent) {
-        throw new Error(`Telegram-сообщение типа ${type} не отправлено (HTTP ${telegramResult.status ?? "не получен"})`);
-    }
-    console.log(
-        `Telegram-сообщение типа ${type} успешно отправлено (HTTP ${telegramResult.status}, transport: ${telegramResult.transport}).`,
+    loadEnv(resolve(__dirname, ".."), true);
+    const { sendTelegramNotification } = await import("../app/lib/telegramNotification");
+    const types = {
+        "payment-success": "payment_success",
+        "payment-error": "payment_error",
+        "general-error": "general_error",
+        feedback: "feedback",
+    } as const;
+    const result = await sendTelegramNotification(
+        types[route],
+        `ТЕСТОВОЕ СООБЩЕНИЕ: проверка маршрута ${route}. Это не реальное событие.`,
     );
+    if (!result.sent) {
+        throw new Error(`Тест ${route} не пройден (reason: ${result.reason}, HTTP: ${result.status ?? "не получен"})`);
+    }
+    console.log(`Тест ${route} пройден (HTTP ${result.status}, transport: ${result.transport}).`);
 }
 
 main().catch((error) => {
-    console.error(error);
+    console.error(error instanceof Error ? error.message : "telegram_test_failed");
     process.exit(1);
 });
