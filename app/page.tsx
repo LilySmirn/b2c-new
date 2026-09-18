@@ -82,7 +82,7 @@ export default async function Home() {
               name: "Базовый",
               description: "Подписка на 1 месяц",
             },
-            price: "300",
+            price: "100",
             priceCurrency: "RUB",
             priceValidUntil: "2025-12-31",
             url: "https://klinrec.ru/#pricing",
@@ -322,7 +322,7 @@ export default async function Home() {
                     1 месяц
                   </div>
                   <div className="price">
-                    300 руб.
+                    100 руб.
                   </div>
                 </div>
                 {/*<form action="#" method="POST">*/}
