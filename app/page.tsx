@@ -401,7 +401,7 @@ export default async function Home() {
               <tbody>
               <tr>
                 <td>1 месяц</td>
-                <td>300 ₽</td>
+                <td>100 ₽</td>
                 <td>—</td>
                 <td>
                   <Link
