@@ -18,8 +18,8 @@ function paymentExecutor(initialStatus: LocalStatus) {
                 if (sql.startsWith("UPDATE")) {
                     const transitioned = status === "creating";
                     if (status === "creating") {
-                        let yookassaPaymentId: string | null = null;
-                        let confirmationUrl: string | null = null;
+                        yookassaPaymentId = String(params?.[0]);
+                        confirmationUrl = String(params?.[1]);
                         status = "pending";
                     }
                     return [{ affectedRows: transitioned ? 1 : 0 } as T, []];

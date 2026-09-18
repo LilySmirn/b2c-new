@@ -226,7 +226,6 @@ export type CurrentPayment = {
     tariffName: string;
     status: "pending" | "canceled";
     cancellationReason: string | null;
-    retryAllowedAt: string;
     confirmationUrl: string | null;
 };
 
@@ -519,7 +518,6 @@ export default class db {
                 p.status,
                 p.cancellation_reason,
                 p.confirmation_url,
-                DATE_ADD(p.created_at, INTERVAL ${PAYMENT_RETRY_DELAY_SECONDS} SECOND) AS retry_allowed_at,
                 t.title AS tariff_name
              FROM payments p
              INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
@@ -556,7 +554,6 @@ export default class db {
             status: "pending" | "canceled";
             cancellation_reason: string | null;
             confirmation_url: string | null;
-            retry_allowed_at: Date | string;
         }) | undefined;
 
         if (!payment) {
@@ -569,7 +566,6 @@ export default class db {
             tariffName: payment.tariff_name,
             status: payment.status,
             cancellationReason: payment.cancellation_reason,
-            retryAllowedAt: new Date(payment.retry_allowed_at).toISOString(),
             confirmationUrl: payment.confirmation_url,
         };
     }

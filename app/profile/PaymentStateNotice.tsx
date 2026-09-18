@@ -4,17 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./profile.module.css";
 import {
+    clearPendingPaymentUiLifecycle,
     getPendingPaymentUiView,
-    observePendingPayment,
+    getOrCreatePendingPaymentUiLifecycle,
     type PendingPaymentUiLifecycle,
 } from "./pendingPaymentUi";
 
 type PaymentState =
     | { state: "normal" }
     | { state: "creating"; paymentId: string; tariffName: string }
-    | { state: "pending"; paymentId: string; tariffName: string; retryAllowedAt: string; confirmationUrl: string | null }
-    | { state: "succeeded"; tariffName: string }
-    | { state: "canceled"; tariffName: string; cancellationReason: string | null };
+    | { state: "pending"; paymentId: string; tariffName: string; confirmationUrl: string | null }
+    | { state: "succeeded"; paymentId: string; tariffName: string }
+    | { state: "canceled"; paymentId: string; tariffName: string; cancellationReason: string | null };
 
 type PaymentStatus = {
     paymentId: string;
@@ -91,7 +92,7 @@ export default function PaymentStateNotice() {
 
         const observedAt = Date.now();
         setNowMs(observedAt);
-        setPendingUi((current) => observePendingPayment(current, pendingPaymentId, observedAt));
+        setPendingUi(getOrCreatePendingPaymentUiLifecycle(sessionStorage, pendingPaymentId, observedAt));
     }, [pendingPaymentId]);
 
     useEffect(() => {
@@ -106,6 +107,12 @@ export default function PaymentStateNotice() {
         }, 250);
         return () => window.clearInterval(interval);
     }, [pendingPaymentId, pendingUi?.paymentId]);
+
+    useEffect(() => {
+        if (payment.state === "succeeded" || payment.state === "canceled") {
+            clearPendingPaymentUiLifecycle(sessionStorage, payment.paymentId);
+        }
+    }, [payment]);
 
     useEffect(() => {
         if (payment.state !== "pending" && payment.state !== "creating") {
@@ -169,7 +176,8 @@ export default function PaymentStateNotice() {
                 }
                 if (status.status === "succeeded") {
                     sessionStorage.removeItem("currentPayment");
-                    setPayment({ state: "succeeded", tariffName: status.tariffName });
+                    clearPendingPaymentUiLifecycle(sessionStorage, paymentId);
+                    setPayment({ state: "succeeded", paymentId, tariffName: status.tariffName });
                     // Re-render server components from the subscription in DB;
                     // the payment response itself is never used as tariff state.
                     router.refresh();
@@ -179,8 +187,10 @@ export default function PaymentStateNotice() {
 
                 if (status.status === "canceled") {
                     sessionStorage.removeItem("currentPayment");
+                    clearPendingPaymentUiLifecycle(sessionStorage, paymentId);
                     setPayment({
                         state: "canceled",
+                        paymentId,
                         tariffName: status.tariffName,
                         cancellationReason: status.cancellationReason ?? null,
                     });
@@ -205,8 +215,8 @@ export default function PaymentStateNotice() {
     }
 
     if (payment.state === "pending") {
-        // The persisted retryAllowedAt remains server-only creation protection.
-        // This lifecycle starts when this payment id first appears in this mount.
+        // sessionStorage keeps this visual deadline stable across refreshes and
+        // round trips to YooKassa, independently of the server retry deadline.
         if (!pendingUi || pendingUi.paymentId !== payment.paymentId) return null;
 
         const pendingView = getPendingPaymentUiView(pendingUi, nowMs);
@@ -237,7 +247,6 @@ export default function PaymentStateNotice() {
 
     return (
         <div className={`${styles.paymentNotice} ${styles.paymentNoticeCanceled}`} role="alert">
-            <strong>Не удалось оплатить тариф «{payment.tariffName}».</strong>
             <span>{getCancellationMessage(payment.cancellationReason)}</span>
         </div>
     );

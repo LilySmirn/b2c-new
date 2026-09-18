@@ -11,21 +11,39 @@ export type PendingPaymentUiView =
     | { phase: "retry" }
     | { phase: "hidden" };
 
+type SessionStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+export function getPendingNoticeStorageKey(paymentId: string): string {
+    return `pendingNotice:${paymentId}`;
+}
+
 /**
- * Starts a visual lifecycle only when the displayed payment changes. In
- * particular, a fresh object returned by polling for the same payment cannot
- * restart an expired lifecycle.
+ * Returns the first time this payment's notice was observed in this browser
+ * session. React remounts, status polling, and navigation back from YooKassa
+ * all reuse the same value rather than extending the notice's lifetime.
  */
-export function observePendingPayment(
-    lifecycle: PendingPaymentUiLifecycle | null,
+export function getOrCreatePendingPaymentUiLifecycle(
+    storage: SessionStorage,
     paymentId: string,
     nowMs: number,
 ): PendingPaymentUiLifecycle {
-    if (lifecycle?.paymentId === paymentId) {
-        return lifecycle;
+    const key = getPendingNoticeStorageKey(paymentId);
+    const storedStartedAt = storage.getItem(key);
+
+    if (storedStartedAt !== null) {
+        const parsedStartedAt = Number(storedStartedAt);
+        return {
+            paymentId,
+            startedAtMs: Number.isFinite(parsedStartedAt) ? parsedStartedAt : nowMs,
+        };
     }
 
+    storage.setItem(key, String(nowMs));
     return { paymentId, startedAtMs: nowMs };
+}
+
+export function clearPendingPaymentUiLifecycle(storage: SessionStorage, paymentId: string): void {
+    storage.removeItem(getPendingNoticeStorageKey(paymentId));
 }
 
 export function getPendingPaymentUiView(

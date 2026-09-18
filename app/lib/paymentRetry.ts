@@ -5,13 +5,6 @@ export function getRetryAllowedAt(createdAt: Date | string): Date {
     return new Date(value + PAYMENT_RETRY_DELAY_SECONDS * 1_000);
 }
 
-export function getRetrySecondsRemaining(retryAllowedAt: Date | string, now = new Date()): number {
-    const value = retryAllowedAt instanceof Date
-        ? retryAllowedAt.getTime()
-        : new Date(retryAllowedAt).getTime();
-    return Math.max(0, Math.ceil((value - now.getTime()) / 1_000));
-}
-
 export function isPaymentRetryBlocked(createdAt: Date | string, now = new Date()): boolean {
     return getRetryAllowedAt(createdAt).getTime() > now.getTime();
 }
