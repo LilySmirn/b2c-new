@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { checkWebhookHealth, createYookassaPayment, formatRubAmount } from "./yookassaPaymentClient";
+import { buildPaymentReturnUrl, checkWebhookHealth, createYookassaPayment, formatRubAmount } from "./yookassaPaymentClient";
 
 const originalFetch = global.fetch;
 const originalEnv = { ...process.env };
@@ -13,6 +13,13 @@ afterEach(() => {
 test("formatRubAmount always returns two decimal places", () => {
     assert.equal(formatRubAmount(100), "100.00");
     assert.equal(formatRubAmount(1299.5), "1299.50");
+    });
+
+test("payment return URL identifies the local payment", () => {
+    assert.equal(
+        buildPaymentReturnUrl("https://app.example.test/base", "local/id with spaces"),
+        "https://app.example.test/profile?paymentReturn=local%2Fid+with+spaces",
+    );
 });
 
 test("health check requires HTTP 200 and { ok: true }", async () => {
@@ -38,7 +45,10 @@ test("YooKassa request uses Basic Auth, saved idempotency key and redirect body"
         assert.deepEqual(JSON.parse(String(init?.body)), {
             amount: { value: "250.00", currency: "RUB" },
             capture: true,
-            confirmation: { type: "redirect", return_url: "http://localhost:3000/profile" },
+            confirmation: {
+                type: "redirect",
+                return_url: "http://localhost:3000/profile?paymentReturn=local-payment-id",
+            },
             description: "Заказ №37",
             metadata: { order_id: "37" },
             receipt: {
@@ -65,6 +75,7 @@ test("YooKassa request uses Basic Auth, saved idempotency key and redirect body"
     assert.deepEqual(await createYookassaPayment({
         amount: 250,
         idempotencyKey: "saved-key",
+        paymentId: "local-payment-id",
         orderNumber: "37",
         tariffName: "Оптимальный",
         customerEmail: "buyer@example.com",
@@ -87,6 +98,7 @@ test("4xx is rejected while 5xx remains ambiguous", async () => {
     const paymentInput = {
         amount: 100,
         idempotencyKey: "key",
+        paymentId: "local-payment-id",
         orderNumber: "38",
         tariffName: "Базовый",
         customerEmail: "buyer@example.com",

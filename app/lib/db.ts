@@ -235,6 +235,7 @@ export type PaymentStatus = {
     tariffName: string;
     status: "creating" | "pending" | "succeeded" | "canceled";
     cancellationReason: string | null;
+    confirmationUrl: string | null;
 };
 
 export type PaymentDetails = {
@@ -580,6 +581,7 @@ export default class db {
                 p.tariff_id,
                 p.status,
                 p.cancellation_reason,
+                p.confirmation_url,
                 t.title AS tariff_name
              FROM payments p
              INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
@@ -593,8 +595,9 @@ export default class db {
             payment_id: string;
             tariff_id: string;
             tariff_name: string;
-            status: "pending" | "succeeded" | "canceled";
+            status: "creating" | "pending" | "succeeded" | "canceled";
             cancellation_reason: string | null;
+            confirmation_url: string | null;
         }) | undefined;
 
         if (!payment) {
@@ -607,6 +610,7 @@ export default class db {
             tariffName: payment.tariff_name,
             status: payment.status,
             cancellationReason: payment.cancellation_reason,
+            confirmationUrl: payment.confirmation_url,
         };
     }
 

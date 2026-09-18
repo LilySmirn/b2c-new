@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
         const yookassa = await createYookassaPayment({
             amount: result.payment.amount,
             idempotencyKey: result.payment.idempotencyKey,
+             paymentId,
             orderNumber: result.payment.orderNumber,
             tariffName: result.payment.tariffName,
             customerEmail: result.payment.customerEmail,

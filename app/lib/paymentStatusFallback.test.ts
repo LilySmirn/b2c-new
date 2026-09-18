@@ -9,6 +9,7 @@ const payment: PaymentStatus = {
     tariffName: "Test tariff",
     status: "pending",
     cancellationReason: null,
+    confirmationUrl: "https://yookassa.test/confirmation",
 };
 const context: ProviderPaymentContext = {
     paymentId: payment.paymentId,

@@ -1,5 +1,6 @@
 export const PENDING_COUNTDOWN_MS = 30_000;
 export const PENDING_RETRY_LINK_MS = 60_000;
+export const ACTIVE_PENDING_NOTICE_STORAGE_KEY = "activePendingNoticePaymentId";
 
 export type PendingPaymentUiLifecycle = {
     paymentId: string;
@@ -64,4 +65,19 @@ export function getPendingPaymentUiView(
     }
 
     return { phase: "hidden" };
+}
+
+export function getExistingPendingPaymentUiLifecycle(
+    storage: SessionStorage,
+    paymentId: string,
+    nowMs: number,
+): PendingPaymentUiLifecycle | null {
+    const storedStartedAt = storage.getItem(getPendingNoticeStorageKey(paymentId));
+    if (storedStartedAt === null) return null;
+
+    const parsedStartedAt = Number(storedStartedAt);
+    return {
+        paymentId,
+        startedAtMs: Number.isFinite(parsedStartedAt) ? parsedStartedAt : nowMs,
+    };
 }

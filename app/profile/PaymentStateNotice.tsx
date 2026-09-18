@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./profile.module.css";
 import {
+    ACTIVE_PENDING_NOTICE_STORAGE_KEY,
     clearPendingPaymentUiLifecycle,
+    getExistingPendingPaymentUiLifecycle,
     getPendingPaymentUiView,
     getOrCreatePendingPaymentUiLifecycle,
     type PendingPaymentUiLifecycle,
@@ -23,6 +25,7 @@ type PaymentStatus = {
     tariffId: string;
     tariffName: string;
     cancellationReason?: string | null;
+    confirmationUrl?: string | null;
 };
 
 const FAST_POLLING_DURATION_MS = 30_000;
@@ -47,29 +50,93 @@ export default function PaymentStateNotice() {
     useEffect(() => {
         const controller = new AbortController();
 
+        const url = new URL(window.location.href);
+        const returnedPaymentId = url.searchParams.get("paymentReturn")?.trim() || null;
+        if (url.searchParams.has("paymentReturn")) {
+            url.searchParams.delete("paymentReturn");
+            window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+        }
+
+        const activeNoticePaymentId = sessionStorage.getItem(ACTIVE_PENDING_NOTICE_STORAGE_KEY);
+        let storedPaymentId: string | null = null;
         const stored = sessionStorage.getItem("currentPayment");
         if (stored) {
             try {
-                const candidate = JSON.parse(stored) as { paymentId?: unknown; tariffName?: unknown };
-                if (typeof candidate.paymentId === "string" && typeof candidate.tariffName === "string") {
-                    setPayment({ state: "creating", paymentId: candidate.paymentId, tariffName: candidate.tariffName });
-                }
+                const candidate = JSON.parse(stored) as { paymentId?: unknown };
+                if (typeof candidate.paymentId === "string") storedPaymentId = candidate.paymentId;
             } catch {
                 sessionStorage.removeItem("currentPayment");
             }
         }
 
-        fetch("/api/payments/current", { signal: controller.signal })
-            .then((response) => response.ok ? response.json() : { state: "normal" })
-            .then((currentPayment: PaymentState) => setPayment(currentPayment))
-            .catch((error: unknown) => {
-                if (!(error instanceof DOMException && error.name === "AbortError")) {
-                    setPayment({ state: "normal" });
+        const applyStatus = (status: PaymentStatus, startNotice: boolean) => {
+            if (status.status === "pending") {
+                const lifecycle = startNotice
+                    ? getOrCreatePendingPaymentUiLifecycle(sessionStorage, status.paymentId, Date.now())
+                    : getExistingPendingPaymentUiLifecycle(sessionStorage, status.paymentId, Date.now());
+                if (startNotice) {
+                    sessionStorage.setItem(ACTIVE_PENDING_NOTICE_STORAGE_KEY, status.paymentId);
                 }
-            });
+                if (lifecycle && (startNotice || activeNoticePaymentId === status.paymentId)) {
+                    setPendingUi(lifecycle);
+                    setNowMs(Date.now());
+                }
+                setPayment({
+                    state: "pending",
+                    paymentId: status.paymentId,
+                    tariffName: status.tariffName,
+                    confirmationUrl: status.confirmationUrl ?? null,
+                });
+                return;
+            }
+            if (status.status === "succeeded") {
+                setPayment({ state: "succeeded", paymentId: status.paymentId, tariffName: status.tariffName });
+                router.refresh();
+                return;
+            }
+            if (status.status === "canceled") {
+                setPayment({
+                    state: "canceled",
+                    paymentId: status.paymentId,
+                    tariffName: status.tariffName,
+                    cancellationReason: status.cancellationReason ?? null,
+                });
+                return;
+            }
+            setPayment({ state: "creating", paymentId: status.paymentId, tariffName: status.tariffName });
+        };
+
+        const load = async () => {
+            const paymentId = returnedPaymentId ?? activeNoticePaymentId ?? storedPaymentId;
+            if (paymentId) {
+                const response = await fetch(`/api/payments/${encodeURIComponent(paymentId)}/status`, {
+                    signal: controller.signal,
+                });
+                if (response.ok) {
+                    applyStatus(await response.json() as PaymentStatus, returnedPaymentId === paymentId);
+                    return;
+                }
+            }
+
+            const response = await fetch("/api/payments/current", { signal: controller.signal });
+            const currentPayment = response.ok
+                ? await response.json() as PaymentState
+                : { state: "normal" as const };
+            if (currentPayment.state === "pending") {
+                const lifecycle = activeNoticePaymentId === currentPayment.paymentId
+                    ? getExistingPendingPaymentUiLifecycle(sessionStorage, currentPayment.paymentId, Date.now())
+                    : null;
+                if (lifecycle) setPendingUi(lifecycle);
+            }
+            setPayment(currentPayment);
+        };
+
+        load().catch((error: unknown) => {
+            if (!(error instanceof DOMException && error.name === "AbortError")) setPayment({ state: "normal" });
+        });
 
         return () => controller.abort();
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         const handleCreated = (event: Event) => {
@@ -85,15 +152,9 @@ export default function PaymentStateNotice() {
         return () => window.removeEventListener("payment-created", handleCreated);
     }, []);
 
-    const pendingPaymentId = payment.state === "pending" ? payment.paymentId : null;
-
-    useEffect(() => {
-        if (!pendingPaymentId) return;
-
-        const observedAt = Date.now();
-        setNowMs(observedAt);
-        setPendingUi(getOrCreatePendingPaymentUiLifecycle(sessionStorage, pendingPaymentId, observedAt));
-    }, [pendingPaymentId]);
+    const pendingPaymentId = payment.state === "pending" && pendingUi?.paymentId === payment.paymentId
+        ? payment.paymentId
+        : null;
 
     useEffect(() => {
         if (!pendingPaymentId || pendingUi?.paymentId !== pendingPaymentId) return;
@@ -111,6 +172,9 @@ export default function PaymentStateNotice() {
     useEffect(() => {
         if (payment.state === "succeeded" || payment.state === "canceled") {
             clearPendingPaymentUiLifecycle(sessionStorage, payment.paymentId);
+            if (sessionStorage.getItem(ACTIVE_PENDING_NOTICE_STORAGE_KEY) === payment.paymentId) {
+                sessionStorage.removeItem(ACTIVE_PENDING_NOTICE_STORAGE_KEY);
+            }
         }
     }, [payment]);
 
@@ -240,7 +304,7 @@ export default function PaymentStateNotice() {
     if (payment.state === "succeeded") {
         return (
             <div className={`${styles.paymentNotice} ${styles.paymentNoticeSucceeded}`} role="status">
-                Вы успешно купили тариф „{payment.tariffName}“
+                Вы успешно купили подписку на справочник
             </div>
         );
     }

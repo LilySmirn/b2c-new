@@ -18,6 +18,12 @@ export type WebhookHealthResult =
     | { ok: true }
     | { ok: false; category: string; httpStatus?: number };
 
+export function buildPaymentReturnUrl(appUrl: string, paymentId: string): string {
+    const returnUrl = new URL("/profile", appUrl);
+    returnUrl.searchParams.set("paymentReturn", paymentId);
+    return returnUrl.toString();
+}
+
 function nonEmptyString(value: unknown): string | undefined {
     return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
@@ -78,6 +84,7 @@ export async function checkWebhookHealth(): Promise<WebhookHealthResult> {
 export async function createYookassaPayment(input: {
     amount: number;
     idempotencyKey: string;
+    paymentId: string;
     orderNumber: string;
     tariffName: string;
     customerEmail: string;
@@ -94,7 +101,7 @@ export async function createYookassaPayment(input: {
         capture: true,
         confirmation: {
             type: "redirect",
-            return_url: `${appUrl.replace(/\/$/, "")}/profile`,
+            return_url: buildPaymentReturnUrl(appUrl, input.paymentId),
         },
         description: `Заказ №${input.orderNumber}`,
         metadata: { order_id: input.orderNumber },

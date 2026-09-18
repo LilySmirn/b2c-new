@@ -44,6 +44,9 @@ export async function GET(_request: Request, context: RouteContext) {
         status: payment.status,
         tariffId: payment.tariffId,
         tariffName: payment.tariffName,
+        ...(payment.status === "pending"
+            ? { confirmationUrl: payment.confirmationUrl }
+            : {}),
         ...(payment.status === "canceled"
             ? { cancellationReason: payment.cancellationReason }
             : {}),
