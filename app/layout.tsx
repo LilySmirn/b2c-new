@@ -116,7 +116,7 @@ export default async function RootLayout({
                                     Пользовательское соглашение
                                 </a>
                             </div>
-                            <div className="copyright">© 2025 easymed.pro</div>
+                            <div className="copyright">2026 easymed.pro</div>
                             <div className="inn">
                                 ИП Васильцов Давыд Юрьевич  <br />
                                 ОГРНИП 324784700301501  <br />

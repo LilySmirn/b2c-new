@@ -20,6 +20,10 @@ export async function GET() {
         paymentId: payment.paymentId,
         tariffId: payment.tariffId,
         tariffName: payment.tariffName,
+        ...(payment.status === "pending" ? {
+            retryAllowedAt: payment.retryAllowedAt,
+            confirmationUrl: payment.confirmationUrl,
+        } : {}),
         ...(payment.status === "canceled"
             ? { cancellationReason: payment.cancellationReason }
             : {}),

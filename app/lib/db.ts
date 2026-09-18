@@ -2,6 +2,7 @@ import mysql, { FieldPacket, PoolConnection, QueryResult, ResultSetHeader, RowDa
 import {User} from "@/app/types/User";
 import {Subscription} from "@/app/types/Subscription";
 import {v4 as uuidv4} from "uuid";
+import { PAYMENT_RETRY_DELAY_SECONDS } from "@/app/lib/paymentRetry";
 
 const dbPort = Number(process.env.DB_PORT ?? 3306);
 
@@ -33,13 +34,14 @@ export type PaymentCreationLocalStatus = "creating" | "pending" | "succeeded" | 
 export async function persistCreatedYookassaPayment(
     paymentId: string,
     yookassaPaymentId: string,
+    confirmationUrl: string,
     executor: QueryExecutor = pool,
 ): Promise<PaymentCreationLocalStatus> {
     await executor.query(
         `UPDATE payments
-         SET yookassa_payment_id = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
+         SET yookassa_payment_id = ?, confirmation_url = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
          WHERE payment_id = ? AND status = 'creating'`,
-        [yookassaPaymentId, paymentId],
+        [yookassaPaymentId, confirmationUrl, paymentId],
     );
 
     const [rows] = await executor.query<RowDataPacket[]>(
@@ -224,6 +226,8 @@ export type CurrentPayment = {
     tariffName: string;
     status: "pending" | "canceled";
     cancellationReason: string | null;
+    retryAllowedAt: string;
+    confirmationUrl: string | null;
 };
 
 export type PaymentStatus = {
@@ -240,9 +244,11 @@ export type PaymentDetails = {
     tariffName: string;
     amount: number;
     status: "creating" | "pending";
+    retryAllowedAt: string;
+    confirmationUrl: string | null;
 };
 
-export type CreatedPaymentDetails = PaymentDetails & {
+export type CreatedPaymentDetails = Omit<PaymentDetails, "retryAllowedAt" | "confirmationUrl"> & {
     status: "creating";
     idempotencyKey: string;
     orderNumber: string;
@@ -512,6 +518,8 @@ export default class db {
                 p.tariff_id,
                 p.status,
                 p.cancellation_reason,
+                p.confirmation_url,
+                DATE_ADD(p.created_at, INTERVAL ${PAYMENT_RETRY_DELAY_SECONDS} SECOND) AS retry_allowed_at,
                 t.title AS tariff_name
              FROM payments p
              INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
@@ -535,8 +543,8 @@ export default class db {
                )
              ORDER BY
                 CASE WHEN p.status = 'pending' THEN 0 ELSE 1 END,
-                p.updated_at DESC,
-                p.created_at DESC
+                p.created_at DESC,
+                p.payment_id DESC
              LIMIT 1`,
             [userId]
         );
@@ -547,6 +555,8 @@ export default class db {
             tariff_name: string;
             status: "pending" | "canceled";
             cancellation_reason: string | null;
+            confirmation_url: string | null;
+            retry_allowed_at: Date | string;
         }) | undefined;
 
         if (!payment) {
@@ -559,6 +569,8 @@ export default class db {
             tariffName: payment.tariff_name,
             status: payment.status,
             cancellationReason: payment.cancellation_reason,
+            retryAllowedAt: new Date(payment.retry_allowed_at).toISOString(),
+            confirmationUrl: payment.confirmation_url,
         };
     }
 
@@ -603,7 +615,7 @@ export default class db {
     }
 
     /**
-     * Creates at most one pending payment per user.
+     * Blocks a new checkout only during the newest unfinished payment's retry window.
      *
      * Locking the user's row makes the pending check and insert a serialized
      * operation for that user, including when two requests arrive together.
@@ -632,11 +644,15 @@ export default class db {
                     p.tariff_id,
                     p.amount,
                     p.status,
+                    p.confirmation_url,
+                    DATE_ADD(p.created_at, INTERVAL ${PAYMENT_RETRY_DELAY_SECONDS} SECOND) AS retry_allowed_at,
                     t.title AS tariff_name
                  FROM payments p
                  INNER JOIN tariffs t ON t.tariff_id = p.tariff_id
-                 WHERE p.user_id = ? AND p.status = 'pending'
-                 ORDER BY p.created_at DESC
+                 WHERE p.user_id = ?
+                   AND p.status IN ('creating', 'pending')
+                   AND p.created_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL ${PAYMENT_RETRY_DELAY_SECONDS} SECOND)
+                 ORDER BY p.created_at DESC, p.payment_id DESC
                  LIMIT 1`,
                 [userId],
             );
@@ -645,7 +661,9 @@ export default class db {
                 tariff_id: string;
                 tariff_name: string;
                 amount: number | string;
-                status: "pending";
+                status: "creating" | "pending";
+                confirmation_url: string | null;
+                retry_allowed_at: Date | string;
             }) | undefined;
 
             if (pending) {
@@ -658,6 +676,8 @@ export default class db {
                         tariffName: pending.tariff_name,
                         amount: Number(pending.amount),
                         status: pending.status,
+                        retryAllowedAt: new Date(pending.retry_allowed_at).toISOString(),
+                        confirmationUrl: pending.confirmation_url,
                     },
                 };
             }
@@ -731,8 +751,9 @@ export default class db {
     public async markPaymentCheckoutCreated(
         paymentId: string,
         yookassaPaymentId: string,
+        confirmationUrl: string,
     ): Promise<PaymentCreationLocalStatus> {
-        return persistCreatedYookassaPayment(paymentId, yookassaPaymentId, connection);
+        return persistCreatedYookassaPayment(paymentId, yookassaPaymentId, confirmationUrl, connection);
     }
 
     public async markPaymentPending(paymentId: string): Promise<void> {

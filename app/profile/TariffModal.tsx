@@ -45,8 +45,8 @@ export default function TariffModal({
 
             if (response.status === 409 && result.code === "PAYMENT_ALREADY_PENDING") {
                 setErrorMessage(
-                    `Дождитесь окончания оплаты тарифа «${result.payment.tariffName}».\n` +
-                    "После этого можно совершить новую оплату.",
+                    `Платёж уже создаётся. ` +
+                    "Повторная оплата станет доступна после окончания 30-секундной защиты.",
                 );
                 return;
             }

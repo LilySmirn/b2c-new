@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./profile.module.css";
+import { getRetrySecondsRemaining } from "@/app/lib/paymentRetry";
 
 type PaymentState =
     | { state: "normal" }
     | { state: "creating"; paymentId: string; tariffName: string }
-    | { state: "pending"; paymentId: string; tariffName: string }
+    | { state: "pending"; paymentId: string; tariffName: string; retryAllowedAt: string; confirmationUrl: string | null }
     | { state: "succeeded"; tariffName: string }
     | { state: "canceled"; tariffName: string; cancellationReason: string | null };
 
@@ -35,6 +36,7 @@ function getCancellationMessage(reason: string | null): string {
 export default function PaymentStateNotice() {
     const router = useRouter();
     const [payment, setPayment] = useState<PaymentState>({ state: "normal" });
+    const [nowMs, setNowMs] = useState(() => Date.now());
 
     useEffect(() => {
         const controller = new AbortController();
@@ -45,7 +47,6 @@ export default function PaymentStateNotice() {
                 const candidate = JSON.parse(stored) as { paymentId?: unknown; tariffName?: unknown };
                 if (typeof candidate.paymentId === "string" && typeof candidate.tariffName === "string") {
                     setPayment({ state: "creating", paymentId: candidate.paymentId, tariffName: candidate.tariffName });
-                    return () => controller.abort();
                 }
             } catch {
                 sessionStorage.removeItem("currentPayment");
@@ -67,16 +68,25 @@ export default function PaymentStateNotice() {
     useEffect(() => {
         const handleCreated = (event: Event) => {
             const payment = (event as CustomEvent<{ paymentId: string; tariffName: string }>).detail;
-            setPayment({
-                state: "pending",
-                paymentId: payment.paymentId,
-                tariffName: payment.tariffName,
-            });
+            // The authoritative server projection supplies the persisted retry
+            // deadline; a client event must never start a fresh 30-second lock.
+            fetch("/api/payments/current")
+                .then((response) => response.ok ? response.json() : { state: "normal" })
+                .then((currentPayment: PaymentState) => setPayment(currentPayment));
         };
 
         window.addEventListener("payment-created", handleCreated);
         return () => window.removeEventListener("payment-created", handleCreated);
     }, []);
+
+    useEffect(() => {
+        if (payment.state !== "pending") return;
+
+        const update = () => setNowMs(Date.now());
+        update();
+        const interval = window.setInterval(update, 250);
+        return () => window.clearInterval(interval);
+    }, [payment.state === "pending" ? payment.retryAllowedAt : null]);
 
     useEffect(() => {
         if (payment.state !== "pending" && payment.state !== "creating") {
@@ -133,11 +143,8 @@ export default function PaymentStateNotice() {
 
                 const status = await response.json() as PaymentStatus;
                 if (status.status === "pending" && payment.state === "creating") {
-                    setPayment({
-                        state: "pending",
-                        paymentId: status.paymentId,
-                        tariffName: status.tariffName,
-                    });
+                    const currentResponse = await fetch("/api/payments/current", { signal: controller.signal });
+                    if (currentResponse.ok) setPayment(await currentResponse.json() as PaymentState);
                     scheduleNext();
                     return;
                 }
@@ -179,9 +186,19 @@ export default function PaymentStateNotice() {
     }
 
     if (payment.state === "pending") {
+        const retrySeconds = getRetrySecondsRemaining(payment.retryAllowedAt, new Date(nowMs));
         return (
             <div className={`${styles.paymentNotice} ${styles.paymentNoticePending}`} role="status">
-                Ваш платёж в обработке
+                <strong>Проверяем результат платежа</strong>
+                <span>
+                    ЮKassa ещё не сообщила окончательный статус. Если оплата прошла, срок подписки обновится автоматически. Если оплата не завершена, вы {retrySeconds > 0 ? (
+                        <>сможете оплатить повторно через <strong>{retrySeconds} секунд</strong></>
+                    ) : payment.confirmationUrl ? (
+                        <>можете <a href={payment.confirmationUrl}>оплатить</a> повторно</>
+                    ) : (
+                        <>можете оплатить повторно</>
+                    )}. Или дождаться автоматического закрытия сообщения.
+                </span>
             </div>
         );
     }

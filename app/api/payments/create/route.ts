@@ -114,7 +114,11 @@ export async function POST(request: NextRequest) {
         });
 
         if (yookassa.outcome === "created") {
-            const localStatus = await database.markPaymentCheckoutCreated(paymentId, yookassa.id);
+            const localStatus = await database.markPaymentCheckoutCreated(
+                paymentId,
+                yookassa.id,
+                yookassa.confirmationUrl,
+            );
             await logPaymentEvent("yookassa_create_succeeded", paymentId, {
                 ...context,
                 yookassaPaymentId: yookassa.id,

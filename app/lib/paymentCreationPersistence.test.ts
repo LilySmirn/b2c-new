@@ -8,6 +8,7 @@ type LocalStatus = "creating" | "pending" | "succeeded" | "canceled";
 function paymentExecutor(initialStatus: LocalStatus) {
     let status: LocalStatus = initialStatus;
     let yookassaPaymentId: string | null = null;
+    let confirmationUrl: string | null = null;
     const queries: string[] = [];
 
     return {
@@ -17,7 +18,8 @@ function paymentExecutor(initialStatus: LocalStatus) {
                 if (sql.startsWith("UPDATE")) {
                     const transitioned = status === "creating";
                     if (status === "creating") {
-                        yookassaPaymentId = String(params?.[0]);
+                        let yookassaPaymentId: string | null = null;
+                        let confirmationUrl: string | null = null;
                         status = "pending";
                     }
                     return [{ affectedRows: transitioned ? 1 : 0 } as T, []];
@@ -25,22 +27,23 @@ function paymentExecutor(initialStatus: LocalStatus) {
                 return [[{ status }] as unknown as T, []];
             },
         },
-        snapshot: () => ({ status, yookassaPaymentId, queries }),
+        snapshot: () => ({ status, yookassaPaymentId, confirmationUrl, queries }),
     };
 }
 
 test("successful YooKassa creation atomically saves its id and moves creating to pending", async () => {
     const fake = paymentExecutor("creating");
 
-    const localStatus = await persistCreatedYookassaPayment("local-1", "yk-1", fake.executor);
+    const localStatus = await persistCreatedYookassaPayment("local-1", "yk-1", "https://yookassa.test/pay", fake.executor);
 
     assert.equal(localStatus, "pending");
     assert.deepEqual(fake.snapshot(), {
         status: "pending",
         yookassaPaymentId: "yk-1",
+        confirmationUrl: "https://yookassa.test/pay",
         queries: [
             `UPDATE payments
-         SET yookassa_payment_id = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
+         SET yookassa_payment_id = ?, confirmation_url = ?, status = 'pending', updated_at = UTC_TIMESTAMP()
          WHERE payment_id = ? AND status = 'creating'`,
             "SELECT status FROM payments WHERE payment_id = ? LIMIT 1",
         ],
@@ -50,10 +53,11 @@ test("successful YooKassa creation atomically saves its id and moves creating to
 test("a fast succeeded webhook cannot be overwritten by the create flow", async () => {
     const fake = paymentExecutor("succeeded");
 
-    assert.equal(await persistCreatedYookassaPayment("local-1", "yk-1", fake.executor), "succeeded");
+    assert.equal(await persistCreatedYookassaPayment("local-1", "yk-1", "https://yookassa.test/pay", fake.executor), "succeeded");
     assert.deepEqual(fake.snapshot(), {
         status: "succeeded",
         yookassaPaymentId: null,
+        confirmationUrl: null,
         queries: fake.snapshot().queries,
     });
 });
@@ -61,10 +65,11 @@ test("a fast succeeded webhook cannot be overwritten by the create flow", async 
 test("a fast canceled webhook cannot be overwritten by the create flow", async () => {
     const fake = paymentExecutor("canceled");
 
-    assert.equal(await persistCreatedYookassaPayment("local-1", "yk-1", fake.executor), "canceled");
+    assert.equal(await persistCreatedYookassaPayment("local-1", "yk-1", "https://yookassa.test/pay", fake.executor), "canceled");
     assert.deepEqual(fake.snapshot(), {
         status: "canceled",
         yookassaPaymentId: null,
+        confirmationUrl: null,
         queries: fake.snapshot().queries,
     });
 });
