@@ -18,7 +18,7 @@ test("a pending payment permits creation at the persisted 30-second deadline", (
     assert.equal(getRetrySecondsRemaining(getRetryAllowedAt(createdAt), new Date("2026-09-18T12:00:30.000Z")), 0);
 });
 
-test("the countdown is derived from the payment timestamp and cannot restart on refresh", () => {
+test("the server retry deadline remains derived from created_at independently of UI refreshes", () => {
     const retryAllowedAt = getRetryAllowedAt(createdAt);
     assert.equal(getRetrySecondsRemaining(retryAllowedAt, new Date("2026-09-18T12:00:11.200Z")), 19);
     assert.equal(getRetrySecondsRemaining(retryAllowedAt, new Date("2026-09-18T12:00:29.200Z")), 1);

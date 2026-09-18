@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./profile.module.css";
-import { getRetrySecondsRemaining } from "@/app/lib/paymentRetry";
+import {
+    getPendingPaymentUiView,
+    observePendingPayment,
+    type PendingPaymentUiLifecycle,
+} from "./pendingPaymentUi";
 
 type PaymentState =
     | { state: "normal" }
@@ -37,6 +41,7 @@ export default function PaymentStateNotice() {
     const router = useRouter();
     const [payment, setPayment] = useState<PaymentState>({ state: "normal" });
     const [nowMs, setNowMs] = useState(() => Date.now());
+    const [pendingUi, setPendingUi] = useState<PendingPaymentUiLifecycle | null>(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -79,14 +84,28 @@ export default function PaymentStateNotice() {
         return () => window.removeEventListener("payment-created", handleCreated);
     }, []);
 
-    useEffect(() => {
-        if (payment.state !== "pending") return;
+    const pendingPaymentId = payment.state === "pending" ? payment.paymentId : null;
 
-        const update = () => setNowMs(Date.now());
-        update();
-        const interval = window.setInterval(update, 250);
+    useEffect(() => {
+        if (!pendingPaymentId) return;
+
+        const observedAt = Date.now();
+        setNowMs(observedAt);
+        setPendingUi((current) => observePendingPayment(current, pendingPaymentId, observedAt));
+    }, [pendingPaymentId]);
+
+    useEffect(() => {
+        if (!pendingPaymentId || pendingUi?.paymentId !== pendingPaymentId) return;
+
+        const interval = window.setInterval(() => {
+            const currentTime = Date.now();
+            setNowMs(currentTime);
+            if (getPendingPaymentUiView(pendingUi, currentTime).phase === "hidden") {
+                window.clearInterval(interval);
+            }
+        }, 250);
         return () => window.clearInterval(interval);
-    }, [payment.state === "pending" ? payment.retryAllowedAt : null]);
+    }, [pendingPaymentId, pendingUi?.paymentId]);
 
     useEffect(() => {
         if (payment.state !== "pending" && payment.state !== "creating") {
@@ -186,13 +205,18 @@ export default function PaymentStateNotice() {
     }
 
     if (payment.state === "pending") {
-        const retrySeconds = getRetrySecondsRemaining(payment.retryAllowedAt, new Date(nowMs));
+        // The persisted retryAllowedAt remains server-only creation protection.
+        // This lifecycle starts when this payment id first appears in this mount.
+        if (!pendingUi || pendingUi.paymentId !== payment.paymentId) return null;
+
+        const pendingView = getPendingPaymentUiView(pendingUi, nowMs);
+        if (pendingView.phase === "hidden") return null;
         return (
             <div className={`${styles.paymentNotice} ${styles.paymentNoticePending}`} role="status">
                 <strong>Проверяем результат платежа</strong>
                 <span>
-                    ЮKassa ещё не сообщила окончательный статус. Если оплата прошла, срок подписки обновится автоматически. Если оплата не завершена, вы {retrySeconds > 0 ? (
-                        <>сможете оплатить повторно через <strong>{retrySeconds} секунд</strong></>
+                    ЮKassa ещё не сообщила окончательный статус. Если оплата прошла, срок подписки обновится автоматически. Если оплата не завершена, вы {pendingView.phase === "countdown" ? (
+                        <>сможете оплатить повторно через <strong>{pendingView.secondsRemaining} секунд</strong></>
                     ) : payment.confirmationUrl ? (
                         <>можете <a href={payment.confirmationUrl}>оплатить</a> повторно</>
                     ) : (
