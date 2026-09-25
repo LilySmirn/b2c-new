@@ -403,7 +403,8 @@ h1 {
 }
 
 .welcome-section {
-  min-height: 160px;
+  min-height: 200px;
+  margin-bottom: 60px;
   background-color: #ffffff;
   display: flex;
   justify-content: center;
