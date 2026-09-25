@@ -2167,6 +2167,10 @@ body.auth-route .footer {
   width: 100%;
   margin-top: 37px;
   overflow: hidden;
+
+    /* The fade keeps the first and last tiles from looking abruptly cropped. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
 }
 
 .client-logos-track {
@@ -2181,16 +2185,30 @@ body.auth-route .footer {
 .client-logos-group {
   display: flex;
   align-items: center;
-  gap: 52px;
-  padding-right: 52px;
+  gap: 16px;
+  padding-right: 16px;
+}
+
+.client-logo-card {
+  display: flex;
+  width: 176px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(0, 74, 173, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 24px rgba(0, 27, 76, 0.05);
 }
 
 .client-logo {
   display: block;
+  /* Keep small source files at their native size instead of enlarging pixels. */
   width: auto;
-  height: 40px;
-  max-width: none;
-  flex: 0 0 auto;
+  height: auto;
+  max-width: 144px;
+  max-height: 44px;
   object-fit: contain;
 }
 
@@ -2206,12 +2224,26 @@ body.auth-route .footer {
 
 @media (prefers-reduced-motion: reduce) {
   .client-logos-track {
-    animation-duration: 180s;
+    animation-play-state: paused;
   }
 }
 
 @media (max-width: 768px) {
   .welcome-section .welcome-container {
     padding: 0;
+  }
+.client-logos-viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+  }
+
+  .client-logo-card {
+    width: 152px;
+    height: 64px;
+  }
+
+  .client-logo {
+    max-width: 124px;
+    max-height: 40px;
   }
 }

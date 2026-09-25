@@ -277,12 +277,13 @@ export default async function Home() {
                     aria-hidden={isDuplicate || undefined}
                   >
                     {clientLogos.map((logo, index) => (
-                      <Image
-                        key={logo.src}
-                        className="client-logo"
-                        src={logo}
-                        alt={isDuplicate ? "" : `Логотип клиента ${index + 1}`}
-                      />
+                      <span className="client-logo-card" key={logo.src}>
+                        <Image
+                          className="client-logo"
+                          src={logo}
+                          alt={isDuplicate ? "" : `Логотип клиента ${index + 1}`}
+                        />
+                      </span>
                     ))}
                   </div>
                 ))}
