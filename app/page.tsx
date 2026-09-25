@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
+import VideoShowcase from "./components/VideoShowcase";
 import Head from 'next/head';
 import { Metadata } from "next";
 import heroImage from "@/assets/images/landing/tablet.png";
@@ -316,6 +317,7 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        <VideoShowcase />
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
             <h2 className="title">
@@ -572,19 +574,6 @@ export default async function Home() {
               Попробуйте бесплатно<br/>прямо сейчас!
             </h2>
             <Link href="/login" className="btn btn-demo-cta">Демо</Link>
-          </div>
-        </section>
-        <section className="video-section" id="video">
-          <div className="video-container">
-            <h2>
-              Видео-<span className="highlight">инструкция</span>
-            </h2>
-            <div className="video">
-              <iframe width="720" height="415"
-                      src="https://vkvideo.ru/video_ext.php?oid=-232253508&id=456239018&hd=2"
-                      allow="autoplay; fullscreen; accelerometer; gyroscope; picture-in-picture; encrypted-media"
-                      data-testid="embed-iframe" frameBorder="0" scrolling="no" allowFullScreen></iframe>
-            </div>
           </div>
         </section>
         <section id="why-us" className="why-us-section">
