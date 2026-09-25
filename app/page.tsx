@@ -4,7 +4,7 @@ import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
 import Head from 'next/head';
 import { Metadata } from "next";
-import heroImage from "@/assets/images/landing/main.png";
+import heroImage from "@/assets/images/landing/tablet.png";
 import videoIcon from "@/assets/images/landing/video.png";
 import minzdravIcon from "@/assets/images/landing/minzdrav.png";
 import searchIcon from "@/assets/images/landing/search.png";
