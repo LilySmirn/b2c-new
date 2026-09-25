@@ -57,8 +57,7 @@ export default function HeaderMenuClient() {
             >
                 <nav aria-label="Мобильное меню">
                     <ul className="mobile-menu-list">
-                        <li><a href="#usp" onClick={handleSmoothScroll}>Возможности</a></li>
-                        <li><a href="#clients" onClick={handleSmoothScroll}>Для кого</a></li>
+                        <li><a href="#how-it-works" onClick={handleSmoothScroll}>Возможности</a></li>
                         <li><a href="#pricing" onClick={handleSmoothScroll}>Тарифы</a></li>
                         <li><a href="#reviews" onClick={handleSmoothScroll}>Отзывы</a></li>
                         <li><a href="#faq" onClick={handleSmoothScroll}>FAQ</a></li>

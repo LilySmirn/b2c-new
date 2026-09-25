@@ -36,8 +36,7 @@ export default async function RootLayout({
                         </Link>
                         <nav aria-label="Главное меню" className="navigation">
                             <ul className="main-menu">
-                                <li><Link href="/#usp">Возможности</Link></li>
-                                <li><Link href="/#clients">Для кого</Link></li>
+                                <li><Link href="/#how-it-works">Возможности</Link></li>
                                 <li><Link href="/#pricing">Тарифы</Link></li>
                                 <li><Link href="/#reviews">Отзывы</Link></li>
                                 <li><Link href="/#faq">FAQ</Link></li>

@@ -10,6 +10,9 @@ import minzdravIcon from "@/assets/images/landing/minzdrav.png";
 import searchIcon from "@/assets/images/landing/search.png";
 import starIcon from "@/assets/images/landing/star.png";
 import peopleImage from "@/assets/images/landing/people.png";
+import howSearchIcon from "@/assets/images/landing/search2.png";
+import recommendationIcon from "@/assets/images/landing/recomendation.png";
+import safeIcon from "@/assets/images/landing/safe.png";
 import clientLogo01 from "@/assets/images/logos/Group 1000004580 1.png";
 import clientLogo02 from "@/assets/images/logos/Group 1000004580 2.png";
 import clientLogo03 from "@/assets/images/logos/Group 1000004580 3.png";
@@ -291,117 +294,26 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        <section id="usp" className="usp-section">
-          <div className="usp-container">
-            <h2 className="title">
-              Всё, что нужно врачу, в одном <span className="highlight">справочнике</span>
-            </h2>
-            <p className="description">
-              <span className="highlight bold">1000+</span> актуальных клинических рекомендаций от Минздрава РФ и СтАР.
-            </p>
-            <p className="description">
-              Мы собрали, сократили, отфильтровали — чтобы вы могли сразу работать.
-            </p>
-            <div className="usp-list">
-              <div className="line-1">
-                <div className="usp-item">
-                  <div className="item-title usp-item-title">
-                    Клинические рекомендации<br/>в структурированном виде
+        <section id="how-it-works" className="how-it-works-section">
+          <h2>Как это работает</h2>
+          <div className="how-it-works-flow">
+            {[
+              { number: "01", icon: howSearchIcon, title: "Введите запрос", text: <>Поиск по МКБ-10,<br/>диагнозам, ключевым<br/>словам</> },
+              { number: "02", icon: recommendationIcon, title: "Получите рекомендации", text: <>Структурированная<br/>информация по диагностике,<br/>лечению и профилактике</> },
+              { number: "03", icon: safeIcon, title: "Применяйте на практике", text: <>Работайте по актуальным<br/>рекомендациям Минздрава<br/>и будьте уверены в решении</> },
+            ].map((step, index) => (
+              <div className="how-it-works-step" key={step.number}>
+                <article className="how-it-works-card">
+                  <div className="how-it-works-icon"><Image src={step.icon} alt="" /></div>
+                  <div className="how-it-works-copy">
+                    <span className="how-it-works-number">{step.number}</span>
+                    <h3>{step.title}</h3>
+                    <p>{step.text}</p>
                   </div>
-                  <div className="usp-item-text">
-                    Информация собрана и представлена<br/>в удобном для работы формате.
-                  </div>
-                </div>
-                <div className="usp-item">
-                  <p className="item-title usp-item-title">
-                    Поиск по коду<br/>МКБ-10
-                  </p>
-                  <p className="usp-item-text">
-                    Поддержка поиска по нозологиям<br/>и кодам МКБ-10.
-                  </p>
-                </div>
-                <div className="usp-item">
-                  <p className="item-title usp-item-title">
-                    Рекомендации с указанием<br/>даты утверждения
-                  </p>
-                  <p className="usp-item-text">
-                    Информация о документе<br/>и его официальном статусе.
-                  </p>
-                </div>
+                </article>
+                {index < 2 && <div className="how-it-works-connector" aria-hidden="true"><span/></div>}
               </div>
-              <div className="line-2">
-                <div className="usp-item">
-                  <p className="item-title usp-item-title">
-                    Рекомендации<br/>Минздрава РФ
-                  </p>
-                  <p className="usp-item-text">
-                    Источники данных — официальные<br/>клинические рекомендации Минздрава РФ.
-                  </p>
-                </div>
-                <div className="usp-item">
-                  <p className="item-title usp-item-title">
-                    Рекомендации Ассоциации<br/>стоматологов России
-                  </p>
-                  <p className="usp-item-text">
-                    Специализированные клинические<br/>рекомендации для стоматологической практики.
-                  </p>
-                </div>
-                <div className="usp-item">
-                  <p className="item-title usp-item-title">
-                    Автозаполнение<br/>протокола
-                  </p>
-                  <p className="usp-item-text">
-                    Заполняйте протокол приёма<br/>в один клик.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section id="clients" className="clients-section">
-          <div className="clients-container">
-            <h2 className="title">
-              <span className="highlight">Кому</span> и <span className="highlight">зачем</span> нужен наш справочник?
-            </h2>
-            <div className="clients-list">
-
-              <div className="clients-item">
-                <p className="item-title clients-item-title">
-                  Врачам
-                </p>
-                <div className="vertical-line"></div>
-                <p className="item-text">
-                  <span className="highlight">✓</span> Быстрее оформление — помогает сформировать план лечения<br/>
-                  <span className="highlight">✓</span> Экономия времени и минимизация ошибок<br/>
-                  <span className="highlight">✓</span> Автоматическое заполнение протоколов
-                </p>
-              </div>
-
-              <div className="clients-item">
-                <p className="item-title clients-item-title">
-                  Руководителям<br/>клиник
-                </p>
-                <div className="vertical-line"></div>
-                <p className="item-text">
-                  <span className="highlight">✓</span> Контроль соответствия клинрекам и стандартам<br/>
-                  <span className="highlight">✓</span> Помощь при проверках страховых, Росздравнадзора<br/>
-                  <span className="highlight">✓</span> Повышение качества медицинской помощи
-                </p>
-              </div>
-
-              <div className="clients-item">
-                <p className="item-title clients-item-title">
-                  Студентам и<br/>ординаторам
-                </p>
-                <div className="vertical-line"></div>
-                <p className="item-text">
-                  <span className="highlight">✓</span> Понимание структуры клинрека с первых курсов<br/>
-                  <span className="highlight">✓</span> Подготовка к экзаменам и практикам<br/>
-                  <span className="highlight">✓</span> Уверенность в действиях при работе с пациентами
-                </p>
-              </div>
-
-            </div>
+            ))}
           </div>
         </section>
         <section id="pricing" className="pricing-section">

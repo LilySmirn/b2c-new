@@ -462,15 +462,135 @@ h2 {
   margin-bottom: 18px;
 }
 
-.usp-section {
-  min-height: 650px;
+.how-it-works-section {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  box-sizing: border-box;
+  padding: 44px 20px 51px;
+  background: #f9faff;
+}
+
+.how-it-works-section > h2 {
+  margin: 0 0 22px;
+  color: #001b4c;
+  font-family: Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 35px;
   text-align: center;
-  background-color: #ffffff;
+}
+
+.how-it-works-flow {
+  display: flex;
+  width: 1116px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.how-it-works-step {
+  display: flex;
+  align-items: center;
+}
+
+.how-it-works-card {
+  display: flex;
+  align-items: flex-start;
+  flex: 0 0 309px;
+  width: 309px;
+  height: 153px;
+  box-sizing: border-box;
+  padding: 19px 18px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 22px -14px rgba(78, 99, 158, .42), 0 3px 8px -5px rgba(78, 99, 158, .18);
+}
+
+.how-it-works-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  margin-right: 16px;
+  border-radius: 50%;
+  background: #f9faff;
+}
+
+.how-it-works-icon img {
+  width: auto;
+  height: auto;
+  max-width: 42px;
+  max-height: 42px;
+}
+
+.how-it-works-copy {
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+}
+
+.how-it-works-number {
+  display: block;
+  margin-bottom: 10px;
+  color: #0b60fb;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.how-it-works-copy h3 {
+  margin: 0 0 16px;
+  color: #001b4c;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.how-it-works-copy p {
+  margin: 0;
+  color: #001b4c;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 19px;
+}
+
+.how-it-works-connector {
+  position: relative;
+  width: 94.5px;
+  height: 20px;
+  flex: 0 0 94.5px;
+}
+
+.how-it-works-connector::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7f88aa;
+}
+
+.how-it-works-connector span {
+  position: absolute;
+  left: 10px;
+  right: 8px;
+  top: 12px;
+  border-top: 2px dashed #7f88aa;
+}
+
+.how-it-works-connector span::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #7f88aa;
+  border-right: 2px solid #7f88aa;
+  border-radius: 1px;
+  transform: rotate(45deg);
 }
 
 .usp-list {
@@ -2245,5 +2365,77 @@ body.auth-route .footer {
   .client-logo {
     max-width: 124px;
     max-height: 40px;
+  }
+}
+
+@media (max-width: 1155px) {
+  .how-it-works-flow,
+  .how-it-works-step {
+    flex-direction: column;
+  }
+
+  .how-it-works-flow {
+    align-items: center;
+    width: 309px;
+  }
+
+  .how-it-works-card {
+    flex-basis: 153px;
+  }
+
+  .how-it-works-connector {
+    width: 2px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .how-it-works-connector::before {
+    left: -4px;
+    top: 0;
+  }
+
+  .how-it-works-connector span {
+    left: 0;
+    right: auto;
+    top: 10px;
+    bottom: 8px;
+    border-top: 0;
+    border-left: 2px dashed #7f88aa;
+  }
+
+  .how-it-works-connector span::after {
+    right: auto;
+    left: -7px;
+    top: auto;
+    bottom: -1px;
+    transform: rotate(135deg);
+  }
+}
+
+@media (max-width: 380px) {
+  .how-it-works-section {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .how-it-works-flow,
+  .how-it-works-card {
+    width: 100%;
+  }
+
+  .how-it-works-card {
+    flex-basis: auto;
+    min-height: 153px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .how-it-works-icon {
+    margin-right: 12px;
+  }
+
+  .how-it-works-copy h3,
+  .how-it-works-copy p {
+    white-space: normal;
   }
 }
