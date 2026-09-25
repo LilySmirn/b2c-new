@@ -1,5 +1,6 @@
 :root {
   --font-family-primary: Arial, sans-serif;
+  --landing-content-width: 1400px;
 }
 
 * {
@@ -17,7 +18,7 @@ body, html {
 }
 
 .header-container {
-  max-width: 1200px;
+  max-width: var(--landing-content-width);
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -114,7 +115,7 @@ header {
 }
 
 .header-container {
-  max-width: 1200px;
+  max-width: var(--landing-content-width);
   width: 100%;
   display: flex;
   padding: 12px 20px;
@@ -307,7 +308,7 @@ header.scrolled {
 .hero-container {
   gap: 30px;
   width: 100%;
-  max-width: 1400px;
+  max-width: var(--landing-content-width);
   height: 100%;
   margin: 0 auto;
   padding: 0 20px;
