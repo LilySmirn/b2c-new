@@ -10,6 +10,36 @@ import minzdravIcon from "@/assets/images/landing/minzdrav.png";
 import searchIcon from "@/assets/images/landing/search.png";
 import starIcon from "@/assets/images/landing/star.png";
 import peopleImage from "@/assets/images/landing/people.png";
+import clientLogo01 from "@/assets/images/logos/Group 1000004580 1.png";
+import clientLogo02 from "@/assets/images/logos/Group 1000004580 2.png";
+import clientLogo03 from "@/assets/images/logos/Group 1000004580 3.png";
+import clientLogo04 from "@/assets/images/logos/Group 1000004580 4.png";
+import clientLogo05 from "@/assets/images/logos/Group 1000004581 1.png";
+import clientLogo07 from "@/assets/images/logos/Sealife 1 1.png";
+import clientLogo08 from "@/assets/images/logos/layer1 1.png";
+import clientLogo09 from "@/assets/images/logos/photo_2025-12-02 14.42.45 1 1.png";
+import clientLogo10 from "@/assets/images/logos/photo_2025-12-02 15.05.00 1 1.png";
+import clientLogo11 from "@/assets/images/logos/photo_2025-12-02 15.24.23 1 1.png";
+import clientLogo12 from "@/assets/images/logos/Айболит 1 1.png";
+import clientLogo13 from "@/assets/images/logos/Бека Инвет 1 1.png";
+import clientLogo14 from "@/assets/images/logos/Гиппократ 1 1.png";
+import clientLogo15 from "@/assets/images/logos/Гранти-мед 1 1.png";
+import clientLogo16 from "@/assets/images/logos/ДЦ Экспресс + 1 1.png";
+import clientLogo17 from "@/assets/images/logos/Доктор Клин 1 1.png";
+import clientLogo18 from "@/assets/images/logos/КИТ 1 1.png";
+import clientLogo19 from "@/assets/images/logos/Ларус 1 1.png";
+import clientLogo20 from "@/assets/images/logos/МО Новая больница (ТОП - 10 РФ) 1 1.png";
+import clientLogo21 from "@/assets/images/logos/МХК Андромеда 1 1.png";
+import clientLogo22 from "@/assets/images/logos/МЦ Здоровье 1 1.png";
+import clientLogo23 from "@/assets/images/logos/Медицина Тольяти 1 1.png";
+import clientLogo24 from "@/assets/images/logos/Петергоф 1 1.png";
+import clientLogo25 from "@/assets/images/logos/Полимедика 1 1.png";
+import clientLogo26 from "@/assets/images/logos/Слой_1 1.png";
+import clientLogo27 from "@/assets/images/logos/Слой_x0020_1 1.png";
+import clientLogo28 from "@/assets/images/logos/Сокол-мед 1 1.png";
+import clientLogo29 from "@/assets/images/logos/ЦСМ Кронштат 1 1.png";
+import clientLogo30 from "@/assets/images/logos/Центр здоровья 1 1.png";
+import clientLogo31 from "@/assets/images/logos/рубин 1 1.png";
 import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
 
 export const metadata: Metadata = {
@@ -35,6 +65,39 @@ export const metadata: Metadata = {
     ],
   },
 };
+
+const clientLogos = [
+  clientLogo01,
+  clientLogo02,
+  clientLogo03,
+  clientLogo04,
+  clientLogo05,
+  clientLogo07,
+  clientLogo08,
+  clientLogo09,
+  clientLogo10,
+  clientLogo11,
+  clientLogo12,
+  clientLogo13,
+  clientLogo14,
+  clientLogo15,
+  clientLogo16,
+  clientLogo17,
+  clientLogo18,
+  clientLogo19,
+  clientLogo20,
+  clientLogo21,
+  clientLogo22,
+  clientLogo23,
+  clientLogo24,
+  clientLogo25,
+  clientLogo26,
+  clientLogo27,
+  clientLogo28,
+  clientLogo29,
+  clientLogo30,
+  clientLogo31,
+];
 
 export default async function Home() {
   const { session, isActive } = await getB2cSessionStatus();
@@ -202,15 +265,29 @@ export default async function Home() {
         <section id="about" className="welcome-section">
           <h2 className="visually-hidden">Welcome section</h2>
           <div className="welcome-container">
-            <p className="description">
-              Добро пожаловать в удобный справочник, где собраны актуальные <span
-                className="highlight">клинические</span> <span className="highlight">рекомендации</span> по всем
-              нозологиям — от официальных протоколов Минздрава РФ до специализированных подходов для взрослых и детей.
+            <p className="client-logos-title">
+              Нам доверяют ведущие клиники и медицинские информационные системы
             </p>
-            <p className="description description-2">
-              Используйте поиск по МКБ-10, нозологиям, фильтры по возрасту и типам приемов.
-            </p>
-            <hr/>
+            <div className="client-logos-viewport">
+              <div className="client-logos-track" aria-label="Клиенты EasyMed">
+                {[false, true].map((isDuplicate) => (
+                  <div
+                    key={String(isDuplicate)}
+                    className="client-logos-group"
+                    aria-hidden={isDuplicate || undefined}
+                  >
+                    {clientLogos.map((logo, index) => (
+                      <Image
+                        key={logo.src}
+                        className="client-logo"
+                        src={logo}
+                        alt={isDuplicate ? "" : `Логотип клиента ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
         <section id="usp" className="usp-section">
