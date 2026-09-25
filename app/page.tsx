@@ -4,7 +4,12 @@ import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
 import Head from 'next/head';
 import { Metadata } from "next";
-import heroImage from "@/assets/images/hero-img-new.png";
+import heroImage from "@/assets/images/landing/main.png";
+import videoIcon from "@/assets/images/landing/video.png";
+import minzdravIcon from "@/assets/images/landing/minzdrav.png";
+import searchIcon from "@/assets/images/landing/search.png";
+import starIcon from "@/assets/images/landing/star.png";
+import peopleImage from "@/assets/images/landing/people.png";
 import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
 
 export const metadata: Metadata = {
@@ -157,28 +162,40 @@ export default async function Home() {
         <section id="hero" className="hero-section">
           <div className="hero-container">
             <div className="hero-content">
+              <div className="hero-eyebrow">Клинические рекомендации Минздрава РФ</div>
               <div className="hero-text">
-                <h1 className="h1">
-                  Клинические рекомендации<br/>Минздрава РФ
+                <h1 className="hero-title">
+                  Клинические<br/>рекомендации<br/>Минздрава <span>за секунды</span>
                 </h1>
                 <p className="lead-text">
-                  Актуальный справочник, созданный для врачей,
-                  клиник и студентов. Находите рекомендации
-                  по диагнозу, МКБ-10 или
-                  ключевым словам — в один клик.
+                  Актуальный справочник, созданный для врачей, клиник<br/>
+                  и студентов. Находите рекомендации по диагнозу, МКБ-10<br/>
+                  или ключевым словам — в один клик.
                 </p>
               </div>
-              <div className="hero-buttons">
-                <Link href={recommendationsHref} className="btn btn-hero-demo">Найти рекомендации</Link>
-                <Link href="/login" className="btn btn-pricing">
-                  Приобрести подписку
-                </Link>
+              <div className="hero-actions-flow">
+                <div className="hero-buttons">
+                  <Link href={recommendationsHref} className="btn btn-hero-demo">Попробовать бесплатно</Link>
+                  <Link href="#video" className="btn btn-pricing hero-video-button">
+                    <Image src={videoIcon} alt="" width={27} height={27}/>
+                    Смотреть видео
+                  </Link>
+                </div>
+                <div className="hero-benefits">
+                  <div className="hero-benefit"><span><Image src={minzdravIcon} alt=""/></span><p>Актуальная база<br/>Минздрава РФ</p></div>
+                  <div className="hero-benefit"><span><Image src={searchIcon} alt=""/></span><p>Удобный поиск<br/>за секунды</p></div>
+                  <div className="hero-benefit"><span><Image src={starIcon} alt=""/></span><p>Клинические<br/>рекомендации от СтАР</p></div>
+                </div>
+                <div className="hero-trust">
+                  <Image src={peopleImage} alt="" width={139} height={42}/>
+                  <p>Уже используют более <span>5000 врачей</span><br/>в клиниках по всей России</p>
+                </div>
               </div>
             </div>
             <div className="hero-img">
               <Image src={heroImage}
                      alt="Клинические рекомендации Минздрава РФ - иллюстрация"
-                     width="638" height="442" loading="lazy"/>
+                     width={818} height={666} priority/>
             </div>
           </div>
         </section>

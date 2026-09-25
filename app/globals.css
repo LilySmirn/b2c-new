@@ -1191,6 +1191,185 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Landing hero */
+.hero-section {
+  min-height: 666px;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.hero-container {
+  min-height: 666px;
+  gap: 24px;
+  padding: 0 20px;
+  align-items: center;
+}
+
+.hero-content {
+  z-index: 1;
+  flex: 0 0 560px;
+  align-items: flex-start;
+}
+
+.hero-eyebrow {
+  width: 362px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #0b60fb;
+  background: #e5f5fc;
+  font: 700 14px/1 Arial, sans-serif;
+  text-transform: uppercase;
+}
+
+.hero-text {
+  margin: 10px 0 0;
+}
+
+.hero-title {
+  margin: 0;
+  color: #0f1e3f;
+  font: 700 45px/1.15 Arial, sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.hero-title span {
+  color: #0b60fb;
+}
+
+.hero-section .lead-text {
+  margin: 28px 0 0;
+  color: #001b4c;
+  font: 400 18px/1.49 Arial, sans-serif;
+  white-space: nowrap;
+}
+
+.hero-actions-flow {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-section .hero-buttons {
+  flex: 0 0 auto;
+  gap: 17px;
+  margin-top: 28px;
+}
+
+.hero-section .btn-hero-demo,
+.hero-section .btn-pricing {
+  height: 54px;
+  margin: 0;
+  border-radius: 5px;
+  font: 700 14px/1 Arial, sans-serif;
+}
+
+.hero-section .btn-hero-demo,
+.hero-section .btn-pricing {
+  height: 54px;
+  margin: 0;
+  border-radius: 5px;
+  font: 700 14px/1 Arial, sans-serif;
+}
+
+.hero-section .btn-hero-demo {
+  width: 237px;
+  padding: 0;
+  color: #f0f8ff;
+  background: #0b60fb;
+}
+
+.hero-section .btn-pricing {
+  width: 196px;
+  gap: 7px;
+  color: #0b60fb;
+  border: 1px solid #0071d8;
+  background: #fff;
+  text-decoration: none;
+}
+
+.hero-video-button img {
+  flex: 0 0 auto;
+}
+
+.hero-benefits {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 10px;
+  margin-top: 44px;
+}
+
+.hero-benefit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-benefit > span {
+  width: 33px;
+  height: 33px;
+  display: flex;
+  flex: 0 0 33px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: #edf6ff;
+}
+
+.hero-benefit img {
+  width: auto;
+  height: auto;
+  max-width: 25px;
+  max-height: 24px;
+}
+
+.hero-benefit p {
+  min-width: 90px;
+  color: #001b4c;
+  font: 400 13px/1.49 Arial, sans-serif;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hero-trust {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 56px;
+}
+
+.hero-trust > img {
+  width: 139px;
+  height: 42px;
+}
+
+.hero-trust p {
+  color: #001b4c;
+  font: 700 14px/1.35 Arial, sans-serif;
+  text-align: left;
+}
+
+.hero-trust p span {
+  color: #0b60fb;
+}
+
+.hero-section .hero-img {
+  flex: 0 0 818px;
+  min-width: 818px;
+}
+
+.hero-section .hero-img img {
+  width: 818px;
+  height: 666px;
+  max-width: none;
+  max-height: none;
+}
+
 main,
 section,
 footer {
@@ -1378,6 +1557,63 @@ body.noscroll {
     min-height: auto;
   }
 
+  .hero-section {
+    padding: 0;
+  }
+
+  .hero-content {
+    flex: none;
+    align-items: center;
+  }
+
+  .hero-eyebrow {
+    width: min(362px, 100%);
+    font-size: 12px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+    text-align: left;
+  }
+
+  .hero-section .lead-text {
+    font-size: 17px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .hero-section .lead-text br {
+    display: none;
+  }
+
+  .hero-section .hero-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .hero-benefits {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hero-section .hero-img {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .hero-section .hero-img img {
+    width: 100%;
+    height: auto;
+  }
+
+  .hero-trust {
+    width: 100%;
+    gap: 12px;
+  }
+
   .hero-container {
     flex-direction: column;
     justify-content: center;
@@ -1432,6 +1668,13 @@ body.noscroll {
     line-height: 100%;
     padding: 5px;
     margin-top: 0;
+  }
+
+  .hero-section .btn-hero-demo,
+  .hero-section .btn-pricing {
+    width: 100%;
+    height: 54px;
+    padding: 0 10px;
   }
 
   .btn-pricing {
