@@ -9,6 +9,7 @@ import ConditionalHeader from './components/ConditionalHeader';
 import ConditionalFooter from './components/ConditionalFooter';
 import RouteBodyClass from './components/RouteBodyClass';
 import UserBlockingGuard from './modules/userBlocking/components/UserBlockingGuard';
+import landingLogo from '@/assets/images/landing/logo.svg';
 
 export const metadata: Metadata = {
   title: "EasyMed",
@@ -28,17 +29,18 @@ export default async function RootLayout({
                  <ConditionalHeader>
                     <header id="header" className="header-section">
                     <div className="header-container">
-                        <Link href="/" className="footer-logo-link">
-                            <Image src="/images/logo-white.png"
-                                   alt="Клинические рекомендации Минздрава — логотип" width="101" height="43"
-                                   loading="eager" />
+                        <Link href="/" className="header-logo-link" aria-label="EasyMed — на главную">
+                            <Image src={landingLogo}
+                                   alt="EasyMed" width={90} height={58}
+                                   priority />
                         </Link>
                         <nav aria-label="Главное меню" className="navigation">
                             <ul className="main-menu">
-                                <li><Link href="/#about">О проекте</Link></li>
+                                <li><Link href="/#usp">Возможности</Link></li>
+                                <li><Link href="/#clients">Для кого</Link></li>
                                 <li><Link href="/#pricing">Тарифы</Link></li>
-                                <li><Link href="/#video">Видео-инструкция</Link></li>
-                                <li><Link href="/#contact">Контакты</Link></li>
+                                <li><Link href="/#reviews">Отзывы</Link></li>
+                                <li><Link href="/#faq">FAQ</Link></li>
                             </ul>
                         </nav>
                         <div className="header-buttons">
@@ -59,8 +61,8 @@ export default async function RootLayout({
                                         <li><Link href="/#about">О проекте</Link></li>
                                         <li><Link href="/#pricing">Тарифы</Link></li>
                                         <li><Link href="/#video">Видео-инструкция</Link></li>
-                                        <li><Link href="/#contact">Контакты</Link>
-                                        </li>
+                                        <li><Link href="/#reviews">Отзывы</Link></li>
+                                        <li><Link href="/#faq">FAQ</Link></li>
                                     </ul>
                                 </nav>
                                 <div className="mobile-buttons">

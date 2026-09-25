@@ -67,6 +67,7 @@ button, input, textarea, select {
 main {
   width: 100%;
   /*max-width: 1400px;*/
+  margin: 0 auto;
 }
 
 .site-main {
@@ -98,8 +99,9 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 85px;
-  background-color: #0085FF;
+  height: 82px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eef2f7;
 }
 
 .hero-section {
@@ -108,17 +110,31 @@ header {
   align-items: center;
   min-height: 830px;
   background-color: #F0F8FF;
-  margin-top: 85px;
+  margin-top: 82px;
 }
 
 .header-container {
-  max-width: 1400px;
+  max-width: 1200px;
   width: 100%;
   display: flex;
-  padding: 0 20px;
+  padding: 12px 20px;
   justify-content: space-between;
   align-items: center;
   position: relative;
+}
+
+.header-logo-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 90px;
+  height: 58px;
+}
+
+.header-logo-link img {
+  display: block;
+  width: 90px;
+  height: 58px;
+  object-fit: contain;
 }
 
 /*.navigation {*/
@@ -137,7 +153,11 @@ header.scrolled {
 }
 
 #about,
+#usp,
+#clients,
 #pricing,
+#reviews,
+#faq,
 #contact {
   scroll-margin-top: 90px;
 }
@@ -145,7 +165,7 @@ header.scrolled {
 .main-menu {
   list-style: none;
   display: flex;
-  gap: 4rem;
+  gap: clamp(24px, 3vw, 48px);
   margin: 0;
   padding: 0;
   align-items: center;
@@ -153,12 +173,12 @@ header.scrolled {
 
 .main-menu a {
   text-decoration: none;
-  color: white;
-  font-weight: 400;
+  color: #1d2939;
+  font-weight: 500;
   position: relative;
   transition: color 0.2s ease;
   font-family: var(--font-family-primary);
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .main-menu a.active {
@@ -173,7 +193,7 @@ header.scrolled {
   bottom: -3px;
   width: 0;
   height: 2px;
-  background-color: white;
+  background-color: #0b60fb;
   transition: width 0.3s ease;
 }
 
@@ -228,24 +248,25 @@ header.scrolled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 11px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.88);
-  border-radius: 5px;
-  background: transparent;
-  color: #ffffff;
+  min-width: 105px;
+  padding: 11px 24px;
+  border: 1px solid #0b60fb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0b60fb;
   font-family: var(--font-family-primary);
   font-size: 14px;
   font-weight: 400;
   line-height: 1.2;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 71, 135, 0.12);
+  box-shadow: none;
   transition: background-color 0.2s ease, border-color 0.2s ease,
     color 0.2s ease, opacity 0.2s ease;
 }
 
 .header-section .btn-auth:hover {
-  border-color: #ffffff;
-  background: rgba(255, 255, 255, 0.14);
+  border-color: #0b60fb;
+  background: #0b60fb;
   color: #ffffff;
 }
 
@@ -276,7 +297,7 @@ header.scrolled {
   width: 100%;
   min-height: 830px;
   background-color: #F0F8FF;
-  margin-top: 85px;
+  margin-top: 82px;
   padding-left: 60px;
   padding-right: 60px;
   display: flex;
