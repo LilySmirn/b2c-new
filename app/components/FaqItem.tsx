@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useId, useState } from "react";
 
 export default function FaqItem({
                                     question,
@@ -11,24 +10,21 @@ export default function FaqItem({
     answer: React.ReactNode;
 }) {
     const [open, setOpen] = useState(false);
+    const answerId = useId();
 
     return (
         <div className={`faq-item ${open ? "active" : ""}`}>
             <button
                 className="faq-question"
                 onClick={() => setOpen(!open)}
+                aria-expanded={open}
+                aria-controls={answerId}
             >
                 <span>{question}</span>
-                <Image
-                    src="/images/faq-icon.png"
-                    alt="иконка"
-                    className="faq-icon"
-                    width={25}
-                    height={10}
-                />
+                <span className="faq-icon" aria-hidden="true" />
             </button>
 
-            <div className="faq-answer">
+            <div className="faq-answer" id={answerId}>
                 {answer}
             </div>
         </div>

@@ -393,9 +393,6 @@ export default async function Home() {
             <h2 className="title">
               Часто задаваемые <span className="highlight">вопросы</span>
             </h2>
-            <p className="description">
-              Ответы на наиболее частые вопросы от наших пользователей
-            </p>
             <div className="faq-content">
 
               <FaqItem
