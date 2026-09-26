@@ -21,6 +21,7 @@ import medicinesIcon from "@/assets/images/landing/medicaments.png";
 import dentistryIcon from "@/assets/images/landing/stomathology.png";
 import pdfIcon from "@/assets/images/landing/pdf.png";
 import favoritesIcon from "@/assets/images/landing/fav.png";
+import ctaImage from "@/assets/images/landing/Frame 1.png";
 import clientLogo01 from "@/assets/images/logos/Group 1000004580 1.png";
 import clientLogo02 from "@/assets/images/logos/Group 1000004580 2.png";
 import clientLogo03 from "@/assets/images/logos/Group 1000004580 3.png";
@@ -484,10 +485,21 @@ export default async function Home() {
 
         <section id="cta" className="cta-section">
           <div className="cta-container">
-            <h2 className="title cta-title">
-              Попробуйте бесплатно<br/>прямо сейчас!
-            </h2>
-            <Link href="/login" className="btn btn-demo-cta">Демо</Link>
+            <div className="cta-copy">
+              <h2 className="cta-title">Начните пользоваться уже сегодня</h2>
+              <p>Попробуйте все возможности EasyMed бесплатно</p>
+            </div>
+            <div className="cta-action">
+              <Link href={recommendationsHref} className="btn-demo-cta">
+                Получить демо-доступ
+              </Link>
+              <strong>5 запросов в день бесплатно</strong>
+            </div>
+            <Image
+              className="cta-image"
+              src={ctaImage}
+              alt="Интерфейс сервиса EasyMed"
+            />
           </div>
         </section>
         <section id="why-us" className="why-us-section">
