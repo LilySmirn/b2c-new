@@ -83,25 +83,41 @@ export default function CorporateContactPopup({ onClose }: CorporateContactPopup
                     aria-labelledby="corporate-contact-title"
                 >
                     <div className="call-popup__text">
+                        <span className="call-popup__eyebrow">Для медицинских организаций</span>
                         <h2 id="corporate-contact-title">Корпоративный доступ</h2>
-                        <p>Для клиник и медцентров действуют отдельные условия</p>
+                        <p>Расскажите немного о вашей клинике — мы свяжемся с вами и подберём подходящие условия.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="call-popup__form">
-                        <input type="email" name="email" placeholder="Ваш email" value={formData.email} onChange={handleChange} required />
-                        <input type="text" name="name" placeholder="Ваше имя" value={formData.name} onChange={handleChange} required />
-                        <input type="tel" name="phone" placeholder="Введите номер телефона" value={formData.phone} onChange={handleChange} required />
-                        <input type="text" name="crm" placeholder="Название Вашей клиники" value={formData.crm} onChange={handleChange} />
+                        <div className="call-popup__fields">
+                            <label>
+                                <span>Рабочая почта</span>
+                                <input type="email" name="email" placeholder="name@clinic.ru" autoComplete="email" value={formData.email} onChange={handleChange} required />
+                            </label>
+                            <label>
+                                <span>Ваше имя</span>
+                                <input type="text" name="name" placeholder="Как к вам обращаться" autoComplete="name" value={formData.name} onChange={handleChange} required />
+                            </label>
+                            <label>
+                                <span>Телефон</span>
+                                <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" autoComplete="tel" value={formData.phone} onChange={handleChange} required />
+                            </label>
+                            <label>
+                                <span>Название клиники <small>необязательно</small></span>
+                                <input type="text" name="crm" placeholder="Например, Медцентр" autoComplete="organization" value={formData.crm} onChange={handleChange} />
+                            </label>
+                        </div>
 
                         <div className="call-popup__btn">
                             <button type="submit" className="popup__btn" disabled={loading}>
                                 {loading ? "Отправка..." : "Отправить"}
                             </button>
                         </div>
+                        <p className="call-popup__notice">Нажимая кнопку, вы соглашаетесь на обработку персональных данных.</p>
                     </form>
 
                     <button type="button" className="call-popup__close" onClick={onClose} aria-label="Закрыть форму обратной связи">
-                        <img src="/images/popup-exit.png" alt="" />
+                        <span aria-hidden="true" />
                     </button>
                 </div>
             </div>
