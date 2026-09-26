@@ -3,6 +3,7 @@ import Link from 'next/link';
 import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
 import VideoShowcase from "./components/VideoShowcase";
+import ReviewsCarousel from "./components/ReviewsCarousel";
 import Head from 'next/head';
 import { Metadata } from "next";
 import heroImage from "@/assets/images/landing/tablet.png";
@@ -360,6 +361,7 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        <ReviewsCarousel />
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
             <h2 className="title">
