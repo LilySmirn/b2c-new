@@ -1112,6 +1112,7 @@ h2 {
   .how-it-works-card,
   .capability-card,
   .reviews-track,
+  .review-card,
   .reviews-arrow {
     transition: none;
   }
@@ -1168,7 +1169,7 @@ h2 {
 
 .reviews-viewport {
   width: 100%;
-  max-width: 1217px;
+  max-width: 1233px;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -1181,6 +1182,8 @@ h2 {
 .reviews-page {
   display: flex;
   min-width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
   justify-content: center;
   gap: 16px;
 }
@@ -1196,10 +1199,18 @@ h2 {
   border: 1px solid #d6dcf9;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 9px 20px -14px rgba(55, 76, 140, .35);
+  box-shadow: 0 10px 22px -14px rgba(78, 99, 158, .35), 0 3px 8px -5px rgba(78, 99, 158, .16);
   color: #001b4c;
   font-family: Arial, sans-serif;
   text-align: left;
+  transition: transform 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .review-card:hover {
+    cursor: pointer;
+    transform: scale(1.03);
+  }
 }
 
 .review-person {
