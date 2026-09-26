@@ -9,14 +9,9 @@ export default function CorporateAccess() {
     return (
         <section id="corporate-access" className="corporate-access-section">
             <div className="corporate-access-container">
-                <h2 className="title">
-                    Нужен <span className="highlight">корпоративный</span> доступ?
-                </h2>
-                <p className="description">
-                    Для клиник и медцентров действуют отдельные условия — <strong>напишите нам.</strong>
-                </p>
+                <h2>Для клиник и медцентров действуют специальные условия</h2>
                 <button className="contact-button" onClick={() => setPopupOpen(true)}>
-                    Оставить заявку
+                    Напишите нам
                 </button>
 
                 {popupOpen && <CorporateContactPopup onClose={() => setPopupOpen(false)} />}
