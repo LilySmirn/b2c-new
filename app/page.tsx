@@ -343,6 +343,23 @@ export default async function Home() {
             ))}
           </div>
         </section>
+        <section className="product-stats-section" aria-labelledby="product-stats-title">
+          <h2 id="product-stats-title" className="visually-hidden">EasyMed в цифрах</h2>
+          <div className="product-stats">
+            {[
+              { value: "1000+", text: <>клинических<br/>рекомендаций</> },
+              { value: "150+", text: <>стоматологических<br/>рекомендаций</> },
+              { value: "30+", text: <>специальностей<br/>и направлений</> },
+              { value: "24/7", text: <>доступ к актуальным<br/>данным</> },
+              { value: "5000+", text: <>врачей уже<br/>используют</> },
+            ].map((stat) => (
+              <div className="product-stat" key={stat.value}>
+                <strong>{stat.value}</strong>
+                <p>{stat.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
             <h2 className="title">
