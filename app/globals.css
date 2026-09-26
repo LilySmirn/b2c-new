@@ -1057,6 +1057,82 @@ h2 {
   background: #eef3ff;
 }
 
+.capabilities-section {
+  width: 100%;
+  padding: 0 20px 47px;
+  background: #f9faff;
+  scroll-margin-top: 82px;
+}
+
+.capabilities-section > h2 {
+  margin: 0 0 21px;
+  color: #001b4c;
+  font-family: Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 35px;
+  text-align: center;
+}
+
+.capabilities-list {
+  display: grid;
+  grid-template-columns: repeat(6, 195px);
+  justify-content: center;
+  gap: 13px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.capability-card {
+  display: flex;
+  width: 195px;
+  height: 147px;
+  padding: 12px 8px 10px;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 22px -14px rgba(78, 99, 158, .35), 0 3px 8px -5px rgba(78, 99, 158, .16);
+  color: #001b4c;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.capability-icon {
+  display: flex;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fafbff;
+}
+
+.capability-icon img {
+  width: auto;
+  height: auto;
+  max-width: 41px;
+  max-height: 33px;
+}
+
+.capability-card h3 {
+  margin: 9px 0 0;
+  color: #001b4c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.capability-card p {
+  margin: 11px 0 0;
+  color: #001b4c;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 124%;
+}
+
 .why-us-section {
   background-color: white;
   display: flex;
@@ -2466,6 +2542,10 @@ body.auth-route .footer {
 }
 
 @media (max-width: 1155px) {
+
+  .capabilities-list {
+    grid-template-columns: repeat(3, 195px);
+  }
   .video-showcase {
     height: auto;
     padding: 17px 40px;
@@ -2524,6 +2604,18 @@ body.auth-route .footer {
 }
 
 @media (max-width: 768px) {
+  .capabilities-section {
+    padding: 20px 16px 48px;
+  }
+
+  .capabilities-section > h2 {
+    font-size: 26px;
+    line-height: 31px;
+  }
+
+  .capabilities-list {
+    grid-template-columns: repeat(2, 195px);
+  }
   .video-showcase-section {
     padding: 65px 16px 40px;
   }
@@ -2552,6 +2644,12 @@ body.auth-route .footer {
 
   .video-showcase-copy p br {
     display: none;
+  }
+}
+
+@media (max-width: 440px) {
+  .capabilities-list {
+    grid-template-columns: 195px;
   }
 }
 

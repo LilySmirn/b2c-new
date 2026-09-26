@@ -14,6 +14,12 @@ import peopleImage from "@/assets/images/landing/people.png";
 import howSearchIcon from "@/assets/images/landing/search2.png";
 import recommendationIcon from "@/assets/images/landing/recomendation.png";
 import safeIcon from "@/assets/images/landing/safe.png";
+import smartSearchIcon from "@/assets/images/landing/lamp.png";
+import structureIcon from "@/assets/images/landing/structure.png";
+import medicinesIcon from "@/assets/images/landing/medicaments.png";
+import dentistryIcon from "@/assets/images/landing/stomathology.png";
+import pdfIcon from "@/assets/images/landing/pdf.png";
+import favoritesIcon from "@/assets/images/landing/fav.png";
 import clientLogo01 from "@/assets/images/logos/Group 1000004580 1.png";
 import clientLogo02 from "@/assets/images/logos/Group 1000004580 2.png";
 import clientLogo03 from "@/assets/images/logos/Group 1000004580 3.png";
@@ -318,6 +324,25 @@ export default async function Home() {
           </div>
         </section>
         <VideoShowcase />
+        <section id="capabilities" className="capabilities-section">
+          <h2>Возможности EasyMed</h2>
+          <div className="capabilities-list">
+            {[
+              { icon: smartSearchIcon, title: "Умный поиск", text: <>По диагнозу, МКБ-10 или<br/>ключевым словам</> },
+              { icon: structureIcon, title: "Структура рекомендаций", text: <>Диагностика, лечение,<br/>профилактика и наблюдение</> },
+              { icon: medicinesIcon, title: "Поиск лекарств", text: <>Информация о препаратах<br/>и схемах лечения</> },
+              { icon: dentistryIcon, title: "Стоматология", text: <>Отдельный раздел для<br/>стоматологов</> },
+              { icon: pdfIcon, title: "PDF и печать", text: <>Скачивайте и печатайте<br/>план лечения</> },
+              { icon: favoritesIcon, title: "Избранное", text: <>Сохранение важного<br/>для быстрого доступа</> },
+            ].map((capability) => (
+              <article className="capability-card" key={capability.title}>
+                <span className="capability-icon"><Image src={capability.icon} alt="" /></span>
+                <h3>{capability.title}</h3>
+                <p>{capability.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
             <h2 className="title">

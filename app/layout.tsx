@@ -36,7 +36,7 @@ export default async function RootLayout({
                         </Link>
                         <nav aria-label="Главное меню" className="navigation">
                             <ul className="main-menu">
-                                <li><Link href="/#how-it-works">Возможности</Link></li>
+                                <li><Link href="/#capabilities">Возможности</Link></li>
                                 <li><Link href="/#pricing">Тарифы</Link></li>
                                 <li><Link href="/#reviews">Отзывы</Link></li>
                                 <li><Link href="/#faq">FAQ</Link></li>
@@ -57,7 +57,7 @@ export default async function RootLayout({
                             <div className="mobile-menu">
                                 <nav aria-label="Мобильное меню">
                                     <ul className="mobile-menu-list">
-                                        <li><Link href="/#about">О проекте</Link></li>
+                                        <li><Link href="/#capabilities">Возможности</Link></li>
                                         <li><Link href="/#pricing">Тарифы</Link></li>
                                         <li><Link href="/#video">Видео-инструкция</Link></li>
                                         <li><Link href="/#reviews">Отзывы</Link></li>
