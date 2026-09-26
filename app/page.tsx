@@ -364,152 +364,25 @@ export default async function Home() {
         <ReviewsCarousel />
         <section id="pricing" className="pricing-section">
           <div className="pricing-container">
-            <h2 className="title">
-              Тарифы
-            </h2>
-
-            <div className="pricing-mobile">
-              <div className="pricing-item">
-                <div className="pricing-conditions">
-                  <div className="duration">
-                    1 месяц
-                  </div>
-                  <div className="price">
-                    300 руб.
-                  </div>
-                </div>
-                {/*<form action="#" method="POST">*/}
-                {/*  <input type="hidden" name="tariff" value="base"/>*/}
-                {/*  <button type="submit" className="btn-select" aria-label="Выбрать">Выбрать</button>*/}
-                {/*</form>*/}
-                <Link
-                    href="/login"
-                    className="btn-select"
-                    aria-label="Выбрать"
-                >
-                  Выбрать
-                </Link>
-              </div>
-              <div className="pricing-item bg-blue">
-                <div className="pricing-conditions">
-                  <div className="duration">
-                    3 месяца
-                  </div>
-                  <div className="price">
-                    750 руб.
-                  </div>
-                </div>
-                <Link
-                    href="/login"
-                    className="btn-select"
-                    aria-label="Выбрать"
-                >
-                  Выбрать
-                </Link>
-              </div>
-              <div className="pricing-item">
-                <div className="pricing-conditions">
-                  <div className="duration">
-                    6 месяцев
-                  </div>
-                  <div className="price">
-                    1200 руб.
-                  </div>
-                </div>
-                <Link
-                    href="/login"
-                    className="btn-select"
-                    aria-label="Выбрать"
-                >
-                  Выбрать
-                </Link>
-              </div>
-              <div className="pricing-item bg-blue">
-                <div className="pricing-conditions">
-                  <div className="duration">
-                    12 месяцев
-                  </div>
-                  <div className="price">
-                    1800 руб.
-                  </div>
-                </div>
-                <Link
-                    href="/login"
-                    className="btn-select"
-                    aria-label="Выбрать"
-                >
-                  Выбрать
-                </Link>
-              </div>
+            <h2>Тарифы и цены</h2>
+            <div className="pricing-cards">
+              {[
+                { name: "Базовый", duration: "1 месяц", price: "300 ₽" },
+                { name: "Оптимальный", duration: "3 месяца", price: "750 ₽", popular: true },
+                { name: "Расширенный", duration: "6 месяцев", price: "1 200 ₽" },
+                { name: "Премиум", duration: "12 месяцев", price: "1 800 ₽" },
+              ].map((tariff) => (
+                <article className="pricing-card" key={tariff.name}>
+                  {tariff.popular && <span className="pricing-badge">Популярный</span>}
+                  <h3>{tariff.name}</h3>
+                  <p className="pricing-duration">{tariff.duration}</p>
+                  <p className="pricing-price">{tariff.price}</p>
+                  <Link href="/login" className="btn-select" aria-label={`Выбрать тариф ${tariff.name}`}>
+                    Выбрать тариф
+                  </Link>
+                </article>
+              ))}
             </div>
-            <table className="pricing-table">
-              <thead>
-              <tr className="table-bg">
-                <th>Срок</th>
-                <th>Цена</th>
-                <th>Экономия</th>
-                <th></th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr>
-                <td>1 месяц</td>
-                <td>300 ₽</td>
-                <td>—</td>
-                <td>
-                  <Link
-                      href="/login"
-                      className="btn-select"
-                      aria-label="Выбрать"
-                  >
-                    Выбрать
-                  </Link>
-                </td>
-              </tr>
-              <tr className="table-bg">
-                <td>3 месяца</td>
-                <td>750 ₽</td>
-                <td>–150 ₽</td>
-                <td>
-                  <Link
-                      href="/login"
-                      className="btn-select"
-                      aria-label="Выбрать"
-                  >
-                    Выбрать
-                  </Link>
-                </td>
-              </tr>
-              <tr>
-                <td>6 месяцев</td>
-                <td>1 200 ₽</td>
-                <td>–600 ₽</td>
-                <td>
-                  <Link
-                      href="/login"
-                      className="btn-select"
-                      aria-label="Выбрать"
-                  >
-                    Выбрать
-                  </Link>
-                </td>
-              </tr>
-              <tr className="table-bg">
-                <td>12 месяцев</td>
-                <td>1 800 ₽</td>
-                <td>–1 800 ₽</td>
-                <td>
-                  <Link
-                      href="/login"
-                      className="btn-select"
-                      aria-label="Выбрать"
-                  >
-                    Выбрать
-                  </Link>
-                </td>
-              </tr>
-              </tbody>
-            </table>
           </div>
         </section>
 

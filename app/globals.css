@@ -711,54 +711,119 @@ h2 {
 }
 
 .pricing-section {
-  min-height: 700px;
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  padding: 0 20px 62px;
+  background: #f9faff;
+  color: #001b4c;
 }
 
 .pricing-container {
-  max-width: 1400px;
+  max-width: 1200px;
   width: 100%;
+  padding: 0;
 }
 
-.pricing-table tr {
-  font-family: var(--font-family-primary);
-  font-size: 25px;
-  height: 110px;
+.pricing-container > h2 {
+  margin: 0 0 31px;
+  color: #001b4c;
+  font-family: Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 35px;
   text-align: center;
-  width: auto;
 }
 
-.pricing-table {
-  margin-top: 44px;
-  width: 100%;
-  border-collapse: collapse;
+.pricing-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 240px);
+  justify-content: space-between;
+  gap: 28px;
 }
 
-.table-bg {
-  background-color: #F0F8FF;
+.pricing-card {
+  position: relative;
+  display: flex;
+  width: 240px;
+  height: 195px;
+  padding: 27px 20px 18px;
+  align-items: center;
+  flex-direction: column;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 22px -14px rgba(78, 99, 158, .35), 0 3px 8px -5px rgba(78, 99, 158, .16);
+  color: #001b4c;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  transition: transform 200ms ease;
+}
+
+.pricing-card h3 {
+  margin: 0 0 9px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 23px;
+}
+
+.pricing-duration {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.pricing-price {
+  margin: 15px 0 16px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 34px;
+}
+
+.pricing-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  padding: 5px 9px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  background: #0b60fb;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  white-space: nowrap;
 }
 
 .btn-select {
-  font-family: var(--font-family-primary);
-  font-size: 23px;
-  color: #ffffff;
-  background-color: #0085FF;
-  border: none;
-  width: 220px;
-  height: 65px;
-  border-radius: 10px;
-  padding: 12px 40px;
+  display: flex;
+  width: 170px;
+  height: 35px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d6dcf9;
+  border-radius: 5px;
+  background: #fff;
+  color: #0b60fb;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
   text-align: center;
   text-decoration: none;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
 .btn-select:hover {
+  background: #0b60fb;
+  color: #fff;
   text-decoration: none;
-  background-color: #0065C2;
-  cursor: pointer;
+  }
+
+@media (hover: hover) and (pointer: fine) {
+  .pricing-card:hover {
+    cursor: pointer;
+    transform: scale(1.03);
+  }
 }
 
 .corporate-access-section {
@@ -1139,7 +1204,7 @@ h2 {
 
 .reviews-section {
   width: 100%;
-  padding: 0px 20px 70px 45px;
+  padding: 0 20px 60px 45px;
   background: #f9faff;
   color: #001b4c;
   scroll-margin-top: 82px;
@@ -2831,7 +2896,7 @@ body.auth-route .footer {
 
 @media (max-width: 768px) {
 .reviews-section {
-    padding: 58px 12px 40px;
+    padding: 58px 12px 60px;
   }
 
   .reviews-container > h2 {
@@ -2912,6 +2977,48 @@ body.auth-route .footer {
 
   .video-showcase-copy p br {
     display: none;
+  }
+}
+
+@media (max-width: 1155px) {
+  .pricing-container {
+    max-width: 560px;
+  }
+
+  .pricing-cards {
+    grid-template-columns: repeat(2, 240px);
+    justify-content: center;
+    gap: 32px 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .pricing-section {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .pricing-container > h2 {
+    margin-bottom: 31px;
+    font-size: 26px;
+    line-height: 31px;
+  }
+
+  .pricing-cards {
+    grid-template-columns: 240px;
+  }
+
+  .pricing-card .btn-select {
+    width: 170px;
+    height: 35px;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-card,
+  .btn-select {
+    transition: none;
   }
 }
 
