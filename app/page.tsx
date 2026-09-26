@@ -502,53 +502,6 @@ export default async function Home() {
             />
           </div>
         </section>
-        <section id="why-us" className="why-us-section">
-          <div className="why-us-container">
-            <h2 className="title why-us-title">
-              Почему сайт <span className="highlight"><Link href="https://klinrec.ru" className="why-us-btn">klinrec.ru</Link></span> —
-              лучший выбор?
-            </h2>
-          </div>
-          <ul className="why-us-list">
-            <li className="why-us-item">
-              <span className="highlight">✓</span> Ориентирован на МКБ-10 и практическое применение
-            </li>
-            <li className="why-us-item">
-              <span className="highlight">✓</span> Структура рекомендаций под реальные задачи врача
-            </li>
-            <li className="why-us-item">
-              <span className="highlight">✓</span> Постоянно обновляется и развивается
-            </li>
-            <li className="why-us-item">
-              <span className="highlight">✓</span> Уже помогает десяткам клиник по всей России
-            </li>
-          </ul>
-        </section>
-        <section className="cta-banner">
-          <div className="cta-banner-container">
-            <h2 className="title cta-banner-title">
-              Если вы ищете
-            </h2>
-            <ul className="cta-banner-list">
-              <li className="cta-banner-item">
-                • Краткие, удобные клинические рекомендации Минздрава
-              </li>
-              <li className="cta-banner-item">
-                • Возможность быстро ориентироваться по МКБ-10
-              </li>
-              <li className="cta-banner-item">
-                • Актуальные данные без лишней теории
-              </li>
-            </ul>
-            <h2 className="title cta-banner-title">
-              Вы по адресу
-            </h2>
-            <h2 className="title cta-banner-title-2">
-              <span className="highlight"><Link href="https://klinrec.ru" className="why-us-btn">klinrec.ru</Link></span> - ваш надёжный
-              справочник
-            </h2>
-          </div>
-        </section>
       </main>
       </>
   );
