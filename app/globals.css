@@ -1204,7 +1204,7 @@ h2 {
 
 .reviews-section {
   width: 100%;
-  padding: 0 20px 60px 45px;
+  padding: 0 20px 60px 20px;
   background: #f9faff;
   color: #001b4c;
   scroll-margin-top: 82px;
@@ -1229,13 +1229,13 @@ h2 {
 .reviews-carousel {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 18px;
 }
 
 .reviews-viewport {
   width: 100%;
-  max-width: 1233px;
-  margin: 0 auto;
+  max-width: 1200px;
   overflow: hidden;
 }
 
