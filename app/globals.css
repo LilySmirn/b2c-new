@@ -1937,6 +1937,7 @@ html {
 
 /* Landing hero */
 .hero-section {
+  --hero-height: 666px;
   min-height: 666px;
   padding: 0;
   overflow: visible;
@@ -1944,17 +1945,17 @@ html {
 }
 
 .hero-container {
-  min-height: 666px;
+  min-height: var(--hero-height);
   gap: 24px;
   padding: 0 20px;
-  align-items: center;
+  align-items: stretch;
   overflow: visible;
 }
 
 .hero-content {
   z-index: 1;
   flex: 0 0 560px;
-  align-items: flex-start;
+  height: var(--hero-height);
 }
 
 .hero-eyebrow {
@@ -2108,14 +2109,17 @@ html {
 .hero-section .hero-img {
   flex: 0 0 818px;
   min-width: 818px;
-  align-self: flex-start;
+  height: var(--hero-height);
+  overflow: visible;
 }
 
 .hero-section .hero-img img {
-  width: calc(818px + max(0px, (100vw - var(--landing-content-width)) / 2 - 22px));
-  height: auto;
+  width: auto;
+  height: 100%;
   max-width: none;
   max-height: none;
+  object-fit: cover;
+  object-position: left top;
 }
 
 main,
@@ -2442,6 +2446,7 @@ body.noscroll {
   .hero-content {
     flex: none;
     align-items: center;
+    height: auto;
   }
 
   .hero-eyebrow {
@@ -2480,11 +2485,13 @@ body.noscroll {
     width: 100%;
     min-width: 0;
     flex: none;
+    height: auto;
   }
 
   .hero-section .hero-img img {
     width: 100%;
     height: auto;
+    object-fit: contain;
   }
 
   .hero-trust {
