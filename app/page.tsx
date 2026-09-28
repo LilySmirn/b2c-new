@@ -251,7 +251,7 @@ export default async function Home() {
               <div className="hero-actions-flow">
                 <div className="hero-buttons">
                   <Link href={recommendationsHref} className="btn btn-hero-demo">Попробовать бесплатно</Link>
-                  <Link href="#video" className="btn btn-pricing hero-video-button">
+                  <Link href="#how-it-works" className="btn btn-pricing hero-video-button">
                     <Image src={videoIcon} alt="" width={27} height={27}/>
                     Смотреть видео
                   </Link>
@@ -374,15 +374,20 @@ export default async function Home() {
                 { name: "Расширенный", duration: "6 месяцев", price: "1 200 ₽" },
                 { name: "Премиум", duration: "12 месяцев", price: "1 800 ₽" },
               ].map((tariff) => (
-                <article className="pricing-card" key={tariff.name}>
-                  {tariff.popular && <span className="pricing-badge">Популярный</span>}
-                  <h3>{tariff.name}</h3>
-                  <p className="pricing-duration">{tariff.duration}</p>
-                  <p className="pricing-price">{tariff.price}</p>
-                  <Link href="/login" className="btn-select" aria-label={`Выбрать тариф ${tariff.name}`}>
-                    Выбрать тариф
-                  </Link>
-                </article>
+                <Link
+                  href="/login"
+                  className="pricing-card-link"
+                  key={tariff.name}
+                  aria-label={`Выбрать тариф ${tariff.name}`}
+                >
+                  <article className="pricing-card">
+                    {tariff.popular && <span className="pricing-badge">Популярный</span>}
+                    <h3>{tariff.name}</h3>
+                    <p className="pricing-duration">{tariff.duration}</p>
+                    <p className="pricing-price">{tariff.price}</p>
+                    <span className="btn-select">Выбрать тариф</span>
+                  </article>
+                </Link>
               ))}
             </div>
           </div>

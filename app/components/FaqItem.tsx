@@ -25,7 +25,7 @@ export default function FaqItem({
             </button>
 
             <div className="faq-answer" id={answerId}>
-                {answer}
+                <div className="faq-answer-inner">{answer}</div>
             </div>
         </div>
     );
