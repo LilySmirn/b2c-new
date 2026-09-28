@@ -4,8 +4,10 @@ import { useLayoutEffect } from "react";
 
 type RevealTarget = {
   selector: string;
-  direction?: "left" | "right" | "up";
+  direction?: RevealDirection;
 };
+
+type RevealDirection = "left" | "right" | "up" | "down" | "scale";
 
 type RevealGroup = {
   trigger: string;
@@ -17,21 +19,21 @@ const revealGroups: RevealGroup[] = [
     trigger: ".how-it-works-section",
     targets: [
       { selector: ":scope > h2" },
-      { selector: ".how-it-works-step" },
+      { selector: ".how-it-works-card", direction: "scale" },
     ],
   },
   {
     trigger: ".video-showcase-section",
     targets: [
-      { selector: ".video-showcase-player", direction: "left" },
-      { selector: ".video-showcase-copy", direction: "right" },
+      { selector: ".video-showcase-player", direction: "scale" },
+      { selector: ".video-showcase-copy > *", direction: "right" },
     ],
   },
   {
     trigger: ".capabilities-section",
     targets: [
       { selector: ":scope > h2" },
-      { selector: ".capability-card" },
+      { selector: ".capability-card", direction: "scale" },
     ],
   },
   { trigger: ".product-stats-section", targets: [{ selector: ".product-stat" }] },
@@ -74,14 +76,13 @@ const revealGroups: RevealGroup[] = [
   },
 ];
 
-const heroSelectors = [
-  ".hero-eyebrow",
-  ".hero-title",
-  ".hero-section .lead-text",
-  ".hero-buttons",
-  ".hero-benefits",
-  ".hero-trust",
-  ".hero-img",
+const heroTargets: RevealTarget[] = [
+  { selector: ".hero-eyebrow", direction: "left" },
+  { selector: ".hero-title", direction: "left" },
+  { selector: ".hero-section .lead-text", direction: "left" },
+  { selector: ".hero-buttons", direction: "left" },
+  { selector: ".hero-benefits", direction: "up" },
+  { selector: ".hero-trust", direction: "up" },
 ];
 
 export default function HomeScrollAnimations() {
@@ -97,16 +98,23 @@ export default function HomeScrollAnimations() {
     const prepare = (
       element: HTMLElement,
       index = 0,
-      direction: RevealTarget["direction"] = "up",
+      direction: RevealDirection = "up",
     ) => {
       element.dataset.scrollReveal = direction;
-      element.style.setProperty("--reveal-delay", `${Math.min(index * 90, 360)}ms`);
+      element.style.setProperty("--reveal-delay", `${index * 140}ms`);
     };
 
-    heroSelectors.forEach((selector, index) => {
+    const header = document.querySelector<HTMLElement>(".header-section");
+    if (header) prepare(header, 0, "down");
+
+    heroTargets.forEach(({ selector, direction }, index) => {
       const element = main.querySelector<HTMLElement>(selector);
-      if (element) prepare(element, index);
+      if (element) prepare(element, index + 1, direction);
     });
+
+    // The illustration enters at the same time as the staggered hero copy.
+    const heroImage = main.querySelector<HTMLElement>(".hero-img");
+    if (heroImage) prepare(heroImage, 1, "right");
 
     revealGroups.forEach(({ trigger, targets }) => {
       main.querySelectorAll<HTMLElement>(trigger).forEach((container) => {
@@ -123,12 +131,16 @@ export default function HomeScrollAnimations() {
       });
     });
 
-    // Start the first screen as a calm, sequential composition instead of
-    // waiting for IntersectionObserver to run its first callback.
-    requestAnimationFrame(() => {
-      heroSelectors.forEach((selector) => {
+    // Commit the hidden state before revealing the first screen. Without this
+    // layout read, the browser can apply both states in the same frame and
+    // skip the transition entirely during hydration.
+    void main.offsetHeight;
+    const heroFrame = requestAnimationFrame(() => {
+      header?.classList.add("is-revealed");
+      heroTargets.forEach(({ selector }) => {
         main.querySelector<HTMLElement>(selector)?.classList.add("is-revealed");
       });
+      heroImage?.classList.add("is-revealed");
     });
 
     const observer = new IntersectionObserver(
@@ -141,12 +153,18 @@ export default function HomeScrollAnimations() {
           observer.unobserve(entry.target);
         });
       },
-      { threshold: 0, rootMargin: "0px 0px -12%" },
+      // Do not start as soon as the first pixel enters the viewport. Waiting
+      // for a meaningful part of the section keeps the animation visible to
+      // users who are actively scrolling towards it.
+      { threshold: 0.15, rootMargin: "0px 0px -18%" },
     );
 
     groupedElements.forEach((_, container) => observer.observe(container));
 
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(heroFrame);
+      observer.disconnect();
+    };
   }, []);
 
   return null;
