@@ -27,31 +27,31 @@ import clientLogo02 from "@/assets/images/logos/Group 1000004580 2.png";
 import clientLogo03 from "@/assets/images/logos/Group 1000004580 3.png";
 import clientLogo04 from "@/assets/images/logos/Group 1000004580 4.png";
 import clientLogo05 from "@/assets/images/logos/Group 1000004581 1.png";
-import clientLogo07 from "@/assets/images/logos/Sealife 1 1.png";
+import clientLogo07 from "@/assets/images/logos/Sealife 1 2.png";
 import clientLogo08 from "@/assets/images/logos/layer1 1.png";
-import clientLogo09 from "@/assets/images/logos/photo_2025-12-02 14.42.45 1 1.png";
-import clientLogo10 from "@/assets/images/logos/photo_2025-12-02 15.05.00 1 1.png";
-import clientLogo11 from "@/assets/images/logos/photo_2025-12-02 15.24.23 1 1.png";
-import clientLogo12 from "@/assets/images/logos/Айболит 1 1.png";
-import clientLogo13 from "@/assets/images/logos/Бека Инвет 1 1.png";
-import clientLogo14 from "@/assets/images/logos/Гиппократ 1 1.png";
-import clientLogo15 from "@/assets/images/logos/Гранти-мед 1 1.png";
-import clientLogo16 from "@/assets/images/logos/ДЦ Экспресс + 1 1.png";
-import clientLogo17 from "@/assets/images/logos/Доктор Клин 1 1.png";
-import clientLogo18 from "@/assets/images/logos/КИТ 1 1.png";
-import clientLogo19 from "@/assets/images/logos/Ларус 1 1.png";
-import clientLogo20 from "@/assets/images/logos/МО Новая больница (ТОП - 10 РФ) 1 1.png";
-import clientLogo21 from "@/assets/images/logos/МХК Андромеда 1 1.png";
-import clientLogo22 from "@/assets/images/logos/МЦ Здоровье 1 1.png";
-import clientLogo23 from "@/assets/images/logos/Медицина Тольяти 1 1.png";
-import clientLogo24 from "@/assets/images/logos/Петергоф 1 1.png";
-import clientLogo25 from "@/assets/images/logos/Полимедика 1 1.png";
-import clientLogo26 from "@/assets/images/logos/Слой_1 1.png";
-import clientLogo27 from "@/assets/images/logos/Слой_x0020_1 1.png";
-import clientLogo28 from "@/assets/images/logos/Сокол-мед 1 1.png";
-import clientLogo29 from "@/assets/images/logos/ЦСМ Кронштат 1 1.png";
-import clientLogo30 from "@/assets/images/logos/Центр здоровья 1 1.png";
-import clientLogo31 from "@/assets/images/logos/рубин 1 1.png";
+import clientLogo09 from "@/assets/images/logos/photo_2025-12-02 14.42.45 1 2.png";
+import clientLogo10 from "@/assets/images/logos/photo_2025-12-02 15.05.00 1 2.png";
+import clientLogo11 from "@/assets/images/logos/photo_2025-12-02 15.24.23 1 2.png";
+import clientLogo12 from "@/assets/images/logos/Айболит 1 2.png";
+import clientLogo13 from "@/assets/images/logos/Бека Инвет 1 2.png";
+import clientLogo14 from "@/assets/images/logos/Гиппократ 1 2.png";
+import clientLogo15 from "@/assets/images/logos/Гранти-мед 1 2.png";
+import clientLogo16 from "@/assets/images/logos/ДЦ Экспресс + 1 2.png";
+import clientLogo17 from "@/assets/images/logos/Доктор Клин 1 2.png";
+import clientLogo18 from "@/assets/images/logos/КИТ 1 2.png";
+import clientLogo19 from "@/assets/images/logos/Ларус 1 2.png";
+import clientLogo20 from "@/assets/images/logos/МО Новая больница (ТОП - 10 РФ) 1 2.png";
+import clientLogo21 from "@/assets/images/logos/МХК Андромеда 1 2.png";
+import clientLogo22 from "@/assets/images/logos/МЦ Здоровье 1 2.png";
+import clientLogo23 from "@/assets/images/logos/Медицина Тольяти 1 2.png";
+import clientLogo24 from "@/assets/images/logos/Петергоф 1 2.png";
+import clientLogo25 from "@/assets/images/logos/Полимедика 1 2.png";
+import clientLogo26 from "@/assets/images/logos/Слой_1 2.png";
+import clientLogo27 from "@/assets/images/logos/Слой_x0020_1 2.png";
+import clientLogo28 from "@/assets/images/logos/Сокол-мед 1 2.png";
+import clientLogo29 from "@/assets/images/logos/ЦСМ Кронштат 1 2.png";
+import clientLogo30 from "@/assets/images/logos/Центр здоровья 1 2.png";
+import clientLogo31 from "@/assets/images/logos/рубин 1 2.png";
 import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
 
 export const metadata: Metadata = {
@@ -294,6 +294,7 @@ export default async function Home() {
                           className="client-logo"
                           src={logo}
                           alt={isDuplicate ? "" : `Логотип клиента ${index + 1}`}
+                          loading="eager"
                         />
                       </span>
                     ))}
