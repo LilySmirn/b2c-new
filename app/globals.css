@@ -54,6 +54,60 @@ body {
   flex-direction: column;
 }
 
+/* Home-page entrance choreography: content stays untouched after its first
+   viewport appearance, so existing hover and carousel interactions keep their
+   original behaviour. The individual `translate` property also avoids
+   competing with component transforms. */
+[data-scroll-reveal] {
+  --reveal-delay: 0ms;
+  opacity: 0;
+  translate: 0 34px;
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay),
+    translate 800ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay);
+  will-change: opacity, translate;
+}
+
+[data-scroll-reveal="left"] {
+  translate: -38px 0;
+}
+
+[data-scroll-reveal="right"] {
+  translate: 38px 0;
+}
+
+[data-scroll-reveal].is-revealed {
+  opacity: 1;
+  translate: 0 0;
+  will-change: auto;
+}
+
+@media (max-width: 768px) {
+  [data-scroll-reveal] {
+    translate: 0 24px;
+  }
+
+  [data-scroll-reveal="left"] {
+    translate: -22px 0;
+  }
+
+  [data-scroll-reveal="right"] {
+    translate: 22px 0;
+  }
+
+  [data-scroll-reveal].is-revealed {
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-scroll-reveal] {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}
+
 html {
   min-height: 100%;
   font-size: 16px;

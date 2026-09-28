@@ -53,6 +53,7 @@ import clientLogo29 from "@/assets/images/logos/ЦСМ Кронштат 1 2.png"
 import clientLogo30 from "@/assets/images/logos/Центр здоровья 1 2.png";
 import clientLogo31 from "@/assets/images/logos/рубин 1 2.png";
 import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
+import HomeScrollAnimations from "./components/HomeScrollAnimations";
 
 export const metadata: Metadata = {
   title: "Клинические рекомендации по МКБ-10",
@@ -226,6 +227,7 @@ export default async function Home() {
 
   return (
       <>
+      <HomeScrollAnimations />
       <Head>
         <script
             type="application/ld+json"
