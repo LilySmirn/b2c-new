@@ -2,17 +2,19 @@
 
 import { useLayoutEffect } from "react";
 
+type RevealDirection = "left" | "right" | "up" | "down" | "scale";
+
 type RevealTarget = {
   selector: string;
   direction?: RevealDirection;
 };
 
-type RevealDirection = "left" | "right" | "up" | "down" | "scale";
-
 type RevealGroup = {
   trigger: string;
   targets: RevealTarget[];
 };
+
+const STAGGER_MS = 140;
 
 const revealGroups: RevealGroup[] = [
   {
@@ -85,85 +87,128 @@ const heroTargets: RevealTarget[] = [
   { selector: ".hero-trust", direction: "up" },
 ];
 
+const revealTransform: Record<RevealDirection, string> = {
+  left: "translate3d(-38px, 0, 0)",
+  right: "translate3d(38px, 0, 0)",
+  up: "translate3d(0, 34px, 0)",
+  down: "translate3d(0, -34px, 0)",
+  scale: "scale(0.62)",
+};
+
+function createRevealAnimation(
+  element: HTMLElement,
+  direction: RevealDirection = "up",
+  delay = 0,
+) {
+  // Some animated nodes already use transform for layout. In particular, the
+  // fixed header is centred with translateX(-50%). Replacing that transform
+  // during the reveal makes it start in the middle and slide sideways. Keep
+  // the computed layout transform in both keyframes and only add the reveal
+  // movement in front of it.
+  const layoutTransform = getComputedStyle(element).transform;
+  const finalTransform = layoutTransform === "none" ? "none" : layoutTransform;
+  const initialRevealTransform = finalTransform === "none"
+    ? revealTransform[direction]
+    : `${revealTransform[direction]} ${finalTransform}`;
+
+  const animation = element.animate(
+    [
+      { opacity: 0, transform: initialRevealTransform },
+      { opacity: 1, transform: finalTransform },
+    ],
+    {
+      duration: direction === "scale" ? 1100 : 1000,
+      delay,
+      easing: direction === "scale"
+        ? "cubic-bezier(0.16, 1, 0.3, 1)"
+        : "cubic-bezier(0.22, 1, 0.36, 1)",
+      fill: "both",
+    },
+  );
+
+  // Creating every animation in a paused state during the layout effect puts
+  // its first frame on screen before the browser can paint hydrated content.
+  animation.pause();
+  // Drop the finished effect so card hover transforms are not overridden by
+  // a forwards-filled Web Animation. The regular stylesheet is the end state.
+  animation.onfinish = () => animation.cancel();
+  return animation;
+}
+
 export default function HomeScrollAnimations() {
   useLayoutEffect(() => {
     const main = document.querySelector<HTMLElement>(".main");
-    if (!main) return;
+    if (!main || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) return;
-
-    const groupedElements = new Map<HTMLElement, HTMLElement[]>();
+    const animations: Animation[] = [];
+    const groupedAnimations = new Map<HTMLElement, Animation[]>();
 
     const prepare = (
       element: HTMLElement,
       index = 0,
       direction: RevealDirection = "up",
     ) => {
-      element.dataset.scrollReveal = direction;
-      element.style.setProperty("--reveal-delay", `${index * 140}ms`);
+      const animation = createRevealAnimation(element, direction, index * STAGGER_MS);
+      animations.push(animation);
+      return animation;
     };
 
+    const heroAnimations: Animation[] = [];
     const header = document.querySelector<HTMLElement>(".header-section");
-    if (header) prepare(header, 0, "down");
+    if (header) heroAnimations.push(prepare(header, 0, "down"));
 
     heroTargets.forEach(({ selector, direction }, index) => {
       const element = main.querySelector<HTMLElement>(selector);
-      if (element) prepare(element, index + 1, direction);
+      if (element) heroAnimations.push(prepare(element, index + 1, direction));
     });
 
-    // The illustration enters at the same time as the staggered hero copy.
+    // The main illustration starts together with the first hero copy item.
     const heroImage = main.querySelector<HTMLElement>(".hero-img");
-    if (heroImage) prepare(heroImage, 1, "right");
+    if (heroImage) heroAnimations.push(prepare(heroImage, 1, "right"));
 
     revealGroups.forEach(({ trigger, targets }) => {
       main.querySelectorAll<HTMLElement>(trigger).forEach((container) => {
-        const elements: HTMLElement[] = [];
+        const group: Animation[] = [];
 
         targets.forEach(({ selector, direction }) => {
           container.querySelectorAll<HTMLElement>(selector).forEach((element) => {
-            prepare(element, elements.length, direction);
-            elements.push(element);
+            group.push(prepare(element, group.length, direction));
           });
         });
 
-        if (elements.length) groupedElements.set(container, elements);
+        if (group.length) groupedAnimations.set(container, group);
       });
     });
 
-    // Commit the hidden state before revealing the first screen. Without this
-    // layout read, the browser can apply both states in the same frame and
-    // skip the transition entirely during hydration.
-    void main.offsetHeight;
-    const heroFrame = requestAnimationFrame(() => {
-      header?.classList.add("is-revealed");
-      heroTargets.forEach(({ selector }) => {
-        main.querySelector<HTMLElement>(selector)?.classList.add("is-revealed");
+    // Two frames guarantee that the paused initial keyframes are committed.
+    // This avoids hydration batching the hidden and final states into one paint.
+    let secondHeroFrame = 0;
+    const firstHeroFrame = requestAnimationFrame(() => {
+      secondHeroFrame = requestAnimationFrame(() => {
+        heroAnimations.forEach((animation) => animation.play());
       });
-      heroImage?.classList.add("is-revealed");
     });
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          groupedElements.get(entry.target as HTMLElement)?.forEach((element) => {
-            element.classList.add("is-revealed");
+          groupedAnimations.get(entry.target as HTMLElement)?.forEach((animation) => {
+            animation.play();
           });
           observer.unobserve(entry.target);
         });
       },
-      // Do not start as soon as the first pixel enters the viewport. Waiting
-      // for a meaningful part of the section keeps the animation visible to
-      // users who are actively scrolling towards it.
       { threshold: 0.15, rootMargin: "0px 0px -18%" },
     );
 
-    groupedElements.forEach((_, container) => observer.observe(container));
+    groupedAnimations.forEach((_, container) => observer.observe(container));
 
     return () => {
-      cancelAnimationFrame(heroFrame);
+      cancelAnimationFrame(firstHeroFrame);
+      cancelAnimationFrame(secondHeroFrame);
       observer.disconnect();
+      animations.forEach((animation) => animation.cancel());
     };
   }, []);
 
