@@ -2063,8 +2063,8 @@ html {
 
 /* Landing hero */
 .hero-section {
-  --hero-height: 666px;
-  min-height: 666px;
+  --hero-height: calc(100dvh - 82px);
+  min-height: var(--hero-height);
   padding: 0;
   overflow: visible;
   background: #fff;
@@ -2082,6 +2082,7 @@ html {
   z-index: 1;
   flex: 0 0 560px;
   height: var(--hero-height);
+  transform: translateY(clamp(-40px, -4dvh, -24px));
 }
 
 .hero-eyebrow {
@@ -2246,6 +2247,7 @@ html {
   max-height: none;
   object-fit: cover;
   object-position: left top;
+  transform: translate(-80px, -4%);
 }
 
 main,
@@ -2573,6 +2575,7 @@ body.noscroll {
     flex: none;
     align-items: center;
     height: auto;
+    transform: none;
   }
 
   .hero-eyebrow {
@@ -2618,6 +2621,7 @@ body.noscroll {
     width: 100%;
     height: auto;
     object-fit: contain;
+    transform: none;
   }
 
   .hero-trust {
