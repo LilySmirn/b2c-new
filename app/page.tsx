@@ -8,7 +8,7 @@ import Head from 'next/head';
 import { Metadata } from "next";
 import heroImage from "@/assets/images/landing/main-4.png";
 import videoIcon from "@/assets/images/landing/video.png";
-import minzdravIcon from "@/assets/images/landing/minzdrav.png";
+import minzdravIcon from "@/assets/images/eagle-white.png";
 import searchIcon from "@/assets/images/landing/search.png";
 import starIcon from "@/assets/images/landing/star.png";
 import peopleImage from "@/assets/images/landing/people.png";
@@ -259,7 +259,7 @@ export default async function Home() {
                   </Link>
                 </div>
                 <div className="hero-benefits">
-                  <div className="hero-benefit"><span><Image src={minzdravIcon} alt=""/></span><p>Актуальная база<br/>Минздрава РФ</p></div>
+                  <div className="hero-benefit hero-benefit-minzdrav"><span><Image src={minzdravIcon} alt=""/></span><p>Актуальная база<br/>Минздрава РФ</p></div>
                   <div className="hero-benefit"><span><Image src={searchIcon} alt=""/></span><p>Удобный поиск<br/>за секунды</p></div>
                   <div className="hero-benefit"><span><Image src={starIcon} alt=""/></span><p>Клинические<br/>рекомендации от СтАР</p></div>
                 </div>

@@ -287,6 +287,7 @@ header.scrolled {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 14px;
 }
 
 .btn-demo:hover {
@@ -520,10 +521,8 @@ h2 {
 }
 
 .how-it-works-icon img {
-  width: auto;
-  height: auto;
-  max-width: 42px;
-  max-height: 42px;
+  max-width: 47px;
+  max-height: 47px;
 }
 
 .how-it-works-copy {
@@ -901,7 +900,8 @@ h2 {
 
 .contact-button:hover {
   text-decoration: none;
-  background-color: #eaf3ff;
+  background-color: #badeff;
+  color: #0849c7;
 }
 
 .faq-section {
@@ -963,6 +963,15 @@ h2 {
   background: #fff;
   border: 1px solid #d6dcf9;
   border-radius: 4px;
+  transform-origin: center;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .faq-item:hover {
+    transform: scale(1.015);
+    box-shadow: 0 8px 18px -12px rgba(78, 99, 158, .45);
+  }
 }
 
 .faq-question {
@@ -1130,7 +1139,8 @@ h2 {
 
 .btn-demo-cta:hover {
   text-decoration: none;
-  background-color: #eaf3ff;
+  background-color: #badeff;
+  color: #0849c7;
   }
 
 .cta-image {
@@ -1381,10 +1391,8 @@ h2 {
 }
 
 .capability-icon img {
-  width: auto;
-  height: auto;
-  max-width: 41px;
-  max-height: 33px;
+  max-width: 45px;
+  max-height: 38px;
 }
 
 .reviews-section {
@@ -1909,13 +1917,13 @@ html, body {
   gap: 24px;
 }
 
-.footer-socials {
+.social-links {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.footer-socials a {
+.social-links a {
   display: grid;
   width: 36px;
   height: 36px;
@@ -1927,16 +1935,35 @@ html, body {
   transition: transform 180ms ease, background-color 180ms ease;
 }
 
-.footer-socials a:hover,
-.footer-socials a:focus-visible {
+.social-links a:hover,
+.social-links a:focus-visible {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, .25);
 }
 
-.footer-socials svg {
+.social-links svg,
+.social-links .max-social-logo {
   width: 20px;
   height: 20px;
+  object-fit: contain;
   fill: currentColor;
+}
+
+.social-links .max-social-logo {
+  filter: brightness(0) saturate(100%) invert(31%) sepia(97%) saturate(5551%) hue-rotate(220deg) brightness(99%) contrast(98%);
+}
+
+.header-socials a {
+  width: 34px;
+  height: 34px;
+  color: #0b60fb;
+  background: #f0f8ff;
+  border-color: rgba(11, 96, 251, .2);
+}
+
+.header-socials a:hover,
+.header-socials a:focus-visible {
+  background: #d8edff;
 }
 
 .footer-contacts hr {
@@ -2196,10 +2223,14 @@ html {
 }
 
 .hero-benefit img {
-  width: auto;
-  height: auto;
-  max-width: 25px;
-  max-height: 24px;
+  max-width: 28px;
+  max-height: 27px;
+}
+
+.hero-benefit-minzdrav img {
+  width: 27px;
+  height: 27px;
+  filter: brightness(0) saturate(100%) invert(31%) sepia(97%) saturate(5551%) hue-rotate(220deg) brightness(99%) contrast(98%);
 }
 
 .hero-benefit p {
