@@ -2035,10 +2035,21 @@ html, body {
 
 /* Keep the shared footer compact and aligned with the site's soft blue palette. */
 .footer {
-  background:
-    radial-gradient(circle at 82% 0%, rgba(255, 255, 255, 0.72), transparent 38%),
-    linear-gradient(135deg, #f0f8ff 0%, #d8edff 58%, #badeff 100%);
-  color: #244981;
+  background: linear-gradient(135deg, rgb(37, 54, 164) 0%, rgb(43, 58, 182) 100%);
+  color: #ffffff;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: url('/images/footer-waves.svg') right bottom / cover no-repeat;
+}
+
+.footer > * {
+  position: relative;
+  z-index: 1;
 }
 
 .footer-container {
@@ -2055,37 +2066,37 @@ html, body {
 .footer-legal {
   min-height: 44px;
   padding-top: 10px;
-  color: #0849c7;
-  border-top-color: rgba(36, 73, 129, 0.18);
+  color: rgba(255, 255, 255, 0.68);
+  border-top-color: rgba(255, 255, 255, 0.2);
 }
 
 .legal-link a {
-  color: #0849c7;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .footer-contact-list li,
 .footer-contact-list li a {
-  color: #0849c7;
+  color: #ffffff;
 }
 
 .footer-contact-list li a:hover,
 .legal-link a:hover {
-  color: #0b60fb;
+  color: #dce5ff;
 }
 
 .footer-socials a {
-  color: #0b60fb;
-  background: rgba(255, 255, 255, 0.58);
-  border-color: rgba(11, 96, 251, 0.24);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.36);
 }
 
 .footer-socials a:hover,
 .footer-socials a:focus-visible {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .legal-link a + a::before {
-  color: rgba(36, 73, 129, 0.28);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 html {
