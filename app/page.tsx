@@ -276,7 +276,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        <section id="about" className="welcome-section">
+        <section id="about" className="welcome-section hidden">
           <h2 className="visually-hidden">Welcome section</h2>
           <div className="welcome-container">
             <p className="client-logos-title">
