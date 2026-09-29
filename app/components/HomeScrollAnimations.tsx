@@ -14,7 +14,12 @@ type RevealGroup = {
   targets: RevealTarget[];
 };
 
-const STAGGER_MS = 140;
+// Keep the reveal rhythm deliberately relaxed: both the movement and the gap
+// between successive elements are 15% longer than the original timing.
+const REVEAL_DURATION_MS = 1150;
+const SCALE_REVEAL_DURATION_MS = 1265;
+const STAGGER_MS = 161;
+const HERO_IMAGE_DURATION_MS = REVEAL_DURATION_MS + STAGGER_MS * 3;
 
 const revealGroups: RevealGroup[] = [
   {
@@ -99,6 +104,7 @@ function createRevealAnimation(
   element: HTMLElement,
   direction: RevealDirection = "up",
   delay = 0,
+  duration = direction === "scale" ? SCALE_REVEAL_DURATION_MS : REVEAL_DURATION_MS,
 ) {
   // Some animated nodes already use transform for layout. In particular, the
   // fixed header is centred with translateX(-50%). Replacing that transform
@@ -117,7 +123,7 @@ function createRevealAnimation(
       { opacity: 1, transform: finalTransform },
     ],
     {
-      duration: direction === "scale" ? 1100 : 1000,
+      duration,
       delay,
       easing: direction === "scale"
         ? "cubic-bezier(0.16, 1, 0.3, 1)"
@@ -147,8 +153,9 @@ export default function HomeScrollAnimations() {
       element: HTMLElement,
       index = 0,
       direction: RevealDirection = "up",
+      duration?: number,
     ) => {
-      const animation = createRevealAnimation(element, direction, index * STAGGER_MS);
+      const animation = createRevealAnimation(element, direction, index * STAGGER_MS, duration);
       animations.push(animation);
       return animation;
     };
@@ -162,9 +169,12 @@ export default function HomeScrollAnimations() {
       if (element) heroAnimations.push(prepare(element, index + 1, direction));
     });
 
-    // The main illustration starts together with the first hero copy item.
+    // The main illustration starts together with the first hero copy item, but
+    // travels more slowly so it settles at the same time as the hero buttons.
     const heroImage = main.querySelector<HTMLElement>(".hero-img");
-    if (heroImage) heroAnimations.push(prepare(heroImage, 1, "right"));
+    if (heroImage) {
+      heroAnimations.push(prepare(heroImage, 1, "right", HERO_IMAGE_DURATION_MS));
+    }
 
     revealGroups.forEach(({ trigger, targets }) => {
       main.querySelectorAll<HTMLElement>(trigger).forEach((container) => {

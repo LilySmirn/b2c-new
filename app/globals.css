@@ -1,6 +1,8 @@
 :root {
   --font-family-primary: Arial, sans-serif;
   --landing-content-width: 1400px;
+  --card-hover-shadow: 0 10px 24px rgba(204, 208, 252, 0.58),
+    0 22px 48px rgba(204, 208, 252, 0.3);
 }
 
 * {
@@ -505,7 +507,7 @@ h2 {
   background: #fff;
   box-shadow: 0 10px 22px -14px rgba(78, 99, 158, .42), 0 3px 8px -5px rgba(78, 99, 158, .18);
   text-align: left;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 .how-it-works-icon {
@@ -754,7 +756,7 @@ h2 {
   color: #001b4c;
   font-family: Arial, sans-serif;
   text-align: center;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 .pricing-card-link {
@@ -768,7 +770,7 @@ h2 {
 .pricing-card-link:hover .pricing-card,
 .pricing-card-link:focus-visible .pricing-card {
   transform: translateY(-3px);
-  box-shadow: 0 14px 28px -14px rgba(78, 99, 158, .45), 0 5px 12px -5px rgba(78, 99, 158, .2);
+  box-shadow: var(--card-hover-shadow);
 }
 
 .pricing-card-link:hover .btn-select,
@@ -970,7 +972,7 @@ h2 {
 @media (hover: hover) and (pointer: fine) {
   .faq-item:hover {
     transform: scale(1.015);
-    box-shadow: 0 8px 18px -12px rgba(78, 99, 158, .45);
+    box-shadow: var(--card-hover-shadow);
   }
 }
 
@@ -1357,7 +1359,7 @@ h2 {
   color: #001b4c;
   font-family: Arial, sans-serif;
   text-align: center;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1365,6 +1367,7 @@ h2 {
   .capability-card:hover {
     cursor: pointer;
     transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
   }
 }
 
@@ -1461,13 +1464,14 @@ h2 {
   color: #001b4c;
   font-family: Arial, sans-serif;
   text-align: left;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .review-card:hover {
     cursor: pointer;
     transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
   }
 }
 
