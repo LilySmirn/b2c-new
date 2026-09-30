@@ -54,6 +54,7 @@ import clientLogo30 from "@/assets/images/logos/Центр здоровья 1 2.
 import clientLogo31 from "@/assets/images/logos/рубин 1 2.png";
 import { getB2cSessionStatus } from "./lib/requireActiveB2cSession";
 import HomeScrollAnimations from "./components/HomeScrollAnimations";
+import MaxSubscriptionPopup from "./components/MaxSubscriptionPopup";
 
 export const metadata: Metadata = {
   title: "Клинические рекомендации по МКБ-10",
@@ -227,6 +228,7 @@ export default async function Home() {
 
   return (
       <>
+      <MaxSubscriptionPopup />
       <HomeScrollAnimations />
       <Head>
         <script

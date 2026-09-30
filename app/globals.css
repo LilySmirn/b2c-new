@@ -2531,6 +2531,32 @@ footer {
   text-align: center;
 }
 
+.max-subscription-popup {
+  align-items: flex-start;
+  max-width: 540px;
+  padding-top: 42px;
+}
+
+.max-subscription-popup__logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+.max-subscription-popup__text h2 {
+  margin-top: 14px;
+  font-size: 29px;
+}
+
+.max-subscription-popup__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 28px;
+  text-decoration: none;
+}
+
 @keyframes call-popup-overlay-in {
   from { opacity: 0; }
 }
@@ -2921,6 +2947,20 @@ body.noscroll {
 
   .call-popup__btn {
     width: 100%;
+  }
+
+  .max-subscription-popup {
+    align-items: flex-start;
+  }
+
+  .max-subscription-popup__logo {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 16px;
+  }
+
+  .max-subscription-popup__text h2 {
+    font-size: 24px;
   }
 
   .popup__btn {
