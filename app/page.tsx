@@ -274,7 +274,7 @@ export default async function Home() {
             <div className="hero-img">
               <Image src={heroImage}
                      alt="Клинические рекомендации Минздрава РФ - иллюстрация"
-                     width={818} height={666} priority/>
+                     width={818} height={666} priority unoptimized/>
             </div>
           </div>
         </section>
