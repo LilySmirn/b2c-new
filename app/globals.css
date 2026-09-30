@@ -1711,7 +1711,8 @@ h2 {
   max-width: var(--landing-content-width);
   width: 100%;
   min-height: 180px;
-  padding: 28px var(--landing-content-gutter) 20px;
+  padding-block: 28px 20px;
+  padding-inline: var(--landing-content-gutter);
 }
 
 .footer-nav {
@@ -2045,7 +2046,7 @@ html, body {
 .footer-container {
   min-height: 136px;
   gap: 10px;
-  padding: 18px 20px 14px;
+  padding: 12px var(--landing-content-gutter);
 }
 
 .footer-contacts,

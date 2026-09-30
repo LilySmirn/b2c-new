@@ -1,5 +1,7 @@
 :root {
     --font-family-primary: Arial, sans-serif;
+    --landing-content-width: 1400px;
+    --landing-content-gutter: 20px;
 }
 
 * {
@@ -93,11 +95,10 @@ header {
 }
 
 .header-container {
-    max-width: 1400px;
+    max-width: var(--landing-content-width);
     width: 100%;
     display: flex;
-    padding: 0 20px;
-    justify-content: space-between;
+    padding: 0 var(--landing-content-gutter);
     align-items: center;
     position: relative;
 }
