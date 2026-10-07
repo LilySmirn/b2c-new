@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import maxLogo from "@/assets/images/landing/Max_logo.svg";
 
-const MAX_CHANNEL_URL = "https://max.ru/channel_easymed";
+const MAX_CHANNEL_URL = "https://max.ru/join/T8ldnzWbZ9I33-LftEAHeN7LzEhGp_2v7BWlPBiOvw8";
 const MINIMUM_DOWNWARD_SCROLL = 160;
 
 export default function MaxSubscriptionPopup() {

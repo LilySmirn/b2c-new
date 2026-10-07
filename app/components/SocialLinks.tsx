@@ -7,7 +7,7 @@ export default function SocialLinks({ className = "" }: { className?: string }) 
             <a href="https://t.me/easymedpro" aria-label="Telegram" target="_blank" rel="noopener noreferrer">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 3.4 2.9 10.3c-1.2.5-1.2 1.1-.2 1.4l4.6 1.4 1.8 5.5c.2.6.1.9.8.9.5 0 .8-.2 1-.4l2.2-2.1 4.7 3.5c.9.5 1.5.3 1.7-.8l3-14.3c.3-1.4-.5-2-1.8-1.5ZM9 12.8l9-5.7c.4-.3.8-.1.5.2l-7.4 6.7-.3 3.4L9 12.8Z" /></svg>
             </a>
-            <a href="https://max.ru/channel_easymed" aria-label="MAX" target="_blank" rel="noopener noreferrer">
+            <a href="https://max.ru/join/T8ldnzWbZ9I33-LftEAHeN7LzEhGp_2v7BWlPBiOvw8" aria-label="MAX" target="_blank" rel="noopener noreferrer">
                 <Image className="max-social-logo" src={maxLogo} alt="" />
             </a>
             <a href="https://vk.ru/easymedpro" aria-label="ВКонтакте" target="_blank" rel="noopener noreferrer">
