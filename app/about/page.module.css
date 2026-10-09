@@ -1,10 +1,12 @@
 .hero {
-  height: 550px;
+  --hero-height: calc(100dvh - 82px);
+  height: var(--hero-height);
   margin-top: 82px;
   background-color: #fff;
+  background-image: url("../../assets/images/about/main_bg.png");
   background-position: center;
   background-repeat: no-repeat;
-  background-size: auto 550px;
+  background-size: auto 100%;
   font-family: Arial, sans-serif;
   color: #0f1e3f;
   text-align: left;
@@ -16,10 +18,10 @@
   gap: 40px;
   align-items: center;
   width: 100%;
-  max-width: 1240px;
+  max-width: var(--landing-content-width);
   height: 100%;
   margin: 0 auto;
-  padding-inline: 16px;
+  padding-inline: var(--landing-content-gutter);
 }
 
 .content {
@@ -42,8 +44,9 @@
   white-space: nowrap;
 }
 
-.title {
+.content .title {
   margin: 17px 0 0;
+  color: #0f1e3f;
   font-size: 36px;
   font-weight: 700;
   line-height: 1.15;
@@ -81,14 +84,14 @@
   text-decoration: none;
 }
 
-.primaryButton {
+.actions .primaryButton {
   gap: 5px;
   width: 237px;
   background: #0B60FB;
   color: #fff;
 }
 
-.secondaryButton {
+.actions .secondaryButton {
   width: 173px;
   background: #fff;
   color: #0B60FB;
@@ -105,7 +108,7 @@
   min-width: 0;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .container {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
@@ -116,7 +119,7 @@
     display: none;
   }
 
-  .title {
+.content .title {
     font-size: clamp(28px, 4.7vw, 36px);
   }
 
