@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import styles from "./page.module.css";
+import AboutIllustration from "./AboutIllustration";
 
 export const metadata: Metadata = {
   title: "О компании — EasyMed",
@@ -33,7 +34,9 @@ export default function AboutPage() {
             <a className={styles.secondaryButton} href="#about">О компании</a>
           </div>
         </div>
-        <div className={styles.visual} aria-hidden="true" />
+        <div className={styles.visual}>
+          <AboutIllustration />
+        </div>
       </div>
     </section>
   );

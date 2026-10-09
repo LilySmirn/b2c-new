@@ -29,6 +29,24 @@
   z-index: 1;
 }
 
+/* Match the landing hero: 1150 ms reveals, 161 ms stagger, 38 px from the left. */
+.content > .eyebrow,
+.content > .title,
+.content > .description,
+.content > .actions {
+  animation: revealCopy 1.15s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.content > .eyebrow { animation-delay: 0.161s; }
+.content > .title { animation-delay: 0.322s; }
+.content > .description { animation-delay: 0.483s; }
+.content > .actions { animation-delay: 0.644s; }
+
+@keyframes revealCopy {
+  from { opacity: 0; transform: translate3d(-38px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
 .eyebrow {
   display: flex;
   align-items: center;
@@ -82,6 +100,7 @@
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .actions .primaryButton {
@@ -95,6 +114,14 @@
   width: 173px;
   background: #fff;
   color: #0B60FB;
+}
+
+.actions .primaryButton:hover {
+  background-color: #0849c7;
+}
+
+.actions .secondaryButton:hover {
+  background-color: #d8edff;
 }
 
 .primaryButton:focus-visible,
@@ -162,5 +189,19 @@
 
   .actions {
     margin-top: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content > .eyebrow,
+  .content > .title,
+  .content > .description,
+  .content > .actions {
+    animation: none;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    transition: none;
   }
 }

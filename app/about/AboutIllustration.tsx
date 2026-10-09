@@ -16,26 +16,27 @@ const cards = [
   { image: api, name: "api", x: 725, y: 430, width: 235, delay: 2.4 },
 ];
 
+// Corner nodes sit at t = 0.5 on the quadratic bends, not at their control points.
 const connections = [
   {
     name: "structured", delay: 0.6,
     path: "M 445 195 V 85 Q 445 65 425 65 H 365",
-    nodes: [[445, 195], [445, 65], [365, 65]],
+    nodes: [[445, 195], [440, 70], [365, 65]],
   },
   {
     name: "json", delay: 1.2,
     path: "M 490 195 V 120 Q 490 100 510 100 H 550",
-    nodes: [[490, 195], [490, 100], [550, 100]],
+    nodes: [[490, 195], [495, 105], [550, 100]],
   },
   {
     name: "analytics", delay: 1.8,
     path: "M 650 290 H 690 Q 705 290 705 275 V 115 Q 705 100 720 100 H 860 Q 875 100 875 115 V 275 Q 875 290 860 290 H 745",
-    nodes: [[650, 290], [705, 290], [705, 100], [875, 100], [875, 290], [745, 290]],
+    nodes: [[650, 290], [701.25, 286.25], [708.75, 103.75], [871.25, 103.75], [871.25, 286.25], [745, 290]],
   },
   {
     name: "api", delay: 2.4,
     path: "M 580 485 V 550 Q 580 570 600 570 H 685 Q 705 570 705 550 V 495 Q 705 480 720 480 H 745",
-    nodes: [[580, 485], [580, 570], [705, 570], [705, 480], [745, 480]],
+    nodes: [[580, 485], [585, 565], [700, 565], [708.75, 483.75], [745, 480]],
   },
 ];
 
@@ -48,8 +49,8 @@ export default function AboutIllustration() {
             <path className={styles.lineGlow} d={connection.path} pathLength="1" />
             <path className={styles.line} d={connection.path} pathLength="1" />
             <g className={styles.nodes}>
-              {connection.nodes.map(([x, y]) => (
-                <g key={`${x}-${y}`}>
+              {connection.nodes.map(([x, y], nodeIndex) => (
+                <g key={`${x}-${y}`} className={nodeIndex > 0 && nodeIndex < connection.nodes.length - 1 ? styles.corner : undefined}>
                   <circle className={styles.nodeHalo} cx={x} cy={y} r="8" />
                   <circle className={styles.node} cx={x} cy={y} r="3.5" />
                 </g>
@@ -60,7 +61,7 @@ export default function AboutIllustration() {
               r="3"
               style={{
                 offsetPath: `path("${connection.path}")`,
-                "--signal-delay": `${3 + index * 0.7}s`,
+                "--signal-delay": `${3.35 + index * 0.7}s`,
               } as CSSProperties}
             />
           </g>
