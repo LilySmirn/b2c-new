@@ -104,19 +104,29 @@
 }
 
 .visual {
+    display: flex;
+  align-items: center;
   align-self: stretch;
   min-width: 0;
 }
 
 @media (max-width: 768px) {
+    .hero {
+    height: auto;
+    min-height: var(--hero-height);
+  }
+
   .container {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0;
+    gap: 32px;
+    height: auto;
+    min-height: var(--hero-height);
+    padding-block: 40px;
     padding-inline: 20px;
   }
 
   .visual {
-    display: none;
+    display: flex;
   }
 
 .content .title {
