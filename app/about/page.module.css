@@ -1,0 +1,155 @@
+.hero {
+  height: 550px;
+  margin-top: 82px;
+  background-color: #fff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: auto 550px;
+  font-family: Arial, sans-serif;
+  color: #0f1e3f;
+  text-align: left;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 480px minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+  width: 100%;
+  max-width: 1240px;
+  height: 100%;
+  margin: 0 auto;
+  padding-inline: 16px;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  width: 225px;
+  height: 30px;
+  padding-inline: 12px;
+  border-radius: 30px;
+  background: #e7f1fe;
+  color: #427af2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.title {
+  margin: 17px 0 0;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.title span {
+  color: #0B60FB;
+}
+
+.description {
+  margin: 22px 0 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.49;
+}
+
+.actions {
+  display: flex;
+  gap: 21px;
+  margin-top: 33px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 54px;
+  border: 1px solid #0B60FB;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.primaryButton {
+  gap: 5px;
+  width: 237px;
+  background: #0B60FB;
+  color: #fff;
+}
+
+.secondaryButton {
+  width: 173px;
+  background: #fff;
+  color: #0B60FB;
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 2px solid #0f1e3f;
+  outline-offset: 4px;
+}
+
+.visual {
+  align-self: stretch;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-inline: 20px;
+  }
+
+  .visual {
+    display: none;
+  }
+
+  .title {
+    font-size: clamp(28px, 4.7vw, 36px);
+  }
+
+  .description {
+    max-width: 480px;
+  }
+
+  .desktopBreak {
+    display: none;
+  }
+
+  .actions {
+    gap: 12px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    flex-shrink: 1;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 374px) {
+  .description {
+    font-size: 15px;
+  }
+
+  .actions {
+    margin-top: 24px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    font-size: 12px;
+  }
+}
