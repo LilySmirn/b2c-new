@@ -679,3 +679,224 @@
     transition: none;
   }
 }
+
+/* —— Who we help —— */
+.help {
+  width: 100%;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+}
+
+.helpInner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 20px 70px;
+}
+
+.helpHeader {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  align-items: flex-start;
+}
+
+.helpHeading {
+  grid-column: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.helpEyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding-inline: 12px;
+  border-radius: 30px;
+  background: #e7f1fe;
+  color: #427af2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.helpTitle {
+  margin: 26px 0 0;
+  color: #001b4c;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.helpLead {
+  grid-column: 2 / 4;
+  max-width: 420px;
+  margin: 56px 0 0;
+  color: #2e3c56;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.49;
+  text-align: left;
+}
+
+.helpCards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin: 33px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.helpCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 252px;
+  padding: 25px 18px 22px;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.helpIcon {
+  display: block;
+  width: 62px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.helpCardTitle {
+  margin: 21px 0 0;
+  color: #001b4c;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.helpList {
+  margin: 14px 0 0;
+  padding: 0 0 0 18px;
+  list-style: disc;
+  color: #2e3c56;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.helpList > li + li {
+  margin-top: 0;
+}
+
+.helpMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 12px;
+  color: #0b60fb;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: left;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.helpMore > span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.helpMore:hover {
+  color: #0849c7;
+}
+
+.helpMore:focus-visible {
+  outline: 2px solid #0f1e3f;
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .helpCard:hover {
+    transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
+  }
+}
+
+@media (max-width: 1050px) {
+  .helpHeader {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .helpHeading,
+  .helpLead {
+    grid-column: 1;
+  }
+
+  .helpLead {
+    max-width: 100%;
+    margin-top: 0;
+  }
+
+  .helpCards {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .helpCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .helpInner {
+    padding: 48px 20px 40px;
+  }
+
+  .helpTitle {
+    margin-top: 14px;
+    font-size: 26px;
+  }
+
+  .helpLead {
+    font-size: 15px;
+  }
+
+  .helpCards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .helpCard {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .helpCard {
+    transition: none;
+  }
+
+  .helpMore {
+    transition: none;
+  }
+
+  .helpCard:hover {
+    transform: none;
+  }
+}

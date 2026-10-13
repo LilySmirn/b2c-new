@@ -10,6 +10,10 @@ import whyIconDev from "@/assets/images/about/why-icon-dev.png";
 import whyIconExpertise from "@/assets/images/about/why-icon-expertise.png";
 import whyIconMis from "@/assets/images/about/why-icon-mis.png";
 import whyIconSecurity from "@/assets/images/about/why-icon-security.png";
+import helpIcon1 from "@/assets/images/about/help-icon-1.png";
+import helpIcon2 from "@/assets/images/about/help-icon-2.png";
+import helpIcon3 from "@/assets/images/about/help-icon-3.png";
+import helpIcon4 from "@/assets/images/about/help-icon-4.png";
 
 export const metadata: Metadata = {
   title: "О компании — EasyMed",
@@ -65,6 +69,45 @@ const whyAdvantages = [
     icon: whyIconSecurity,
     width: 18,
     height: 23,
+  },
+] as const;
+
+const helpAudiences = [
+  {
+    title: "Медицинские организации",
+    icon: helpIcon1,
+    alt: "Иконка медицинских организаций",
+    items: [
+      "Контроль качества лечения",
+      "Аналитика и отчетность",
+      "Эффективное управление",
+    ],
+  },
+  {
+    title: "Разработчики МИС",
+    icon: helpIcon2,
+    alt: "Иконка разработчиков МИС",
+    items: ["Открытый API", "Готовые модули", "Простая интеграция"],
+  },
+  {
+    title: "Руководители",
+    icon: helpIcon3,
+    alt: "Иконка руководителей",
+    items: [
+      "Ключевые показатели",
+      "Выявление отклонений",
+      "Поддержка решений",
+    ],
+  },
+  {
+    title: "Врачи",
+    icon: helpIcon4,
+    alt: "Иконка врачей",
+    items: [
+      "Быстрый доступ к КР",
+      "Структурированная информация",
+      "Удобный рабочий процесс",
+    ],
   },
 ] as const;
 
@@ -190,6 +233,49 @@ export default function AboutPage() {
               </ul>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section
+        className={styles.help}
+        aria-labelledby="help-title"
+        id="who-we-help"
+      >
+        <div className={styles.helpInner}>
+          <div className={styles.helpHeader}>
+            <div className={styles.helpHeading}>
+              <p className={styles.helpEyebrow}>Пользователи</p>
+              <h2 className={styles.helpTitle} id="help-title">
+                Кому мы помогаем
+              </h2>
+            </div>
+            <p className={styles.helpLead}>
+              Наши продукты решают задачи на разных уровнях медицинской системы
+            </p>
+          </div>
+
+          <ul className={styles.helpCards}>
+            {helpAudiences.map((audience) => (
+              <li key={audience.title} className={styles.helpCard}>
+                <Image
+                  className={styles.helpIcon}
+                  src={audience.icon}
+                  alt={audience.alt}
+                  width={62}
+                  height={60}
+                />
+                <h3 className={styles.helpCardTitle}>{audience.title}</h3>
+                <ul className={styles.helpList}>
+                  {audience.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <a className={styles.helpMore} href="#">
+                  Подробнее <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     </>
