@@ -219,7 +219,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 63px 20px 62px;
+  padding: 63px 0 62px;
 }
 
 .productsHeader {
@@ -384,7 +384,7 @@
 
 @media (max-width: 768px) {
   .productsInner {
-    padding: 48px 20px 40px;
+    padding: 48px 0 40px;
   }
 
   .productsTitle {
@@ -433,7 +433,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 62px;
+  padding: 0 0 62px;
 }
 
 .whyBanner {
@@ -592,7 +592,7 @@
 
 @media (max-width: 768px) {
   .whyInner {
-    padding: 0 20px 40px;
+    padding: 0 0 40px;
   }
 
   .whyBanner {
@@ -693,7 +693,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 56px 20px 70px;
+  padding: 56px 0 70px;
 }
 
 .helpHeader {
@@ -864,7 +864,7 @@
 
 @media (max-width: 768px) {
   .helpInner {
-    padding: 48px 20px 40px;
+    padding: 48px 0 40px;
   }
 
   .helpTitle {
@@ -897,6 +897,349 @@
   }
 
   .helpCard:hover {
+    transform: none;
+  }
+}
+
+/* —— Integrations —— */
+.integrations {
+  width: 100%;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+}
+
+.integrationsInner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0 70px;
+}
+
+.integrationsBanner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 165px;
+}
+
+.integrationsBannerBg {
+  z-index: 0;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+}
+
+.integrationsContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  min-height: 165px;
+  padding: 26px 20px;
+}
+
+.integrationsCopy {
+  flex: 0 1 320px;
+  min-width: 0;
+  text-align: left;
+}
+
+.integrationsEyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 102px;
+  height: 30px;
+  padding-inline: 12px;
+  border-radius: 15px;
+  background: #e7f1fe;
+  color: #427af2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.integrationsTitle {
+  margin: 14px 0 0;
+  max-width: 280px;
+  color: #001b4c;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.integrationsList {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.integrationsPartner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 36px;
+  text-align: center;
+}
+
+.integrationsSqns {
+  display: block;
+  width: 99px;
+  height: 33px;
+}
+
+.integrationsSimed {
+  color: #001b4c;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.integrationsMisLabel {
+  color: #2e3c56;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.integrationsDivider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 63px;
+  align-self: center;
+  background: #d6dcf9;
+}
+
+.integrationsOther {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  min-width: 0;
+  padding: 0 28px;
+  text-align: left;
+}
+
+.integrationsIconPad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: #f2f6ff;
+}
+
+.integrationsIconPad > img {
+  display: block;
+  width: auto;
+  height: auto;
+}
+
+.integrationsOtherText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.integrationsOtherTitle {
+  color: #001b4c;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.integrationsOtherDesc {
+  max-width: 110px;
+  color: #2e3c56;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.integrationsCardItem {
+  padding-left: 28px;
+  list-style: none;
+}
+
+.integrationsCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 233px;
+  height: 93px;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #fff 0%, #f1f6ff 100%);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.integrationsCardText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.integrationsCardTitle {
+  color: #001b4c;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.integrationsCardDesc {
+  color: #2e3c56;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.integrationsCardArrow {
+  flex-shrink: 0;
+  width: 20px;
+  color: #0b60fb;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.integrationsCard:focus-visible {
+  outline: 2px solid #0f1e3f;
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .integrationsCard:hover {
+    transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
+  }
+}
+
+@media (max-width: 1200px) {
+  .integrationsInner {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .integrationsContent {
+    flex-wrap: wrap;
+    gap: 28px;
+    padding: 28px 20px;
+  }
+
+  .integrationsCopy {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .integrationsTitle {
+    max-width: none;
+  }
+
+  .integrationsList {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    row-gap: 24px;
+    width: 100%;
+  }
+
+  .integrationsDivider {
+    display: none;
+  }
+
+  .integrationsPartner,
+  .integrationsOther {
+    padding: 0 24px 0 0;
+  }
+
+  .integrationsCardItem {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .integrationsInner {
+    padding: 0 20px 48px;
+  }
+
+  .integrationsContent {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  .integrationsList {
+    flex-direction: column;
+    align-items: stretch;
+    row-gap: 20px;
+  }
+
+  .integrationsPartner {
+    align-items: flex-start;
+    padding: 0;
+    text-align: left;
+  }
+
+  .integrationsOther {
+    padding: 0;
+  }
+
+  .integrationsCard {
+    width: 100%;
+    height: auto;
+    min-height: 93px;
+  }
+
+  .integrationsOtherTitle,
+  .integrationsSimed {
+    white-space: normal;
+  }
+
+  .integrationsOtherDesc {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .integrationsCard {
+    transition: none;
+  }
+
+  .integrationsCard:hover {
     transform: none;
   }
 }

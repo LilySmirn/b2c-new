@@ -14,6 +14,7 @@ import helpIcon1 from "@/assets/images/about/help-icon-1.png";
 import helpIcon2 from "@/assets/images/about/help-icon-2.png";
 import helpIcon3 from "@/assets/images/about/help-icon-3.png";
 import helpIcon4 from "@/assets/images/about/help-icon-4.png";
+import IntegrationsSection from "./IntegrationsSection";
 
 export const metadata: Metadata = {
   title: "О компании — EasyMed",
@@ -278,6 +279,8 @@ export default function AboutPage() {
           </ul>
         </div>
       </section>
+
+      <IntegrationsSection />
     </>
   );
 }
