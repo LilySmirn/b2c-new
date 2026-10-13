@@ -5,6 +5,11 @@ import AboutIllustration from "./AboutIllustration";
 import productAnalytics from "@/assets/images/about/product-analytics.png";
 import productApi from "@/assets/images/about/product-api.png";
 import productDirectories from "@/assets/images/about/product-directories.png";
+import whyEasymedBg from "@/assets/images/about/why-easymed-bg.png";
+import whyIconDev from "@/assets/images/about/why-icon-dev.png";
+import whyIconExpertise from "@/assets/images/about/why-icon-expertise.png";
+import whyIconMis from "@/assets/images/about/why-icon-mis.png";
+import whyIconSecurity from "@/assets/images/about/why-icon-security.png";
 
 export const metadata: Metadata = {
   title: "О компании — EasyMed",
@@ -33,6 +38,33 @@ const products = [
       "Клинические рекомендации, МКБ-10 и другие медицинские данные для врачей и клиник",
     icon: productDirectories,
     alt: "Иконка медицинских справочников",
+  },
+] as const;
+
+const whyAdvantages = [
+  {
+    title: "Собственная разработка",
+    icon: whyIconDev,
+    width: 18,
+    height: 23,
+  },
+  {
+    title: "Экспертиза в медицине",
+    icon: whyIconExpertise,
+    width: 20,
+    height: 23,
+  },
+  {
+    title: "Интеграции с МИС",
+    icon: whyIconMis,
+    width: 21,
+    height: 21,
+  },
+  {
+    title: "Надежность и безопасность",
+    icon: whyIconSecurity,
+    width: 18,
+    height: 23,
   },
 ] as const;
 
@@ -108,6 +140,56 @@ export default function AboutPage() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      <section
+        className={styles.why}
+        aria-labelledby="why-title"
+        id="why-easymed"
+      >
+        <div className={styles.whyInner}>
+          <div className={styles.whyBanner}>
+            <Image
+              className={styles.whyBannerBg}
+              src={whyEasymedBg}
+              alt=""
+              fill
+              sizes="(max-width: 1200px) 100vw, 1200px"
+            />
+            <div className={styles.whyContent}>
+              <div className={styles.whyCopy}>
+                <p className={styles.whyEyebrow}>Почему EasyMed</p>
+                <h2 className={styles.whyTitle} id="why-title">
+                  Технологии, которые работают на медицину
+                </h2>
+                <p className={styles.whyDescription}>
+                  Мы объединяем клинические знания, данные и технологии, чтобы
+                  сделать медицинскую помощь более современной, эффективной и
+                  управляемой
+                </p>
+              </div>
+
+              <ul className={styles.whyAdvantages}>
+                {whyAdvantages.map((advantage) => (
+                  <li key={advantage.title} className={styles.whyAdvantage}>
+                    <span className={styles.whyIconPad} aria-hidden="true">
+                      <Image
+                        className={styles.whyIcon}
+                        src={advantage.icon}
+                        alt=""
+                        width={advantage.width}
+                        height={advantage.height}
+                      />
+                    </span>
+                    <span className={styles.whyAdvantageTitle}>
+                      {advantage.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
     </>
