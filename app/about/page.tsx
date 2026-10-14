@@ -15,6 +15,8 @@ import helpIcon2 from "@/assets/images/about/help-icon-2.png";
 import helpIcon3 from "@/assets/images/about/help-icon-3.png";
 import helpIcon4 from "@/assets/images/about/help-icon-4.png";
 import IntegrationsSection from "./IntegrationsSection";
+import CollaborationActions from "./CollaborationActions";
+import collaborationBg from "@/assets/images/about/collaboration-bg.png";
 
 export const metadata: Metadata = {
   title: "О компании — EasyMed",
@@ -281,6 +283,48 @@ export default function AboutPage() {
       </section>
 
       <IntegrationsSection />
+
+      <section
+        className={styles.collaboration}
+        aria-labelledby="collaboration-title"
+        id="collaboration"
+      >
+        <div className={styles.collaborationInner}>
+          <div className={styles.collaborationBanner}>
+            <Image
+              className={styles.collaborationBannerBg}
+              src={collaborationBg}
+              alt=""
+              fill
+              sizes="(max-width: 1200px) 100vw, 1200px"
+              priority={false}
+            />
+
+            <div className={styles.collaborationContent}>
+              <div className={styles.collaborationCopy}>
+                <p className={styles.collaborationEyebrow}>
+                  Начать сотрудничество
+                </p>
+                <h2
+                  className={styles.collaborationTitle}
+                  id="collaboration-title"
+                >
+                  Давайте обсудим, как EasyMed
+                  <br />
+                  может быть полезен вашей системе
+                </h2>
+                <p className={styles.collaborationDescription}>
+                  Расскажите о вашей задаче - мы подберём оптимальный
+                  <br className={styles.collaborationDescBreak} />
+                  формат интеграции и сотрудничества.
+                </p>
+              </div>
+
+              <CollaborationActions />
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
