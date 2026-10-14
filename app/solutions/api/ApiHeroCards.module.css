@@ -1,0 +1,194 @@
+.scene {
+  --flip-duration: 7s;
+  --flip-delay: 1.6s;
+  position: relative;
+  width: min(100%, 960px, calc((var(--hero-height) - 96px) / 0.56));
+  aspect-ratio: 100 / 56;
+  perspective: 1300px;
+  perspective-origin: 50% 50%;
+}
+
+.slot {
+  position: absolute;
+  top: var(--top, 50%);
+  left: var(--x);
+  width: var(--w);
+  transform: translateY(-50%) translateZ(var(--tz)) rotateY(var(--ry)) rotateX(var(--rx, 0deg));
+  transform-style: preserve-3d;
+}
+
+.left {
+  --x: 0%;
+  --w: 32%;
+  --ry: 11deg;
+  --rx: 2deg;
+  --tz: -40px;
+  --flip-ry: 7deg;
+  --flip-z: 30px;
+  --straighten: -6deg;
+  --enter-delay: 0.35s;
+  z-index: 1;
+}
+
+.center {
+  --x: 31%;
+  --w: 38%;
+  --ry: -2deg;
+  --tz: 30px;
+  --straighten: 2deg;
+  --enter-delay: 0.15s;
+  z-index: 3;
+}
+
+.right {
+  --top: 48%;
+  --x: 69%;
+  --w: 31%;
+  --ry: -12deg;
+  --rx: 2deg;
+  --tz: -40px;
+  --flip-ry: -7deg;
+  --flip-z: 30px;
+  --straighten: 6deg;
+  --enter-delay: 0.55s;
+  z-index: 2;
+}
+
+.enter,
+.flip {
+  transform-style: preserve-3d;
+}
+
+.enter {
+  animation: cardEnter 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--enter-delay) backwards;
+}
+
+.left .flip {
+  animation: flipLeft var(--flip-duration) ease-in-out var(--flip-delay) infinite;
+}
+
+.right .flip {
+  animation: flipRight var(--flip-duration) ease-in-out var(--flip-delay) infinite;
+}
+
+.card {
+  transform: translate3d(0, 0, 0) rotateY(0deg);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 18px 28px rgba(11, 60, 150, 0.16));
+  transition: filter 0.35s ease;
+  user-select: none;
+}
+
+.center .card img {
+  filter: drop-shadow(0 20px 32px rgba(6, 25, 70, 0.28));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scene:hover .flip {
+    animation-play-state: paused;
+  }
+
+  .card:hover {
+    transform: translate3d(0, 0, 28px) rotateY(var(--straighten));
+  }
+
+  .card:hover img {
+    filter: drop-shadow(0 26px 40px rgba(11, 60, 150, 0.26));
+  }
+
+  .center .card:hover img {
+    filter: drop-shadow(0 28px 44px rgba(6, 25, 70, 0.38));
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, -60px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes flipLeft {
+  0%,
+  10%,
+  40%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateY(0deg);
+  }
+
+  25% {
+    transform: translate3d(0, 0, var(--flip-z)) rotateY(var(--flip-ry));
+  }
+}
+
+@keyframes flipRight {
+  0%,
+  55%,
+  85%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateY(0deg);
+  }
+
+  70% {
+    transform: translate3d(0, 0, var(--flip-z)) rotateY(var(--flip-ry));
+  }
+}
+
+@media (max-width: 1023px) {
+  .scene {
+    width: min(100%, 640px);
+  }
+}
+
+@media (max-width: 768px) {
+  .scene {
+    width: min(100%, 560px);
+    perspective: 1000px;
+  }
+
+  .left {
+    --ry: 6deg;
+    --tz: -20px;
+    --flip-ry: 4deg;
+    --flip-z: 16px;
+  }
+
+  .center {
+    --tz: 15px;
+  }
+
+  .right {
+    --ry: -6deg;
+    --tz: -20px;
+    --flip-ry: -4deg;
+    --flip-z: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .left .flip,
+  .right .flip {
+    animation: none;
+  }
+
+  .card,
+  .card img {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: translate3d(0, 0, 0) rotateY(0deg);
+  }
+}

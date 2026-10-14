@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import styles from "./page.module.css";
 import ApiHeroActions from "./ApiHeroActions";
+import ApiHeroCards from "./ApiHeroCards";
 import audienceIcon from "@/assets/images/api-page/main-icon.png";
 
 export const metadata: Metadata = {
@@ -45,7 +46,9 @@ export default function ApiPage() {
           </p>
           <ApiHeroActions />
         </div>
-        <div className={styles.visual} aria-hidden="true" />
+        <div className={styles.visual} aria-hidden="true">
+          <ApiHeroCards />
+        </div>
       </div>
     </section>
   );

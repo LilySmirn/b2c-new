@@ -151,8 +151,32 @@
 }
 
 .visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   align-self: stretch;
   min-width: 0;
+  overflow-x: clip;
+  overflow-clip-margin: 40px;
+}
+
+@media (max-width: 1023px) {
+  .hero {
+    height: auto;
+    min-height: var(--hero-height);
+  }
+
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+    height: auto;
+    min-height: var(--hero-height);
+    padding-block: 48px;
+  }
+
+  .visual {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 768px) {
@@ -165,15 +189,11 @@
 
   .container {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0;
+    gap: 32px;
     height: auto;
     min-height: var(--hero-height);
     padding-block: 40px;
     padding-inline: 20px;
-  }
-
-  .visual {
-    display: none;
   }
 
   .badge {
