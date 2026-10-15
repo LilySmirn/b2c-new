@@ -1469,3 +1469,208 @@
     margin-right: 0;
   }
 }
+
+/* —— Интеграция —— */
+.integrationSection {
+  width: 100%;
+  background: #ebf7fe;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+}
+
+.integrationInner {
+  display: grid;
+  grid-template-columns: 329px minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 21px 0 26px;
+  box-sizing: border-box;
+}
+
+.integrationIntro {
+  min-width: 0;
+  max-width: 329px;
+  padding-top: 0;
+}
+
+.integrationBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  margin: 0;
+  padding-inline: 11px;
+  border-radius: 15px;
+  background: #fff;
+  color: #427af2;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.integrationTitle {
+  margin: 24px 0 0;
+  color: #001b4c;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.integrationLead {
+  margin: 17px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.integrationAside {
+  min-width: 0;
+}
+
+.integrationCards {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.integrationCard {
+  display: flex;
+  align-items: flex-start;
+  flex: 1 1 0;
+  gap: 12px;
+  min-width: 0;
+  min-height: 134px;
+  padding: 15px 16px 15px 14px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.integrationCard + .integrationCard {
+  border-left: 1px solid #d6dcf9;
+}
+
+.integrationCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  background: #e7f3ff;
+}
+
+.integrationCardIcon img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 35px;
+  max-height: 29px;
+  object-fit: contain;
+}
+
+.integrationCardBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.integrationCardTitle {
+  margin: 0;
+  color: #001b4c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+.integrationCardDescription {
+  margin: 10px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+}
+
+.integrationCardScheme {
+  margin: 14px 0 0;
+  color: #0b60fb;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+.integrationNote {
+  margin: 20px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.integrationNoteAccent {
+  color: #0b60fb;
+}
+
+@media (max-width: 1200px) {
+  .integrationInner {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .integrationInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-block: 40px;
+  }
+
+  .integrationIntro {
+    max-width: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .integrationInner {
+    padding: 40px 20px;
+  }
+
+  .integrationBadge {
+    height: auto;
+    min-height: 30px;
+    padding-block: 6px;
+    white-space: normal;
+  }
+
+  .integrationTitle {
+    margin-top: 14px;
+  }
+
+  .integrationCards {
+    flex-direction: column;
+  }
+
+  .integrationCard {
+    flex: none;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .integrationCard + .integrationCard {
+    border-left: none;
+    border-top: 1px solid #d6dcf9;
+  }
+}

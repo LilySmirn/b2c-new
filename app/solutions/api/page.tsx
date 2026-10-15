@@ -29,6 +29,8 @@ import moduleContextIcon from "@/assets/images/api-page/api-icon-2.png";
 import moduleEasyMedIcon from "@/assets/images/api-page/api-icon-3.png";
 import moduleRecommendationsIcon from "@/assets/images/api-page/api-icon-4.png";
 import moduleDoctorIcon from "@/assets/images/api-page/api-icon-5.png";
+import integrationIconApi from "@/assets/images/api-page/integration-icon-1.png";
+import integrationIconModules from "@/assets/images/api-page/integration-icon-2.png";
 
 export const metadata: Metadata = {
   title: "API и модули — EasyMed",
@@ -621,6 +623,94 @@ export default function ApiPage() {
               </button>
             </div>
           </article>
+        </div>
+      </section>
+
+      <section
+        className={styles.integrationSection}
+        aria-labelledby="api-integration-title"
+      >
+        <div className={styles.integrationInner}>
+          <div className={styles.integrationIntro}>
+            <p className={styles.integrationBadge}>Интеграция</p>
+            <h2 className={styles.integrationTitle} id="api-integration-title">
+              API или готовый модуль
+            </h2>
+            <p className={styles.integrationLead}>
+              Выберите подходящий способ интеграции
+            </p>
+          </div>
+
+          <div className={styles.integrationAside}>
+            <div className={styles.integrationCards}>
+              <article
+                className={styles.integrationCard}
+                aria-labelledby="api-integration-api-title"
+              >
+                <span className={styles.integrationCardIcon} aria-hidden="true">
+                  <Image
+                    src={integrationIconApi}
+                    alt=""
+                    width={30}
+                    height={22}
+                  />
+                </span>
+                <div className={styles.integrationCardBody}>
+                  <h3
+                    className={styles.integrationCardTitle}
+                    id="api-integration-api-title"
+                  >
+                    API
+                  </h3>
+                  <p className={styles.integrationCardDescription}>
+                    Для команд, которые хотят самостоятельно использовать данные
+                    EasyMed и создавать собственные интерфейсы и сценарии.
+                  </p>
+                  <p className={styles.integrationCardScheme}>
+                    Получить данные → Разработать сценарий → Встроить в систему
+                  </p>
+                </div>
+              </article>
+
+              <article
+                className={styles.integrationCard}
+                aria-labelledby="api-integration-modules-title"
+              >
+                <span className={styles.integrationCardIcon} aria-hidden="true">
+                  <Image
+                    src={integrationIconModules}
+                    alt=""
+                    width={35}
+                    height={29}
+                  />
+                </span>
+                <div className={styles.integrationCardBody}>
+                  <h3
+                    className={styles.integrationCardTitle}
+                    id="api-integration-modules-title"
+                  >
+                    Готовые модули
+                  </h3>
+                  <p className={styles.integrationCardDescription}>
+                    Для тех, кому нужен готовый медицинский сценарий без
+                    необходимости самостоятельно разрабатывать его с нуля.
+                  </p>
+                  <p className={styles.integrationCardScheme}>
+                    Подключить модуль → Настроить интеграцию → Использовать в
+                    системе
+                  </p>
+                </div>
+              </article>
+            </div>
+
+            <p className={styles.integrationNote}>
+              В обоих случаях основой являются структурированные{" "}
+              <span className={styles.integrationNoteAccent}>
+                медицинские данные EasyMed
+              </span>
+              .
+            </p>
+          </div>
         </div>
       </section>
     </>
