@@ -12,6 +12,21 @@
   text-align: left;
 }
 
+/*
+ * Hide hero copy before WAAPI attaches. scripting:enabled keeps content
+ * visible without JS; data-reveal=done keeps it visible after cancel().
+ * Cards keep their own CSS enter animation.
+ */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  .hero .badge:not([data-reveal="done"]),
+  .hero .title:not([data-reveal="done"]),
+  .hero .description:not([data-reveal="done"]),
+  .hero .audience:not([data-reveal="done"]),
+  .hero .actions:not([data-reveal="done"]) {
+    opacity: 0;
+  }
+}
+
 @supports (height: 100dvh) {
   .hero {
     --hero-height: calc(100dvh - 82px);

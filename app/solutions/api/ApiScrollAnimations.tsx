@@ -80,11 +80,16 @@ const revealTransform: Record<RevealDirection, string> = {
   scale: "scale(0.62)",
 };
 
+function markRevealDone(element: HTMLElement) {
+  element.dataset.reveal = "done";
+}
+
 function createRevealAnimation(
   element: HTMLElement,
   direction: RevealDirection = "up",
   delay = 0,
   duration = direction === "scale" ? SCALE_REVEAL_DURATION_MS : REVEAL_DURATION_MS,
+  persistReveal = false,
 ) {
   const layoutTransform = getComputedStyle(element).transform;
   const finalTransform = layoutTransform === "none" ? "none" : layoutTransform;
@@ -110,8 +115,12 @@ function createRevealAnimation(
   );
 
   animation.pause();
-  // Drop the finished effect so card hover transforms are not overridden.
-  animation.onfinish = () => animation.cancel();
+  // Persist CSS visibility before dropping the WAAPI effect, otherwise
+  // cancel() falls back to the pre-reveal opacity:0 rule.
+  animation.onfinish = () => {
+    if (persistReveal) markRevealDone(element);
+    animation.cancel();
+  };
   return animation;
 }
 
@@ -124,72 +133,98 @@ export default function ApiScrollAnimations() {
 
     const animations: Animation[] = [];
     const groupedAnimations = new Map<HTMLElement, Animation[]>();
+    const heroElements: HTMLElement[] = [];
 
     const prepare = (
       element: HTMLElement,
       index = 0,
       direction: RevealDirection = "up",
+      persistReveal = false,
     ) => {
       const animation = createRevealAnimation(
         element,
         direction,
         index * STAGGER_MS,
+        undefined,
+        persistReveal,
       );
       animations.push(animation);
       return animation;
     };
 
-    // Play on load after two frames — same hydration-safe start as the home hero.
-    // Do not animate .visual / cards: they keep their own CSS enter + flip.
-    const heroAnimations: Animation[] = [];
-    const hero = root.querySelector<HTMLElement>(`.${styles.hero}`);
-    if (hero) {
-      heroTargets.forEach(({ selector, direction }, index) => {
-        const element = hero.querySelector<HTMLElement>(selector);
-        if (element) heroAnimations.push(prepare(element, index + 1, direction));
-      });
-    }
-
-    revealGroups.forEach(({ trigger, targets }) => {
-      root.querySelectorAll<HTMLElement>(trigger).forEach((container) => {
-        const group: Animation[] = [];
-
-        targets.forEach(({ selector, direction }) => {
-          container.querySelectorAll<HTMLElement>(selector).forEach((element) => {
-            group.push(prepare(element, group.length, direction));
-          });
-        });
-
-        if (group.length) groupedAnimations.set(container, group);
-      });
-    });
+    const revealHeroFallback = () => {
+      heroElements.forEach(markRevealDone);
+    };
 
     let secondHeroFrame = 0;
-    const firstHeroFrame = requestAnimationFrame(() => {
-      secondHeroFrame = requestAnimationFrame(() => {
-        heroAnimations.forEach((animation) => animation.play());
-      });
-    });
+    let firstHeroFrame = 0;
+    let observer: IntersectionObserver | null = null;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          groupedAnimations.get(entry.target as HTMLElement)?.forEach((animation) => {
-            animation.play();
-          });
-          observer.unobserve(entry.target);
+    try {
+      // Play on load after two frames — same hydration-safe start as the home hero.
+      // Do not animate .visual / cards: they keep their own CSS enter + flip.
+      const heroAnimations: Animation[] = [];
+      const hero = root.querySelector<HTMLElement>(`.${styles.hero}`);
+      if (hero) {
+        heroTargets.forEach(({ selector, direction }, index) => {
+          const element = hero.querySelector<HTMLElement>(selector);
+          if (!element) return;
+          element.removeAttribute("data-reveal");
+          heroElements.push(element);
+          heroAnimations.push(prepare(element, index + 1, direction, true));
         });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -18%" },
-    );
+      }
 
-    groupedAnimations.forEach((_, container) => observer.observe(container));
+      revealGroups.forEach(({ trigger, targets }) => {
+        root.querySelectorAll<HTMLElement>(trigger).forEach((container) => {
+          const group: Animation[] = [];
+
+          targets.forEach(({ selector, direction }) => {
+            container.querySelectorAll<HTMLElement>(selector).forEach((element) => {
+              group.push(prepare(element, group.length, direction));
+            });
+          });
+
+          if (group.length) groupedAnimations.set(container, group);
+        });
+      });
+
+      // Two frames: Strict Mode cleanup cancels the first effect's rAFs before
+      // paint, so only the surviving effect plays — once, from the paused state.
+      firstHeroFrame = requestAnimationFrame(() => {
+        secondHeroFrame = requestAnimationFrame(() => {
+          try {
+            heroAnimations.forEach((animation) => animation.play());
+          } catch {
+            revealHeroFallback();
+          }
+        });
+      });
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            groupedAnimations.get(entry.target as HTMLElement)?.forEach((animation) => {
+              animation.play();
+            });
+            observer?.unobserve(entry.target);
+          });
+        },
+        { threshold: 0.15, rootMargin: "0px 0px -18%" },
+      );
+
+      groupedAnimations.forEach((_, container) => observer?.observe(container));
+    } catch {
+      revealHeroFallback();
+    }
 
     return () => {
       cancelAnimationFrame(firstHeroFrame);
       cancelAnimationFrame(secondHeroFrame);
-      observer.disconnect();
+      observer?.disconnect();
+      // Cancel without marking done: CSS opacity:0 still applies, so Strict Mode
+      // remount does not flash the final state before the next effect attaches.
       animations.forEach((animation) => animation.cancel());
     };
   }, []);

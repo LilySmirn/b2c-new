@@ -2103,6 +2103,24 @@ html {
   background: #fff;
 }
 
+/*
+ * Hide home hero before WAAPI attaches. scripting:enabled keeps content
+ * visible without JS; data-reveal=done keeps it visible after cancel().
+ * Header is limited to the home hero so other routes stay visible.
+ */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  body:has(.hero-section) .header-section:not([data-reveal="done"]),
+  .hero-eyebrow:not([data-reveal="done"]),
+  .hero-title:not([data-reveal="done"]),
+  .hero-section .lead-text:not([data-reveal="done"]),
+  .hero-buttons:not([data-reveal="done"]),
+  .hero-benefits:not([data-reveal="done"]),
+  .hero-trust:not([data-reveal="done"]),
+  .hero-img:not([data-reveal="done"]) {
+    opacity: 0;
+  }
+}
+
 .hero-container {
   width: 100%;
   max-width: var(--landing-content-width);

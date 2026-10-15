@@ -100,11 +100,16 @@ const revealTransform: Record<RevealDirection, string> = {
   scale: "scale(0.62)",
 };
 
+function markRevealDone(element: HTMLElement) {
+  element.dataset.reveal = "done";
+}
+
 function createRevealAnimation(
   element: HTMLElement,
   direction: RevealDirection = "up",
   delay = 0,
   duration = direction === "scale" ? SCALE_REVEAL_DURATION_MS : REVEAL_DURATION_MS,
+  persistReveal = false,
 ) {
   // Some animated nodes already use transform for layout. In particular, the
   // fixed header is centred with translateX(-50%). Replacing that transform
@@ -135,9 +140,12 @@ function createRevealAnimation(
   // Creating every animation in a paused state during the layout effect puts
   // its first frame on screen before the browser can paint hydrated content.
   animation.pause();
-  // Drop the finished effect so card hover transforms are not overridden by
-  // a forwards-filled Web Animation. The regular stylesheet is the end state.
-  animation.onfinish = () => animation.cancel();
+  // Persist CSS visibility before dropping the WAAPI effect, otherwise
+  // cancel() falls back to the pre-reveal opacity:0 rule.
+  animation.onfinish = () => {
+    if (persistReveal) markRevealDone(element);
+    animation.cancel();
+  };
   return animation;
 }
 
@@ -148,76 +156,110 @@ export default function HomeScrollAnimations() {
 
     const animations: Animation[] = [];
     const groupedAnimations = new Map<HTMLElement, Animation[]>();
+    const heroElements: HTMLElement[] = [];
 
     const prepare = (
       element: HTMLElement,
       index = 0,
       direction: RevealDirection = "up",
       duration?: number,
+      persistReveal = false,
     ) => {
-      const animation = createRevealAnimation(element, direction, index * STAGGER_MS, duration);
+      const animation = createRevealAnimation(
+        element,
+        direction,
+        index * STAGGER_MS,
+        duration,
+        persistReveal,
+      );
       animations.push(animation);
       return animation;
     };
 
-    const heroAnimations: Animation[] = [];
-    const header = document.querySelector<HTMLElement>(".header-section");
-    if (header) heroAnimations.push(prepare(header, 0, "down"));
+    const revealHeroFallback = () => {
+      heroElements.forEach(markRevealDone);
+    };
 
-    heroTargets.forEach(({ selector, direction }, index) => {
-      const element = main.querySelector<HTMLElement>(selector);
-      if (element) heroAnimations.push(prepare(element, index + 1, direction));
-    });
-
-    // The main illustration starts together with the first hero copy item, but
-    // travels more slowly so it settles at the same time as the hero buttons.
-    const heroImage = main.querySelector<HTMLElement>(".hero-img");
-    if (heroImage) {
-      heroAnimations.push(prepare(heroImage, 1, "right", HERO_IMAGE_DURATION_MS));
-    }
-
-    revealGroups.forEach(({ trigger, targets }) => {
-      main.querySelectorAll<HTMLElement>(trigger).forEach((container) => {
-        const group: Animation[] = [];
-
-        targets.forEach(({ selector, direction }) => {
-          container.querySelectorAll<HTMLElement>(selector).forEach((element) => {
-            group.push(prepare(element, group.length, direction));
-          });
-        });
-
-        if (group.length) groupedAnimations.set(container, group);
-      });
-    });
-
-    // Two frames guarantee that the paused initial keyframes are committed.
-    // This avoids hydration batching the hidden and final states into one paint.
     let secondHeroFrame = 0;
-    const firstHeroFrame = requestAnimationFrame(() => {
-      secondHeroFrame = requestAnimationFrame(() => {
-        heroAnimations.forEach((animation) => animation.play());
+    let firstHeroFrame = 0;
+    let observer: IntersectionObserver | null = null;
+
+    try {
+      const heroAnimations: Animation[] = [];
+      const header = document.querySelector<HTMLElement>(".header-section");
+      if (header) {
+        header.removeAttribute("data-reveal");
+        heroElements.push(header);
+        heroAnimations.push(prepare(header, 0, "down", undefined, true));
+      }
+
+      heroTargets.forEach(({ selector, direction }, index) => {
+        const element = main.querySelector<HTMLElement>(selector);
+        if (!element) return;
+        element.removeAttribute("data-reveal");
+        heroElements.push(element);
+        heroAnimations.push(prepare(element, index + 1, direction, undefined, true));
       });
-    });
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          groupedAnimations.get(entry.target as HTMLElement)?.forEach((animation) => {
-            animation.play();
+      // The main illustration starts together with the first hero copy item, but
+      // travels more slowly so it settles at the same time as the hero buttons.
+      const heroImage = main.querySelector<HTMLElement>(".hero-img");
+      if (heroImage) {
+        heroImage.removeAttribute("data-reveal");
+        heroElements.push(heroImage);
+        heroAnimations.push(prepare(heroImage, 1, "right", HERO_IMAGE_DURATION_MS, true));
+      }
+
+      revealGroups.forEach(({ trigger, targets }) => {
+        main.querySelectorAll<HTMLElement>(trigger).forEach((container) => {
+          const group: Animation[] = [];
+
+          targets.forEach(({ selector, direction }) => {
+            container.querySelectorAll<HTMLElement>(selector).forEach((element) => {
+              group.push(prepare(element, group.length, direction));
+            });
           });
-          observer.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -18%" },
-    );
 
-    groupedAnimations.forEach((_, container) => observer.observe(container));
+          if (group.length) groupedAnimations.set(container, group);
+        });
+      });
+
+      // Two frames: Strict Mode cleanup cancels the first effect's rAFs before
+      // paint, so only the surviving effect plays — once, from the paused state.
+      firstHeroFrame = requestAnimationFrame(() => {
+        secondHeroFrame = requestAnimationFrame(() => {
+          try {
+            heroAnimations.forEach((animation) => animation.play());
+          } catch {
+            revealHeroFallback();
+          }
+        });
+      });
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            groupedAnimations.get(entry.target as HTMLElement)?.forEach((animation) => {
+              animation.play();
+            });
+            observer?.unobserve(entry.target);
+          });
+        },
+        { threshold: 0.15, rootMargin: "0px 0px -18%" },
+      );
+
+      groupedAnimations.forEach((_, container) => observer?.observe(container));
+    } catch {
+      revealHeroFallback();
+    }
 
     return () => {
       cancelAnimationFrame(firstHeroFrame);
       cancelAnimationFrame(secondHeroFrame);
-      observer.disconnect();
+      observer?.disconnect();
+      // Cancel without marking done: CSS opacity:0 still applies, so Strict Mode
+      // remount does not flash the final state before the next effect attaches.
       animations.forEach((animation) => animation.cancel());
     };
   }, []);
