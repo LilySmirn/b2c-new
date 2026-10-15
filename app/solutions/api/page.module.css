@@ -1674,3 +1674,174 @@
     border-top: 1px solid #d6dcf9;
   }
 }
+
+/* —— Готовы начать —— */
+.startSection {
+  width: 100%;
+  padding: 48px 0 70px;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  text-align: left;
+}
+
+.startInner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.startBanner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 154px;
+  padding: 14px 288px 14px 20px;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #001136;
+  background-image: url("../../../assets/images/api-page/start-bg.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.startCopy {
+  flex: 0 0 436px;
+  max-width: 436px;
+  min-width: 0;
+}
+
+.startBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 30px;
+  margin: 0;
+  padding-inline: 12px;
+  border-radius: 15px;
+  background: #0c3163;
+  color: #5497de;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.startTitle {
+  margin: 16px 0 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 26px;
+  text-align: left;
+}
+
+.startAside {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.startDescription {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.startButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 197px;
+  height: 37px;
+  margin: 14px 0 0;
+  padding: 0;
+  border: 1px solid #0071d8;
+  border-radius: 12px;
+  background: #fff;
+  color: #0b60fb;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  appearance: none;
+  transition: background-color 0.2s ease;
+}
+
+.startButton > span {
+  color: #0b60fb;
+  font-weight: 700;
+}
+
+.startButton:hover {
+  background: #e8f0ff;
+}
+
+.startButton:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .startButton:hover {
+    background: #e8f0ff;
+  }
+}
+
+@media (max-width: 1200px) {
+  .startInner {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .startBanner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    min-height: 0;
+    padding: 24px 180px 28px 24px;
+  }
+
+  .startCopy {
+    flex: none;
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 700px) {
+  .startBanner {
+    padding: 24px 20px 28px;
+    border-radius: 10px;
+  }
+
+  .startCopy {
+    max-width: none;
+  }
+
+  .startTitle {
+    margin-top: 14px;
+  }
+
+  .startButton {
+    width: 100%;
+    height: 44px;
+    border-radius: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startButton {
+    transition: none;
+  }
+}

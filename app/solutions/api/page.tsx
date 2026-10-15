@@ -713,6 +713,30 @@ export default function ApiPage() {
           </div>
         </div>
       </section>
+
+      <section className={styles.startSection} aria-labelledby="api-start-title">
+        <div className={styles.startInner}>
+          <div className={styles.startBanner}>
+            <div className={styles.startCopy}>
+              <p className={styles.startBadge}>Готовы начать?</p>
+              <h2 className={styles.startTitle} id="api-start-title">
+                Интегрируйте клинические данные
+                <br />
+                EasyMed в свою систему
+              </h2>
+            </div>
+
+            <div className={styles.startAside}>
+              <p className={styles.startDescription}>
+                Расскажите, какую медицинскую систему или цифровой продукт вы
+                развиваете. Мы обсудим подходящий формат интеграции - API или
+                готовый модуль.
+              </p>
+              <ApiHeroActions variant="start" />
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

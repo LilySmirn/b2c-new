@@ -7,7 +7,7 @@ import playIcon from "@/assets/images/api-page/main-icon-2.png";
 import styles from "./page.module.css";
 
 type ApiHeroActionsProps = {
-  variant?: "hero" | "integration";
+  variant?: "hero" | "integration" | "start";
 };
 
 export default function ApiHeroActions({
@@ -15,12 +15,17 @@ export default function ApiHeroActions({
 }: ApiHeroActionsProps) {
   const [popupOpen, setPopupOpen] = useState(false);
 
+  const buttonClassName =
+    variant === "hero"
+      ? styles.primaryButton
+      : variant === "start"
+        ? styles.startButton
+        : styles.modulesApiButton;
+
   const integrationButton = (
     <button
       type="button"
-      className={
-        variant === "hero" ? styles.primaryButton : styles.modulesApiButton
-      }
+      className={buttonClassName}
       onClick={() => setPopupOpen(true)}
       aria-haspopup="dialog"
     >
