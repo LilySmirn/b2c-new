@@ -240,3 +240,1232 @@
     width: 100%;
   }
 }
+
+/* —— Что входит в данные EasyMed —— */
+.dataSection {
+  width: 100%;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+}
+
+.dataInner {
+  display: grid;
+  grid-template-columns: 372px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 0 70px;
+}
+
+.dataIntro {
+  min-width: 0;
+  max-width: 372px;
+}
+
+.dataEyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  margin: 0;
+  padding-inline: 12px;
+  border-radius: 30px;
+  background: #e7f1fe;
+  color: #427af2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.dataTitle {
+  margin: 24px 0 0;
+  color: #001b4c;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.dataLead {
+  margin: 20px 0 0;
+  color: #2e3c56;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.dataCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: visible;
+  align-items: stretch;
+}
+
+.dataCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+  min-width: 0;
+  min-height: 94px;
+  height: 100%;
+  padding: 9px 10px;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  box-sizing: border-box;
+}
+
+.dataCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #e7f3ff;
+}
+
+.dataCardIconImage {
+  width: 20px;
+  height: auto;
+  max-height: 22px;
+  object-fit: contain;
+}
+
+.dataCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  padding-top: 1px;
+}
+
+.dataCardTitle {
+  margin: 0;
+  color: #001b4c;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.dataCardDescription {
+  margin: 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: left;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dataCard:hover {
+    z-index: 1;
+    transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
+  }
+}
+
+@media (max-width: 1200px) {
+  .dataInner {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .dataInner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .dataIntro {
+    max-width: none;
+  }
+
+  .dataCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  .dataInner {
+    padding: 48px 20px 40px;
+  }
+
+  .dataEyebrow {
+    white-space: normal;
+    height: auto;
+    min-height: 30px;
+    padding-block: 6px;
+    text-align: center;
+  }
+
+  .dataTitle {
+    margin-top: 14px;
+    font-size: 22px;
+  }
+
+  .dataLead {
+    font-size: 14px;
+  }
+
+  .dataCards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dataCard {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dataCard {
+    transition: none;
+  }
+
+  .dataCard:hover {
+    transform: none;
+  }
+}
+
+/* —— Источники данных —— */
+.sourcesSection {
+  width: 100%;
+  background: #ebf7fe;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+}
+
+.sourcesInner {
+  display: grid;
+  grid-template-columns: minmax(0, 490px) minmax(0, 1fr);
+  gap: 49px;
+  align-items: start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 21px 0 20px;
+}
+
+.sourcesIntro {
+  min-width: 0;
+}
+
+.sourcesBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  margin: 0;
+  padding-inline: 11px;
+  border-radius: 15px;
+  background: #fff;
+  color: #427af2;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.sourcesTitle {
+  margin: 20px 0 0;
+  color: #001b4c;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.sourcesLead {
+  margin: 14px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+}
+
+.sourcesAside {
+  min-width: 0;
+  padding-top: 19px;
+}
+
+.sourcesCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 27px;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: visible;
+}
+
+.sourcesCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+  min-width: 0;
+  min-height: 87px;
+  height: 100%;
+  padding: 18px 8px;
+  border-radius: 10px;
+  background: #fff;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.sourcesCardLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.sourcesCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.sourcesCardTitle {
+  margin: 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+.sourcesCardDescription {
+  margin: 0;
+  color: #2e3c56;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+.sourcesNote {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 22px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.sourcesNoteIcon {
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sourcesCard:hover {
+    z-index: 1;
+    transform: scale(1.03);
+    box-shadow: var(--card-hover-shadow);
+  }
+}
+
+@media (max-width: 1200px) {
+  .sourcesInner {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .sourcesInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-block: 40px;
+  }
+
+  .sourcesAside {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .sourcesInner {
+    padding: 40px 20px;
+  }
+
+  .sourcesCards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .sourcesNote {
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sourcesCard {
+    transition: none;
+  }
+
+  .sourcesCard:hover {
+    transform: none;
+  }
+}
+
+/* —— Глубина структурирования —— */
+.depthSection {
+  width: 100%;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+  overflow-x: clip;
+}
+
+.depthInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 639px;
+  gap: 40px;
+  align-items: start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 53px 0 36px;
+}
+
+.depthIntro {
+  min-width: 0;
+}
+
+.depthBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  margin: 0;
+  padding-inline: 10px;
+  border-radius: 15px;
+  background: #e7f1fe;
+  color: #427af2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.depthTitle {
+  margin: 18px 0 0;
+  color: #001b4c;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.depthLead {
+  margin: 15px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+}
+
+.depthLead strong {
+  font-weight: 700;
+}
+
+.depthAside {
+  min-width: 0;
+}
+
+.depthScheme {
+  position: relative;
+  width: 639px;
+  height: 251px;
+}
+
+.depthLines,
+.depthLinesMobile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.depthLines {
+  width: 100%;
+  height: 100%;
+}
+
+.depthLinesMobile {
+  display: none;
+  width: 40px;
+  height: 373px;
+}
+
+.depthLine {
+  fill: none;
+  stroke: #8baeff;
+  stroke-width: 1.5;
+}
+
+.depthPulses {
+  opacity: 0;
+}
+
+.depthPulse {
+  fill: none;
+  stroke: #2478ff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 14px 440px;
+}
+
+.depthNode {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.depthDiagnosis {
+  top: 85px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 132px;
+  height: 82px;
+  padding: 0 8px 0 14px;
+}
+
+.depthEntities {
+  position: absolute;
+  top: 0;
+  left: 217px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 190px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.depthEntity {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 59px;
+  padding: 0 20px 0 8px;
+}
+
+.depthIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  background: #e7f3ff;
+}
+
+.depthIcon img {
+  display: block;
+}
+
+.depthNodeText {
+  min-width: 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+}
+
+.depthParams {
+  top: 30px;
+  left: 492px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  width: 147px;
+  height: 192px;
+  margin: 0;
+  padding: 0 16px 0 14px;
+  list-style: none;
+}
+
+.depthParam {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.depthArrow {
+  flex-shrink: 0;
+  width: 17px;
+  height: 8.2px;
+  margin-top: 3.4px;
+  fill: #0b60fb;
+}
+
+.depthNote {
+  margin: 12px 0 0;
+  padding-left: 4px;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+}
+
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  .depthScheme .depthNode {
+    opacity: 0;
+  }
+
+  .depthScheme .depthLine {
+    stroke-dasharray: calc(var(--len) * 1px + 1px);
+    stroke-dashoffset: calc(var(--len) * 1px + 1px);
+  }
+
+  .depthScheme[data-visible="true"] .depthNode {
+    animation: depthNodeIn 450ms ease-out both;
+  }
+
+  .depthScheme[data-visible="true"] .depthEntity {
+    animation-delay: calc(100ms + var(--index) * 60ms);
+  }
+
+  .depthScheme[data-visible="true"] .depthParams {
+    animation-delay: 320ms;
+  }
+
+  /* Duration is proportional to length so all branches draw at one speed. */
+  .depthScheme[data-visible="true"] .depthLineIn {
+    animation: depthDraw calc(var(--len) * 4ms) linear 400ms forwards;
+  }
+
+  /* Delayed by the length difference so all branches reach the params card together. */
+  .depthScheme[data-visible="true"] .depthLineOut {
+    animation: depthDraw calc(var(--len) * 4ms) linear
+      calc(1100ms + (169 - var(--len)) * 4ms) forwards;
+  }
+
+  .depthScheme[data-visible="true"] .depthLineMobile {
+    animation: depthDraw calc(var(--len) * 3ms) linear 400ms forwards;
+  }
+
+  /* Fading the whole group keeps overlapping pulses at the forks from adding up. */
+  .depthScheme[data-visible="true"] .depthPulsesIn {
+    animation: depthPulseFadeIn 8s linear 2200ms infinite both;
+  }
+
+  .depthScheme[data-visible="true"] .depthPulsesOut {
+    animation: depthPulseFadeOut 8s linear 2200ms infinite both;
+  }
+
+  .depthScheme[data-visible="true"] .depthPulsesMobile {
+    animation: depthPulseFadeMobile 8s linear 1500ms infinite both;
+  }
+
+  .depthScheme[data-visible="true"] .depthPulseIn {
+    animation: depthPulseIn 8s linear 2200ms infinite both;
+  }
+
+  .depthScheme[data-visible="true"] .depthPulseOut {
+    animation: depthPulseOut 8s linear 2200ms infinite both;
+  }
+
+  .depthScheme[data-visible="true"] .depthPulseMobile {
+    animation: depthPulseDown 8s linear 1500ms infinite both;
+  }
+}
+
+@keyframes depthNodeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes depthDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The same offset range for every path keeps the pulse speed constant. */
+@keyframes depthPulseIn {
+  0% {
+    stroke-dashoffset: 15px;
+  }
+
+  21%,
+  100% {
+    stroke-dashoffset: -170px;
+  }
+}
+
+@keyframes depthPulseOut {
+  0%,
+  25% {
+    stroke-dashoffset: calc(185px - var(--len) * 1px);
+  }
+
+  46%,
+  100% {
+    stroke-dashoffset: calc(var(--len) * -1px);
+  }
+}
+
+@keyframes depthPulseDown {
+  0% {
+    stroke-dashoffset: 15px;
+  }
+
+  39%,
+  100% {
+    stroke-dashoffset: -325px;
+  }
+}
+
+@keyframes depthPulseFadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  3%,
+  16% {
+    opacity: 1;
+  }
+
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes depthPulseFadeOut {
+  0%,
+  25% {
+    opacity: 0;
+  }
+
+  28%,
+  42% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes depthPulseFadeMobile {
+  0% {
+    opacity: 0;
+  }
+
+  3%,
+  33% {
+    opacity: 1;
+  }
+
+  39%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1200px) {
+  .depthInner {
+    gap: 32px;
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .depthInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-block: 40px;
+  }
+}
+
+/* Stacked layout; offsets must match the 40×373 mobile rail SVG. */
+@media (max-width: 700px) {
+  .depthInner {
+    padding: 40px 20px;
+  }
+
+  .depthBadge {
+    height: auto;
+    min-height: 30px;
+    padding-block: 6px;
+    white-space: normal;
+  }
+
+  .depthTitle {
+    margin-top: 14px;
+  }
+
+  .depthScheme {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    height: auto;
+  }
+
+  .depthLines {
+    display: none;
+  }
+
+  .depthLinesMobile {
+    display: block;
+  }
+
+  .depthNode {
+    position: relative;
+    top: auto;
+    left: auto;
+  }
+
+  .depthDiagnosis {
+    width: 100%;
+    height: 64px;
+  }
+
+  .depthEntities {
+    position: relative;
+    top: auto;
+    left: auto;
+    gap: 8px;
+    width: auto;
+    margin-left: 40px;
+  }
+
+  .depthParams {
+    width: 100%;
+    height: auto;
+    padding-block: 18px;
+  }
+
+  .depthBreak {
+    display: none;
+  }
+
+  .depthNote {
+    margin-top: 16px;
+    padding-left: 0;
+  }
+}
+
+/* —— API и готовые модули —— */
+.modulesSection {
+  width: 100%;
+  padding: 0 0 48px;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  color: #001b4c;
+  text-align: left;
+  overflow-x: clip;
+}
+
+/* 1px border + 19px outer padding on each side keeps the content at 1200px. */
+.modulesFrame {
+  display: grid;
+  grid-template-columns: minmax(0, 692fr) minmax(0, 548fr);
+  width: min(1240px, 100% - 16px);
+  margin: 0 auto;
+  border: 1px solid #d6dcf9;
+  border-radius: 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.modulesCard {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.modulesApi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 247px;
+  column-gap: 12px;
+  padding: 18px 16px 19px 19px;
+}
+
+.modulesReady {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px 19px 11px 26px;
+  border-left: 1px solid #d6dcf9;
+}
+
+.modulesReady > .modulesNote {
+  align-self: stretch;
+}
+
+.modulesApiText {
+  min-width: 0;
+}
+
+.modulesBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  margin: 0;
+  padding-inline: 11px;
+  border-radius: 15px;
+  background: #e7f1fe;
+  color: #427af2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.modulesTitle {
+  margin: 13px 0 0;
+  color: #001b4c;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.modulesLead {
+  margin: 6px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+  text-align: left;
+}
+
+.modulesListTitle {
+  margin: 14px 0 0;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 19px;
+  text-align: left;
+}
+
+.modulesList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modulesList li {
+  position: relative;
+  padding-left: 16px;
+  color: #2e3c56;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+}
+
+.modulesList li::before {
+  content: "→";
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #0b60fb;
+}
+
+.modulesApiVisual {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 19px;
+  min-width: 0;
+}
+
+.modulesApiImage {
+  display: block;
+  width: 247px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.modulesApiButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 184px;
+  height: 42px;
+  margin-top: auto;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: #0b60fb;
+  color: #f0f8ff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modulesApiButton > span {
+  color: #fff;
+}
+
+.modulesApiButton:hover {
+  background-color: #0849c7;
+}
+
+.modulesApiButton:focus-visible {
+  outline: 2px solid #0f1e3f;
+  outline-offset: 4px;
+}
+
+.modulesFlow {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 14px 0 12px;
+  padding: 0 0 0 4px;
+  list-style: none;
+}
+
+.modulesStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  flex: none;
+}
+
+.modulesStepBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 32px;
+}
+
+.modulesStepIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #e7f3ff;
+}
+
+.modulesStepIcon img {
+  display: block;
+}
+
+.modulesStepLabel {
+  color: #2e3c56;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.modulesFlowArrow {
+  flex-shrink: 0;
+  width: 17px;
+  height: 8.2px;
+  margin-top: 14px;
+  fill: #0b60fb;
+}
+
+/* The button sits flush with the panel's right edge, as in the mockup. */
+.modulesNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 58px;
+  margin: auto 0 0 -10px;
+  padding: 5px 0 5px 14px;
+  border: 1px solid #f0f8fe;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f8fe 0%, rgba(255, 255, 255, 0) 100%);
+  box-sizing: border-box;
+}
+
+.modulesNoteIcon {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.modulesNoteText {
+  flex: 1;
+  min-width: 0;
+  margin: 0 15px 0 0;
+  color: #0b60fb;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+.modulesNoteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 153px;
+  height: 33px;
+  margin-right: -1px;
+  padding: 0;
+  border: 1px solid #0071d8;
+  border-radius: 11.5px;
+  background: #fff;
+  color: #0b60fb;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.modulesNoteButton:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+/* Below this width the 1240px frame no longer fits; content stays 20px from the edge. */
+@media (max-width: 1255px) {
+  .modulesApi {
+    padding-left: 11px;
+  }
+
+  .modulesReady {
+    padding-right: 11px;
+  }
+}
+
+/* Stacks earlier than other sections: the five-step flow needs ~455px in the right card. */
+@media (max-width: 1180px) {
+  .modulesSection {
+    padding-bottom: 40px;
+  }
+
+  .modulesFrame {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    width: calc(100% - 40px);
+    border: none;
+    border-radius: 0;
+    background: none;
+  }
+
+  .modulesCard {
+    border: 1px solid #d6dcf9;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .modulesApi,
+  .modulesReady {
+    padding: 18px 20px 20px;
+  }
+
+  .modulesNote {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .modulesApi {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 20px;
+  }
+
+  .modulesApiButton {
+    width: 100%;
+  }
+
+  .modulesFlow {
+    flex-direction: column;
+    gap: 0;
+    padding-left: 0;
+  }
+
+  .modulesStep {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .modulesStepBody {
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .modulesStepLabel {
+    text-align: left;
+    white-space: normal;
+  }
+
+  .modulesStepBreak {
+    display: none;
+  }
+
+  /* Rotated in place: margins compensate the 17px visual height and center it under the icon. */
+  .modulesFlowArrow {
+    margin: 10px 0 10px 7.5px;
+    transform: rotate(90deg);
+  }
+
+  .modulesNote {
+    flex-wrap: wrap;
+    gap: 12px 8px;
+    padding: 12px;
+  }
+
+  .modulesNoteText {
+    margin-right: 0;
+  }
+
+  .modulesNoteButton {
+    width: 100%;
+    margin-right: 0;
+  }
+}

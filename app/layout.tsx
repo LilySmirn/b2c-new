@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import "./globals.css";
 
 import AuthButtonsServer from './components/AuthButtonsServer';
@@ -11,6 +12,7 @@ import RouteBodyClass from './components/RouteBodyClass';
 import UserBlockingGuard from './modules/userBlocking/components/UserBlockingGuard';
 import landingLogo from '@/assets/images/landing/logo.svg';
 import SocialLinks from './components/SocialLinks';
+import MetrikaPageViews from './components/MetrikaPageViews';
 
 export const metadata: Metadata = {
   title: "EasyMed",
@@ -42,15 +44,12 @@ ym(113585722, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
                 {/* /Yandex.Metrika counter */}
             </head>
             <body data-metrika="113585722">
-                <noscript>
-                    <div>
-                        <img
-                            src="https://mc.yandex.ru/watch/113585722"
-                            style={{ position: "absolute", left: "-9999px" }}
-                            alt=""
-                        />
-                    </div>
+            <noscript>
+                    <div><img src="https://mc.yandex.ru/watch/113585722" style={{ position: "absolute", left: "-9999px" }} alt="" /></div>
                 </noscript>
+                <Suspense fallback={null}>
+                    <MetrikaPageViews />
+                </Suspense>
                 <UserBlockingGuard />
                 <RouteBodyClass />
                  <ConditionalHeader>
