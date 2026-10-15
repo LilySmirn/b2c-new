@@ -16,6 +16,7 @@ import helpIcon3 from "@/assets/images/about/help-icon-3.png";
 import helpIcon4 from "@/assets/images/about/help-icon-4.png";
 import IntegrationsSection from "./IntegrationsSection";
 import CollaborationActions from "./CollaborationActions";
+import AboutScrollAnimations from "./AboutScrollAnimations";
 import collaborationBg from "@/assets/images/about/collaboration-bg.png";
 
 export const metadata: Metadata = {
@@ -117,6 +118,7 @@ const helpAudiences = [
 export default function AboutPage() {
   return (
     <>
+      <AboutScrollAnimations />
       <section className={styles.hero} aria-labelledby="about-title" id="about">
         <div className={styles.container}>
           <div className={styles.content}>

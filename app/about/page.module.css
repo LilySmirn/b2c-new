@@ -213,6 +213,7 @@
   font-family: Arial, sans-serif;
   color: #001b4c;
   text-align: left;
+  overflow-x: clip;
 }
 
 .productsInner {
@@ -427,6 +428,7 @@
   background: #fff;
   font-family: Arial, sans-serif;
   text-align: left;
+  overflow-x: clip;
 }
 
 .whyInner {
@@ -687,6 +689,7 @@
   font-family: Arial, sans-serif;
   color: #001b4c;
   text-align: left;
+  overflow-x: clip;
 }
 
 .helpInner {
@@ -908,6 +911,7 @@
   font-family: Arial, sans-serif;
   color: #001b4c;
   text-align: left;
+  overflow-x: clip;
 }
 
 .integrationsInner {
@@ -1251,6 +1255,7 @@
   font-family: Arial, sans-serif;
   color: #fff;
   text-align: left;
+  overflow-x: clip;
 }
 
 .collaborationInner {

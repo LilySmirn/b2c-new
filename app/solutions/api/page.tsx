@@ -5,6 +5,7 @@ import styles from "./page.module.css";
 import ApiHeroActions from "./ApiHeroActions";
 import ApiHeroCards from "./ApiHeroCards";
 import ApiDepthReveal from "./ApiDepthReveal";
+import ApiScrollAnimations from "./ApiScrollAnimations";
 import audienceIcon from "@/assets/images/api-page/main-icon.png";
 import dataIcon1 from "@/assets/images/api-page/data-icon-1.png";
 import dataIcon2 from "@/assets/images/api-page/data-icon-2.png";
@@ -203,6 +204,7 @@ const moduleSteps: ReadonlyArray<{
 export default function ApiPage() {
   return (
     <>
+      <ApiScrollAnimations />
       <section className={styles.hero} aria-labelledby="api-title">
         <div className={styles.container}>
           <div className={styles.content}>
@@ -375,142 +377,144 @@ export default function ApiPage() {
           </div>
 
           <div className={styles.depthAside}>
-            <ApiDepthReveal className={styles.depthScheme}>
-              <svg
-                className={styles.depthLines}
-                viewBox="0 0 639 251"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <g>
-                  {depthLinksIn.map((link) => (
-                    <path
-                      key={link.d}
-                      className={`${styles.depthLine} ${styles.depthLineIn}`}
-                      d={link.d}
-                      style={lenStyle(link.len)}
-                    />
-                  ))}
-                  {depthLinksOut.map((link) => (
-                    <path
-                      key={link.d}
-                      className={`${styles.depthLine} ${styles.depthLineOut}`}
-                      d={link.d}
-                      style={lenStyle(link.len)}
-                    />
-                  ))}
-                </g>
-                <g className={`${styles.depthPulses} ${styles.depthPulsesIn}`}>
-                  {depthLinksIn.map((link) => (
-                    <path
-                      key={link.d}
-                      className={`${styles.depthPulse} ${styles.depthPulseIn}`}
-                      d={link.d}
-                      style={lenStyle(link.len)}
-                    />
-                  ))}
-                </g>
-                <g className={`${styles.depthPulses} ${styles.depthPulsesOut}`}>
-                  {depthLinksOut.map((link) => (
-                    <path
-                      key={link.d}
-                      className={`${styles.depthPulse} ${styles.depthPulseOut}`}
-                      d={link.d}
-                      style={lenStyle(link.len)}
-                    />
-                  ))}
-                </g>
-              </svg>
-
-              <svg
-                className={styles.depthLinesMobile}
-                viewBox="0 0 40 373"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <g>
-                  {depthLinksMobile.map((link) => (
-                    <path
-                      key={link.d}
-                      className={`${styles.depthLine} ${styles.depthLineMobile}`}
-                      d={link.d}
-                      style={lenStyle(link.len)}
-                    />
-                  ))}
-                </g>
-                <g
-                  className={`${styles.depthPulses} ${styles.depthPulsesMobile}`}
+            <div className={styles.depthVisual}>
+              <ApiDepthReveal className={styles.depthScheme}>
+                <svg
+                  className={styles.depthLines}
+                  viewBox="0 0 639 251"
+                  aria-hidden="true"
+                  focusable="false"
                 >
-                  {depthLinksMobile.map((link) => (
-                    <path
-                      key={link.d}
-                      className={`${styles.depthPulse} ${styles.depthPulseMobile}`}
-                      d={link.d}
-                      style={lenStyle(link.len)}
-                    />
-                  ))}
-                </g>
-              </svg>
-
-              <div className={`${styles.depthNode} ${styles.depthDiagnosis}`}>
-                <span className={styles.depthIcon} aria-hidden="true">
-                  <Image src={depthDiagnosisIcon} alt="" width={28} height={27} />
-                </span>
-                <span className={styles.depthNodeText}>Диагноз</span>
-              </div>
-
-              <ul className={styles.depthEntities}>
-                {depthEntities.map((entity, index) => (
-                  <li
-                    key={entity.lines[0]}
-                    className={`${styles.depthNode} ${styles.depthEntity}`}
-                    style={{ "--index": index } as CSSProperties}
-                  >
-                    <span className={styles.depthIcon} aria-hidden="true">
-                      <Image
-                        src={entity.icon}
-                        alt=""
-                        width={entity.width}
-                        height={entity.height}
+                  <g>
+                    {depthLinksIn.map((link) => (
+                      <path
+                        key={link.d}
+                        className={`${styles.depthLine} ${styles.depthLineIn}`}
+                        d={link.d}
+                        style={lenStyle(link.len)}
                       />
-                    </span>
-                    <span className={styles.depthNodeText}>
-                      {entity.lines[0]}
-                      <br className={styles.depthBreak} /> {entity.lines[1]}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                    ))}
+                    {depthLinksOut.map((link) => (
+                      <path
+                        key={link.d}
+                        className={`${styles.depthLine} ${styles.depthLineOut}`}
+                        d={link.d}
+                        style={lenStyle(link.len)}
+                      />
+                    ))}
+                  </g>
+                  <g className={`${styles.depthPulses} ${styles.depthPulsesIn}`}>
+                    {depthLinksIn.map((link) => (
+                      <path
+                        key={link.d}
+                        className={`${styles.depthPulse} ${styles.depthPulseIn}`}
+                        d={link.d}
+                        style={lenStyle(link.len)}
+                      />
+                    ))}
+                  </g>
+                  <g className={`${styles.depthPulses} ${styles.depthPulsesOut}`}>
+                    {depthLinksOut.map((link) => (
+                      <path
+                        key={link.d}
+                        className={`${styles.depthPulse} ${styles.depthPulseOut}`}
+                        d={link.d}
+                        style={lenStyle(link.len)}
+                      />
+                    ))}
+                  </g>
+                </svg>
 
-              <ul className={`${styles.depthNode} ${styles.depthParams}`}>
-                {depthParams.map(([first, second]) => (
-                  <li key={first} className={styles.depthParam}>
-                    <svg
-                      className={styles.depthArrow}
-                      viewBox="0 0 17 8.2"
-                      aria-hidden="true"
-                      focusable="false"
+                <svg
+                  className={styles.depthLinesMobile}
+                  viewBox="0 0 40 373"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <g>
+                    {depthLinksMobile.map((link) => (
+                      <path
+                        key={link.d}
+                        className={`${styles.depthLine} ${styles.depthLineMobile}`}
+                        d={link.d}
+                        style={lenStyle(link.len)}
+                      />
+                    ))}
+                  </g>
+                  <g
+                    className={`${styles.depthPulses} ${styles.depthPulsesMobile}`}
+                  >
+                    {depthLinksMobile.map((link) => (
+                      <path
+                        key={link.d}
+                        className={`${styles.depthPulse} ${styles.depthPulseMobile}`}
+                        d={link.d}
+                        style={lenStyle(link.len)}
+                      />
+                    ))}
+                  </g>
+                </svg>
+
+                <div className={`${styles.depthNode} ${styles.depthDiagnosis}`}>
+                  <span className={styles.depthIcon} aria-hidden="true">
+                    <Image src={depthDiagnosisIcon} alt="" width={28} height={27} />
+                  </span>
+                  <span className={styles.depthNodeText}>Диагноз</span>
+                </div>
+
+                <ul className={styles.depthEntities}>
+                  {depthEntities.map((entity, index) => (
+                    <li
+                      key={entity.lines[0]}
+                      className={`${styles.depthNode} ${styles.depthEntity}`}
+                      style={{ "--index": index } as CSSProperties}
                     >
-                      <path d="M0 3.27H14.53L13.02 1.81V0L16.93 4.05V4.1L13.02 8.15V6.35L14.5 4.91H0V3.27Z" />
-                    </svg>
-                    <span className={styles.depthNodeText}>
-                      {first}
-                      {second ? (
-                        <>
-                          <br className={styles.depthBreak} /> {second}
-                        </>
-                      ) : null}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </ApiDepthReveal>
+                      <span className={styles.depthIcon} aria-hidden="true">
+                        <Image
+                          src={entity.icon}
+                          alt=""
+                          width={entity.width}
+                          height={entity.height}
+                        />
+                      </span>
+                      <span className={styles.depthNodeText}>
+                        {entity.lines[0]}
+                        <br className={styles.depthBreak} /> {entity.lines[1]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
 
-            <p className={styles.depthNote}>
-              Такая структура позволяет использовать клинические данные не
-              только для чтения, <br className={styles.desktopBreak} />
-              но и для построения цифровых медицинских сценариев.
-            </p>
+                <ul className={`${styles.depthNode} ${styles.depthParams}`}>
+                  {depthParams.map(([first, second]) => (
+                    <li key={first} className={styles.depthParam}>
+                      <svg
+                        className={styles.depthArrow}
+                        viewBox="0 0 17 8.2"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M0 3.27H14.53L13.02 1.81V0L16.93 4.05V4.1L13.02 8.15V6.35L14.5 4.91H0V3.27Z" />
+                      </svg>
+                      <span className={styles.depthNodeText}>
+                        {first}
+                        {second ? (
+                          <>
+                            <br className={styles.depthBreak} /> {second}
+                          </>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </ApiDepthReveal>
+
+              <p className={styles.depthNote}>
+                Такая структура позволяет использовать клинические данные не
+                только для чтения, <br className={styles.desktopBreak} />
+                но и для построения цифровых медицинских сценариев.
+              </p>
+            </div>
           </div>
         </div>
       </section>

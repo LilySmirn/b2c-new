@@ -248,6 +248,7 @@
   font-family: Arial, sans-serif;
   color: #001b4c;
   text-align: left;
+  overflow-x: clip;
 }
 
 .dataInner {
@@ -453,6 +454,7 @@
   font-family: Arial, sans-serif;
   color: #001b4c;
   text-align: left;
+  overflow-x: clip;
 }
 
 .sourcesInner {
@@ -694,6 +696,11 @@
 }
 
 .depthAside {
+  min-width: 0;
+}
+
+/* Outer scroll-reveal target; keeps WAAPI transform off .depthScheme SVG/CSS. */
+.depthVisual {
   min-width: 0;
 }
 
@@ -1477,6 +1484,7 @@
   font-family: Arial, sans-serif;
   color: #001b4c;
   text-align: left;
+  overflow-x: clip;
 }
 
 .integrationInner {
@@ -1683,6 +1691,7 @@
   font-family: Arial, sans-serif;
   color: #fff;
   text-align: left;
+  overflow-x: clip;
 }
 
 .startInner {
