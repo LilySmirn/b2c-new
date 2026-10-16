@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API и модули · EasyMed</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      html, body { margin: 0; padding: 0; min-height: 100%; background: #f4f7fc; }
+    </style>
+  </head>
+  <body>
+<section class="api-moduli" data-screen="api-moduli" aria-label="API и модули EasyMed">
+  <svg width="0" height="0" aria-hidden="true" class="api-moduli__sprite">
+    <defs>
+      <symbol id="am-i-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7V3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v6h6M9 13h6M9 17h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L5.5 19A3 3 0 0 0 8 23h8a3 3 0 0 0 2.5-4L14 9V3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+      <symbol id="am-i-cross" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v8M8 12h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-pill" viewBox="0 0 24 24"><rect x="4.5" y="8" width="15" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v8" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+      <symbol id="am-i-sliders" viewBox="0 0 24 24"><path d="M5 8h8M17 8h2M5 16h2M11 16h8M13 6v4M7 14v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.5 12.5 11 15l4.5-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="am-i-user" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6.2 19a5.8 5.8 0 0 1 11.6 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-age" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="am-i-chart" viewBox="0 0 24 24"><path d="M5 19h14M8 16V10M12 16V7M16 16v-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-ai" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8V5M9 13h.01M15 13h.01M9 16h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-ix" viewBox="0 0 24 24"><path d="M8 7h8v4a4 4 0 0 1-8 0V7Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10 7V4M14 7V4M12 15v5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="am-i-arrow" viewBox="0 0 24 24"><path d="M5 12h12M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="api-moduli__bar">
+    <a class="api-moduli__logo" href="#top" data-action="logo">
+      <span class="api-moduli__mark" aria-hidden="true">E</span>
+      EasyMed
+    </a>
+    <nav class="api-moduli__nav" aria-label="Разделы сайта">
+      <a href="#dannye" data-action="nav" data-target="dannye">Компания</a>
+      <a href="#struktura" data-action="nav" data-target="struktura">Аналитика</a>
+      <a href="#top" data-action="nav" data-target="top" aria-current="page">API и модули</a>
+      <a href="#istochniki" data-action="nav" data-target="istochniki">Медицинские справочники</a>
+      <a href="#zayavka" data-action="nav" data-target="zayavka">Контакты</a>
+    </nav>
+    <div class="api-moduli__bar-actions">
+      <button class="api-moduli__icon-btn" type="button" data-action="search" aria-label="Поиск">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#am-i-search"/></svg>
+      </button>
+      <button class="api-moduli__btn api-moduli__btn--primary" type="button" data-action="request">Оставить заявку</button>
+    </div>
+  </header>
+
+  <div class="api-moduli__hero" id="top">
+    <div class="api-moduli__hero-copy">
+      <p class="api-moduli__eyebrow">API и модули</p>
+      <h1>API, структурированные медицинские данные и готовые модули для интеграции в медицинские информационные системы</h1>
+      <p class="api-moduli__lead">
+        EasyMed отдаёт структурированные клинические данные и готовые решения для МИС и цифровых продуктов.
+      </p>
+      <p class="api-moduli__lead api-moduli__lead--second">
+        Модули приёма подключаются по одному — или все три как надстройка «Помощник врача» в карточке пациента.
+      </p>
+      <p class="api-moduli__audience">
+        <span aria-hidden="true"></span>
+        Для разработчиков МИС, медицинских организаций и IT-команд
+      </p>
+      <div class="api-moduli__hero-actions">
+        <button class="api-moduli__btn api-moduli__btn--primary" type="button" data-action="discuss">Обсудить интеграцию</button>
+        <a class="api-moduli__btn api-moduli__btn--ghost" href="#api" data-action="look-api">Посмотреть возможности API</a>
+      </div>
+    </div>
+
+    <div class="api-moduli__hero-art" aria-hidden="true">
+      <div class="api-moduli__hero-glow"></div>
+      <article class="api-moduli__float api-moduli__float--list">
+        <h2>Клинические рекомендации</h2>
+        <ul>
+          <li><i class="is-on"></i>Диагноз</li>
+          <li><i class="is-on"></i>Диагностические назначения</li>
+          <li><i class="is-on"></i>Лечебные назначения</li>
+          <li><i class="is-on"></i>Лекарственные препараты</li>
+          <li><i></i>Схемы дозирования</li>
+          <li><i></i>Условия и обязательность</li>
+          <li><i></i>Возрастные ограничения</li>
+          <li><i></i>Критерии качества</li>
+        </ul>
+      </article>
+      <article class="api-moduli__float api-moduli__float--json">
+        <div class="api-moduli__float-json-head"><span></span><span></span><span></span><b>JSON</b></div>
+        <pre>{
+  <span class="k">"id"</span>: <span class="s">"K25"</span>,
+  <span class="k">"name"</span>: <span class="s">"Язвенная болезнь"</span>,
+  <span class="k">"diagnosis"</span>: {
+    <span class="k">"code"</span>: <span class="s">"K25.0"</span>,
+    <span class="k">"name"</span>: <span class="s">"Язва желудка"</span>
+  },
+  <span class="k">"treatment"</span>: [{
+    <span class="k">"name"</span>: <span class="s">"омепразол"</span>,
+    <span class="k">"dose"</span>: <span class="s">"20 мг"</span>,
+    <span class="k">"scheme"</span>: <span class="s">"1 раз в день"</span>
+  }]
+}</pre>
+      </article>
+      <article class="api-moduli__float api-moduli__float--src">
+        <span class="api-moduli__emblem api-moduli__emblem--asr api-moduli__emblem--sm" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#eef8f3" stroke="#1f9d55" stroke-width="2"/><path d="M32 14c8 6 12 14 12 22 0 8-5 14-12 14s-12-6-12-14c0-8 4-16 12-22Z" fill="#d8f3e5" stroke="#1f9d55" stroke-width="2"/><path d="M26 34h12M29 28v14M35 28v14" stroke="#1f9d55" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <strong>КР Диагностика</strong>
+          <span>КР Ассоциации стоматологов России</span>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <section class="api-moduli__block" id="dannye">
+    <p class="api-moduli__eyebrow">Что входит в данные EasyMed</p>
+    <h2>Больше, чем просто текст клинических рекомендаций</h2>
+    <p class="api-moduli__sub">
+      Мы структурируем клинические рекомендации и связанные с ними медицинские данные, чтобы их можно было использовать непосредственно в информационной системе.
+    </p>
+    <div class="api-moduli__grid">
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-file"/></svg></span>
+        <h3>Клинические рекомендации</h3>
+        <p>Структурированные данные с привязкой к диагнозам, нозологиям и другим медицинским сущностям.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-flask"/></svg></span>
+        <h3>Диагностика</h3>
+        <p>Диагностические назначения, исследования и связанные с ними параметры.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-cross"/></svg></span>
+        <h3>Лечение</h3>
+        <p>Лечебные назначения и медицинские вмешательства, предусмотренные КР.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-pill"/></svg></span>
+        <h3>Лекарственные препараты</h3>
+        <p>Препараты, схемы и связанные с ними параметры.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-sliders"/></svg></span>
+        <h3>Параметры назначения</h3>
+        <p>Дозировка, курс, схема, условия применения.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-check"/></svg></span>
+        <h3>Условия и обязательность</h3>
+        <p>Необходимость назначений, тип назначения и другие условия.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-user"/></svg></span>
+        <h3>Приём пациента</h3>
+        <p>Информация о типе приёма: первичный, повторный, стационар.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-age"/></svg></span>
+        <h3>Возраст</h3>
+        <p>Возрастные ограничения и условия применения.</p>
+      </article>
+      <article class="api-moduli__card">
+        <span class="api-moduli__ico"><svg viewBox="0 0 24 24"><use href="#am-i-chart"/></svg></span>
+        <h3>Критерии качества</h3>
+        <p>Данные для оценки качества и таблицы критериев качества КР.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="api-moduli__block api-moduli__block--sources" id="istochniki">
+    <p class="api-moduli__eyebrow">Источники данных</p>
+    <h2>Данные из клинических рекомендаций разных профессиональных источников</h2>
+    <p class="api-moduli__sub">
+      Основу данных EasyMed составляют структурированные клинические рекомендации Министерства здравоохранения РФ. Также мы работаем с клиническими рекомендациями Ассоциации стоматологов России.
+    </p>
+    <div class="api-moduli__sources">
+      <article class="api-moduli__source">
+        <span class="api-moduli__emblem api-moduli__emblem--mz" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#e8f0ff" stroke="#2f6bff" stroke-width="2"/><path d="M32 14v36M20 24h24M24 40h16" stroke="#1e4fd8" stroke-width="3" stroke-linecap="round"/><path d="M22 18c4-6 16-6 20 0" fill="none" stroke="#1e4fd8" stroke-width="2"/></svg>
+        </span>
+        <div>
+          <h3>Минздрав России</h3>
+          <p>Клинические рекомендации</p>
+        </div>
+      </article>
+      <article class="api-moduli__source">
+        <span class="api-moduli__emblem api-moduli__emblem--asr" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#eef8f3" stroke="#1f9d55" stroke-width="2"/><path d="M32 14c8 6 12 14 12 22 0 8-5 14-12 14s-12-6-12-14c0-8 4-16 12-22Z" fill="#d8f3e5" stroke="#1f9d55" stroke-width="2"/><path d="M26 34h12M29 28v14M35 28v14" stroke="#1f9d55" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h3>Ассоциация стоматологов России</h3>
+          <p>Клинические рекомендации по стоматологии</p>
+        </div>
+      </article>
+    </div>
+    <p class="api-moduli__fine">Источники и состав данных указываются для соответствующего набора и раздела.</p>
+    <p class="api-moduli__trust">Уже работает как надстройка в МИС и как источник данных для IT-команд — без перестройки карты пациента.</p>
+  </section>
+
+  <section class="api-moduli__block" id="struktura">
+    <p class="api-moduli__eyebrow">Глубина структурирования</p>
+    <h2>От документа к данным, которые понимает ваша система</h2>
+    <p class="api-moduli__sub">
+      Клиническая рекомендация для EasyMed — не только текст. Мы структурируем связанные медицинские сущности, их свойства и условия применения.
+    </p>
+    <div class="api-moduli__graph" aria-hidden="true">
+      <svg class="api-moduli__graph-svg" viewBox="0 0 980 280" preserveAspectRatio="xMidYMid meet">
+        <g fill="none" stroke="#9bb8ff" stroke-width="2">
+          <path d="M150 140 H230"/>
+          <path d="M230 140 C280 140 280 42 330 42"/>
+          <path d="M230 140 C280 140 280 98 330 98"/>
+          <path d="M230 140 C280 140 280 182 330 182"/>
+          <path d="M230 140 C280 140 280 238 330 238"/>
+          <path d="M560 182 H620"/>
+          <path d="M620 182 C660 182 660 42 700 42"/>
+          <path d="M620 182 C660 182 660 98 700 98"/>
+          <path d="M620 182 C660 182 660 154 700 154"/>
+          <path d="M620 182 C660 182 660 210 700 210"/>
+          <path d="M620 182 C660 182 660 266 700 266"/>
+        </g>
+        <rect class="api-moduli__graph-node api-moduli__graph-node--root" x="24" y="104" width="126" height="72" rx="18"/>
+        <text x="87" y="146" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">Диагноз</text>
+        <text x="87" y="164" text-anchor="middle" fill="#d7e6ff" font-size="11">K25.0</text>
+        <rect class="api-moduli__graph-node" x="330" y="18" width="230" height="48" rx="14"/>
+        <text x="445" y="48" text-anchor="middle" fill="#15243a" font-size="14" font-weight="650">Диагностические назначения</text>
+        <rect class="api-moduli__graph-node" x="330" y="74" width="230" height="48" rx="14"/>
+        <text x="445" y="104" text-anchor="middle" fill="#15243a" font-size="14" font-weight="650">Лечебные назначения</text>
+        <rect class="api-moduli__graph-node" x="330" y="130" width="230" height="48" rx="14"/>
+        <text x="445" y="160" text-anchor="middle" fill="#15243a" font-size="14" font-weight="650">Медицинские услуги</text>
+        <rect class="api-moduli__graph-node" x="330" y="186" width="230" height="48" rx="14"/>
+        <text x="445" y="216" text-anchor="middle" fill="#15243a" font-size="14" font-weight="650">Лекарственные препараты</text>
+        <rect class="api-moduli__graph-node api-moduli__graph-node--leaf" x="700" y="18" width="250" height="48" rx="14"/>
+        <text x="825" y="48" text-anchor="middle" fill="#15243a" font-size="13" font-weight="650">Дозировка</text>
+        <rect class="api-moduli__graph-node api-moduli__graph-node--leaf" x="700" y="74" width="250" height="48" rx="14"/>
+        <text x="825" y="104" text-anchor="middle" fill="#15243a" font-size="13" font-weight="650">Курс</text>
+        <rect class="api-moduli__graph-node api-moduli__graph-node--leaf" x="700" y="130" width="250" height="48" rx="14"/>
+        <text x="825" y="160" text-anchor="middle" fill="#15243a" font-size="13" font-weight="650">Схема применения</text>
+        <rect class="api-moduli__graph-node api-moduli__graph-node--leaf" x="700" y="186" width="250" height="48" rx="14"/>
+        <text x="825" y="216" text-anchor="middle" fill="#15243a" font-size="13" font-weight="650">Возраст</text>
+        <rect class="api-moduli__graph-node api-moduli__graph-node--leaf" x="700" y="242" width="250" height="48" rx="14"/>
+        <text x="825" y="272" text-anchor="middle" fill="#15243a" font-size="13" font-weight="650">Условия назначения</text>
+      </svg>
+      <div class="api-moduli__graph-mobile">
+        <span class="is-root">Диагноз · K25.0</span>
+        <span>Диагностические назначения</span>
+        <span>Лечебные назначения</span>
+        <span>Медицинские услуги</span>
+        <span>Лекарственные препараты</span>
+        <span class="is-leaf">Дозировка · курс · схема · возраст · условия</span>
+      </div>
+    </div>
+    <p class="api-moduli__sub api-moduli__sub--after">
+      Такая структура позволяет использовать клинические данные не только для чтения, но и для построения цифровых медицинских сценариев.
+    </p>
+  </section>
+
+  <section class="api-moduli__split" id="api">
+    <article class="api-moduli__split-card">
+      <p class="api-moduli__eyebrow">Для разработчиков</p>
+      <h2>Подключайте данные EasyMed к своей системе</h2>
+      <p>API отдаёт структурированные медицинские данные. Вы сами решаете, как они появятся в интерфейсе и рабочих процессах.</p>
+      <ul class="api-moduli__bullets">
+        <li>Интеграция структурированных данных</li>
+        <li>Получение данных в машиночитаемом формате</li>
+        <li>Использование связей между сущностями</li>
+        <li>Актуализированные данные</li>
+      </ul>
+      <div class="api-moduli__code" data-api-code aria-hidden="true">
+        <div class="api-moduli__code-head"><span></span><span></span><span></span><b>API · K25.0</b></div>
+        <pre>GET /api/v1/recommendations
+Authorization: Bearer ••••
+
+{
+  "mkb": "K25.0",
+  "visit": "primary",
+  "age": "adult"
+}</pre>
+      </div>
+      <button class="api-moduli__btn api-moduli__btn--primary" type="button" data-action="discuss-api">Обсудить интеграцию</button>
+    </article>
+
+    <article class="api-moduli__split-card api-moduli__split-card--accent">
+      <p class="api-moduli__eyebrow">Готовые модули</p>
+      <h2>Не разрабатывайте клинический сценарий с нуля</h2>
+      <p>Модули уже собраны на данных EasyMed. Подключайте по одному или соберите надстройку «Помощник врача» — место врача на приёме внутри вашей МИС.</p>
+      <ol class="api-moduli__chain">
+        <li><b>1</b><span>МИС</span></li>
+        <li class="api-moduli__chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#am-i-arrow"/></svg></li>
+        <li><b>2</b><span>Диагноз и контекст</span></li>
+        <li class="api-moduli__chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#am-i-arrow"/></svg></li>
+        <li><b>3</b><span>Модуль или надстройка</span></li>
+        <li class="api-moduli__chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#am-i-arrow"/></svg></li>
+        <li><b>4</b><span>Рекомендации в дневнике</span></li>
+        <li class="api-moduli__chain-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#am-i-arrow"/></svg></li>
+        <li><b>5</b><span>Работа врача на приёме</span></li>
+      </ol>
+      <a class="api-moduli__btn api-moduli__btn--primary" href="#moduli" data-action="to-modules">Смотреть модули</a>
+    </article>
+  </section>
+
+  <section class="api-moduli__sell" id="moduli">
+    <div class="api-moduli__sell-head">
+      <p class="api-moduli__eyebrow">Модули для приёма</p>
+      <h2>Три модуля, которые усиливают МИС на приёме</h2>
+      <p class="api-moduli__sub">
+        Клинические рекомендации, EasyMed AI и проверка взаимодействий подключаются по одному. Все три — одна панель внутри вашей системы: врач не уходит из карты пациента.
+      </p>
+      <p class="api-moduli__fine api-moduli__fine--sell">Подключение модуля или надстройки — без перестройки карты пациента.</p>
+    </div>
+
+    <div class="api-moduli__sell-layout">
+      <div class="api-moduli__modules" role="group" aria-label="Модули">
+        <button class="api-moduli__module is-on" type="button" data-module="clinical" aria-pressed="true">
+          <span class="api-moduli__module-ico"><svg viewBox="0 0 24 24"><use href="#am-i-file"/></svg></span>
+          <span class="api-moduli__module-body">
+            <span class="api-moduli__module-kicker">Модуль</span>
+            <strong>Клинические рекомендации</strong>
+            <span>По коду МКБ, типу приёма и возрасту. В дневник уходит назначение: препарат, доза, форма, схема и курс.</span>
+          </span>
+        </button>
+        <button class="api-moduli__module is-on" type="button" data-module="ai" aria-pressed="true">
+          <span class="api-moduli__module-ico"><svg viewBox="0 0 24 24"><use href="#am-i-ai"/></svg></span>
+          <span class="api-moduli__module-body">
+            <span class="api-moduli__module-kicker">Модуль</span>
+            <strong>EasyMed AI</strong>
+            <span>Вопрос по случаю — там же, где идёт приём. Подсказку можно сразу добавить в назначения.</span>
+          </span>
+        </button>
+        <button class="api-moduli__module is-on" type="button" data-module="ix" aria-pressed="true">
+          <span class="api-moduli__module-ico"><svg viewBox="0 0 24 24"><use href="#am-i-ix"/></svg></span>
+          <span class="api-moduli__module-body">
+            <span class="api-moduli__module-kicker">Модуль</span>
+            <strong>Проверка взаимодействий</strong>
+            <span>До записи в карту: что нельзя сочетать и где нужна осторожность. Врач правит схему на месте.</span>
+          </span>
+        </button>
+        <div class="api-moduli__sell-actions">
+          <button class="api-moduli__btn api-moduli__btn--primary" type="button" data-action="assemble">Собрать надстройку</button>
+          <button class="api-moduli__btn api-moduli__btn--ghost" type="button" data-action="discuss-modules">Обсудить модули</button>
+        </div>
+        <p class="api-moduli__status" data-status>Надстройка «Помощник врача»: три модуля в одной панели.</p>
+      </div>
+
+      <div class="api-moduli__stage">
+        <div class="api-moduli__mis" data-mis>
+          <aside class="api-moduli__mis-rail" aria-hidden="true">
+            <span class="api-moduli__mis-brand">AM</span>
+            <span></span><span></span><span class="is-on"></span><span></span>
+          </aside>
+          <div class="api-moduli__mis-main">
+            <div class="api-moduli__mis-top">
+              <div>
+                <span>Карта №34568</span>
+                <strong class="api-moduli__mis-patient">Пациент: Мед Изи</strong>
+              </div>
+              <strong data-badge>Помощник врача</strong>
+            </div>
+            <div class="api-moduli__mis-body">
+              <div class="api-moduli__diary">
+                <p>Дневник приёма</p>
+                <div class="api-moduli__diary-meta">K25.0 · первичный · взрослый</div>
+                <h3>Рекомендовано</h3>
+                <ul data-diary>
+                  <li data-diary-item="clinical"><i></i><span>Омепразол 20 мг · 1 раз в день · 14 дней</span></li>
+                  <li data-diary-item="ai"><i></i><span>Контроль эрадикации через 4 недели</span></li>
+                  <li data-diary-item="ix"><i></i><span>Пара проверена: сочетание допустимо</span></li>
+                </ul>
+                <p class="api-moduli__diary-empty" data-diary-empty hidden>Отметьте модуль слева — назначение появится в дневнике.</p>
+              </div>
+              <aside class="api-moduli__panel" aria-label="Панель модулей">
+                <div class="api-moduli__panel-head">
+                  <span data-panel-title>Помощник врача</span>
+                </div>
+                <div class="api-moduli__tabs" role="tablist">
+                  <button type="button" role="tab" data-tab="clinical" aria-selected="true">Рекомендации</button>
+                  <button type="button" role="tab" data-tab="ai" aria-selected="false">AI</button>
+                  <button type="button" role="tab" data-tab="ix" aria-selected="false">Взаимодействия</button>
+                </div>
+                <div class="api-moduli__pane is-show" data-pane="clinical">
+                  <p class="api-moduli__pane-code">K25.0 · первичный · взрослый</p>
+                  <ul>
+                    <li><i></i>Омепразол · 20 мг</li>
+                    <li><i></i>Кларитромицин</li>
+                    <li><i></i>Амоксициллин</li>
+                  </ul>
+                </div>
+                <div class="api-moduli__pane" data-pane="ai" hidden>
+                  <p class="api-moduli__bubble">Какой контроль после эрадикации при K25.0?</p>
+                  <p class="api-moduli__bubble api-moduli__bubble--ai">Дыхательный тест через 4 недели. Можно добавить в назначения.</p>
+                </div>
+                <div class="api-moduli__pane" data-pane="ix" hidden>
+                  <p class="api-moduli__pair"><b>Осторожно</b> Кларитромицин + статины</p>
+                  <p class="api-moduli__pair api-moduli__pair--ok"><b>Можно</b> Омепразол + амоксициллин</p>
+                </div>
+                <p class="api-moduli__panel-empty" data-panel-empty hidden>Выберите хотя бы один модуль — панель соберётся из него.</p>
+              </aside>
+            </div>
+          </div>
+        </div>
+        <p class="api-moduli__stage-note">Один модуль — если в МИС уже закрыто остальное. Три вместе — готовое место для решения в вашей системе.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="api-moduli__choice" id="vybor">
+    <p class="api-moduli__eyebrow">Интеграция</p>
+    <h2>API или готовый модуль?</h2>
+    <p class="api-moduli__sub">Выберите подходящий способ интеграции.</p>
+    <div class="api-moduli__choice-grid">
+      <article class="api-moduli__choice-card">
+        <h3>API</h3>
+        <p>Для команд, которые хотят получить структурированные данные EasyMed и собрать собственный интерфейс и сценарии.</p>
+        <button class="api-moduli__text-btn" type="button" data-action="choose-api">Получить данные →</button>
+        <button class="api-moduli__text-btn" type="button" data-action="choose-api-build">Разработать сценарий →</button>
+      </article>
+      <article class="api-moduli__choice-card api-moduli__choice-card--hot">
+        <h3>Готовые модули</h3>
+        <p>Каждый модуль встраивается отдельно: рекомендации, EasyMed AI или проверка взаимодействий. Все три вместе — надстройка «Помощник врача» в карточке приёма.</p>
+        <button class="api-moduli__text-btn" type="button" data-action="choose-one">Подключить модуль →</button>
+        <button class="api-moduli__text-btn" type="button" data-action="choose-overlay">Собрать надстройку →</button>
+      </article>
+    </div>
+    <p class="api-moduli__fine">В обоих случаях основа — структурированные данные EasyMed. API отдаёт их системе. Помощник врача показывает их на приёме и возвращает выбор в дневник.</p>
+  </section>
+
+  <section class="api-moduli__cta" id="zayavka">
+    <div class="api-moduli__cta-copy">
+      <p class="api-moduli__eyebrow">Готовы встроить</p>
+      <h2>Интегрируйте клинические данные EasyMed в свою систему</h2>
+      <p>Расскажите, какую МИС или цифровой продукт вы развиваете. Подберём формат: API, отдельный модуль или надстройка «Помощник врача».</p>
+      <button class="api-moduli__btn api-moduli__btn--light" type="button" data-action="request">Обсудить интеграцию</button>
+    </div>
+    <div class="api-moduli__cta-devices" aria-hidden="true">
+      <div class="api-moduli__device api-moduli__device--desk">
+        <div class="api-moduli__device-screen api-moduli__device-screen--panel">
+          <div class="api-moduli__mini-tabs"><em class="is-on"></em><em></em><em></em></div>
+          <b>Помощник врача</b>
+          <span>Омепразол 20 мг</span>
+          <span>Кларитромицин</span>
+          <span>Амоксициллин</span>
+        </div>
+      </div>
+      <div class="api-moduli__device api-moduli__device--tab">
+        <div class="api-moduli__device-screen api-moduli__device-screen--panel">
+          <b>КР · AI · IX</b>
+          <span>K25.0</span>
+          <span>Проверка пары</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="api-moduli__footer">
+    <span>EasyMed</span>
+    <span>Структурированные клинические данные для МИС</span>
+  </footer>
+</section>
+
+    <script src="logic.js"></script>
+  </body>
+</html>

@@ -6,6 +6,7 @@ import ApiHeroActions from "./ApiHeroActions";
 import ApiHeroCards from "./ApiHeroCards";
 import ApiDepthReveal from "./ApiDepthReveal";
 import ApiScrollAnimations from "./ApiScrollAnimations";
+import ReceptionModules from "./ReceptionModules";
 import audienceIcon from "@/assets/images/api-page/main-icon.png";
 import dataIcon1 from "@/assets/images/api-page/data-icon-1.png";
 import dataIcon2 from "@/assets/images/api-page/data-icon-2.png";
@@ -629,6 +630,8 @@ export default function ApiPage() {
           </article>
         </div>
       </section>
+
+      <ReceptionModules />
 
       <section
         className={styles.integrationSection}

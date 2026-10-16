@@ -969,18 +969,18 @@
   text-align: center;
 }
 
-.integrationsSqns {
+.integrationsCrmSoft {
   display: block;
-  width: 99px;
-  height: 33px;
+  width: 100px;
+  height: auto;
+  aspect-ratio: 458 / 210;
 }
 
-.integrationsSimed {
-  color: #001b4c;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
+.integrationsDextra {
+  display: block;
+  width: auto;
+  height: 32px;
+  aspect-ratio: 543 / 138;
 }
 
 .integrationsMisLabel {
@@ -1195,8 +1195,7 @@
     min-height: 93px;
   }
 
-  .integrationsOtherTitle,
-  .integrationsSimed {
+  .integrationsOtherTitle {
     white-space: normal;
   }
 

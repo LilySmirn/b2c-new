@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import CorporateContactPopup from "@/app/components/CorporateContactPopup";
 import integrationBg from "@/assets/images/about/integration-bg.png";
-import sqnsLogo from "@/assets/images/about/sqns.png";
+import crmSoftLogo from "@/assets/images/about/crm-soft.png";
+import dextraLogo from "@/assets/images/about/dextra.png";
 import otherMisIcon from "@/assets/images/about/other-mis-icon.png";
 import yourMisIcon from "@/assets/images/about/your-mis-icon.png";
 import styles from "./page.module.css";
@@ -42,20 +43,26 @@ export default function IntegrationsSection() {
             <ul className={styles.integrationsList}>
               <li className={styles.integrationsPartner}>
                 <Image
-                  className={styles.integrationsSqns}
-                  src={sqnsLogo}
-                  alt="SQNS"
-                  width={99}
-                  height={33}
+                  className={styles.integrationsCrmSoft}
+                  src={crmSoftLogo}
+                  alt="CRM Soft"
+                  width={458}
+                  height={210}
                 />
-                <span className={styles.integrationsMisLabel}>МИС</span>
+                <span className={styles.integrationsMisLabel}>CRM Soft</span>
               </li>
 
               <li className={styles.integrationsDivider} aria-hidden="true" />
 
               <li className={styles.integrationsPartner}>
-                <span className={styles.integrationsSimed}>СиМед Клиника</span>
-                <span className={styles.integrationsMisLabel}>МИС</span>
+                <Image
+                  className={styles.integrationsDextra}
+                  src={dextraLogo}
+                  alt="D-Extra"
+                  width={543}
+                  height={138}
+                />
+                <span className={styles.integrationsMisLabel}>D-Extra</span>
               </li>
 
               <li className={styles.integrationsDivider} aria-hidden="true" />
