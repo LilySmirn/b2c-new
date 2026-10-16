@@ -802,35 +802,6 @@
   margin-top: 0;
 }
 
-.helpMore {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: auto;
-  padding-top: 12px;
-  color: #0b60fb;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-  text-align: left;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.helpMore > span {
-  font-size: 16px;
-  line-height: 1;
-}
-
-.helpMore:hover {
-  color: #0849c7;
-}
-
-.helpMore:focus-visible {
-  outline: 2px solid #0f1e3f;
-  outline-offset: 4px;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .helpCard:hover {
     transform: scale(1.03);
@@ -892,10 +863,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .helpCard {
-    transition: none;
-  }
-
-  .helpMore {
     transition: none;
   }
 

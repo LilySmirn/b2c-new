@@ -275,9 +275,6 @@ export default function AboutPage() {
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <a className={styles.helpMore} href="#">
-                  Подробнее <span aria-hidden="true">→</span>
-                </a>
               </li>
             ))}
           </ul>
