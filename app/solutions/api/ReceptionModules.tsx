@@ -474,7 +474,7 @@ export default function ReceptionModules() {
 
     const section = sectionRef.current;
     const nodes = [headRef.current, layoutRef.current].filter(
-      (node): node is HTMLElement => node instanceof HTMLElement,
+      (node): node is HTMLDivElement => node instanceof HTMLDivElement,
     );
     if (!section || nodes.length === 0) return;
 
