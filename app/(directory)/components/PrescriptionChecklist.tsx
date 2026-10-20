@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import DrugInfoModal, {
+  EMPTY_MEDICATION_INTAKE,
+  type MedicationIntake,
+} from "./medications/DrugInfoModal";
+import DrugRow, { type MedicationField } from "./medications/DrugRow";
+import InteractionsPanel from "./medications/InteractionsPanel";
+import medicationStyles from "./medications/medications.module.css";
 import styles from "./PrescriptionChecklist.module.css";
 
 export type ChecklistItem = {
@@ -203,6 +210,27 @@ const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
   );
 };
 
+type MedicationDraft = Partial<Record<MedicationField, string>>;
+
+const medicationFallback = (item: ChecklistItem, field: MedicationField) => {
+  if (field === "scheme") return item.treatmentPlan ?? "";
+  if (field === "course") return item.treatmentDuration ?? "";
+
+  return "";
+};
+
+const readMedicationField = (
+  drafts: Record<string, MedicationDraft>,
+  item: ChecklistItem,
+  field: MedicationField,
+) => {
+  const draft = drafts[item.id];
+
+  if (draft && field in draft) return draft[field] ?? "";
+
+  return medicationFallback(item, field);
+};
+
 type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
   uncheckItemId?: string | null;
@@ -277,6 +305,12 @@ export default function PrescriptionChecklist({
     value: string;
   } | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const [medicationDrafts, setMedicationDrafts] = useState<
+    Record<string, MedicationDraft>
+  >({});
+  const [medicationIntake, setMedicationIntake] = useState<
+    Record<string, MedicationIntake>
+  >({});
 
   const toggleChecked = (id: string) => {
     setSections((prev) =>
@@ -312,6 +346,8 @@ export default function PrescriptionChecklist({
 
     setSections(mergedSections);
     setActiveCategoryId(getFirstAvailableCategoryId(mergedSections));
+    setMedicationDrafts({});
+    setMedicationIntake({});
   }, [initialSections]);
 
   useEffect(() => {
@@ -460,6 +496,73 @@ export default function PrescriptionChecklist({
     );
   }, [clearSelectionSignal]);
 
+  const updateMedicationField = (
+    id: string,
+    field: MedicationField,
+    value: string,
+  ) => {
+    setMedicationDrafts((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        [field]: value,
+      },
+    }));
+  };
+
+  const updateMedicationComment = (id: string, value: string) => {
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        items: section.items.map((item) =>
+          itemMatchesId(item, id) ? { ...item, comment: value } : item,
+        ),
+      })),
+    );
+  };
+
+  const updateMedicationIntake = (id: string, intake: MedicationIntake) => {
+    setMedicationIntake((current) => ({
+      ...current,
+      [id]: intake,
+    }));
+  };
+
+  const resetMedicationAssignment = (item: ChecklistItem) => {
+    setMedicationDrafts((current) => ({
+      ...current,
+      [item.id]: {
+        ...current[item.id],
+        dose: "",
+        form: "",
+        scheme: item.treatmentPlan ?? "",
+        course: item.treatmentDuration ?? "",
+      },
+    }));
+    setMedicationIntake((current) => {
+      if (!current[item.id]) return current;
+
+      const next = { ...current };
+      delete next[item.id];
+      return next;
+    });
+  };
+
+  const applyOriginalRecommendation = (item: ChecklistItem) => {
+    const scheme = item.treatmentPlan ?? "";
+    const course = item.treatmentDuration ?? "";
+    if (!scheme.trim() && !course.trim()) return;
+
+    setMedicationDrafts((current) => ({
+      ...current,
+      [item.id]: {
+        ...current[item.id],
+        ...(scheme.trim() ? { scheme } : {}),
+        ...(course.trim() ? { course } : {}),
+      },
+    }));
+  };
+
   const visibleSections = sortSectionsForDisplay(
     sections.filter((section) => section.categoryId === activeCategoryId),
   );
@@ -474,6 +577,32 @@ export default function PrescriptionChecklist({
   const allRequiredDiagnosticsChecked =
     requiredDiagnosticsItems.length > 0 &&
     requiredDiagnosticsItems.every((item) => item.checked);
+  const infoSection = infoTarget
+    ? sections.find((section) =>
+        section.items.some((item) => item.id === infoTarget.id),
+      )
+    : undefined;
+  const liveInfoItem =
+    infoSection?.items.find((item) => item.id === infoTarget?.id) ?? infoTarget;
+  const isMedicationInfo =
+    infoSection?.categoryId === "medications" && Boolean(liveInfoItem);
+  const medicationDescriptionSource = liveInfoItem
+    ? (getMergedItems(liveInfoItem).find((item) => item.id === activeInfoItemId) ??
+      getMergedItems(liveInfoItem)[0] ??
+      liveInfoItem)
+    : null;
+
+  const closeMedicationInfo = () => {
+    if (liveInfoItem) {
+      const trimmedComment = liveInfoItem.comment.trim();
+      if (trimmedComment !== liveInfoItem.comment) {
+        updateMedicationComment(liveInfoItem.id, trimmedComment);
+      }
+    }
+
+    closeInfo();
+  };
+
   return (
     <div className={styles.checklistWrapper}>
       <div
@@ -537,7 +666,15 @@ export default function PrescriptionChecklist({
             </div>
           ) : null}
 
-          {activeCategoryId !== "appendix-a3" && visibleSections.map((section) => (
+          {activeCategoryId !== "appendix-a3" ? (
+            <div
+              className={
+                activeCategoryId === "medications" && visibleSections.length > 0
+                  ? medicationStyles.sheet
+                  : undefined
+              }
+            >
+          {visibleSections.map((section) => (
             <div key={section.id} className={styles.sectionBlock}>
               {shouldShowSectionTitle(section) ? (
                 <div
@@ -572,7 +709,23 @@ export default function PrescriptionChecklist({
                 </div>
               ) : null}
 
-              {section.items.map((item) => (
+              {section.items.map((item) =>
+                activeCategoryId === "medications" ? (
+                  <DrugRow
+                    key={item.id}
+                    item={item}
+                    dose={readMedicationField(medicationDrafts, item, "dose")}
+                    form={readMedicationField(medicationDrafts, item, "form")}
+                    scheme={readMedicationField(medicationDrafts, item, "scheme")}
+                    course={readMedicationField(medicationDrafts, item, "course")}
+                    onToggle={toggleChecked}
+                    onOpenInfo={openInfo}
+                    onOpenComment={(id, comment) =>
+                      setCommentTarget({ id, value: comment })
+                    }
+                    onChangeField={updateMedicationField}
+                  />
+                ) : (
                 <article
                   key={item.id}
                   className={styles.row}
@@ -643,9 +796,12 @@ export default function PrescriptionChecklist({
                     {item.comment || "Комментарий..."}
                   </button>
                 </article>
-              ))}
+                ),
+              )}
             </div>
           ))}
+            </div>
+          ) : null}
           {activeCategoryId !== "appendix-a3" && visibleSections.length === 0 ? (
             <div className={styles.emptyState}>
               В этом разделе пока нет назначений
@@ -654,7 +810,37 @@ export default function PrescriptionChecklist({
         </div>
       </div>
 
-      {infoTarget && (
+      {/* Временный режим: панель всегда видна на «Препаратах», без проверки совместимости. */}
+      {activeCategoryId === "medications" ? <InteractionsPanel /> : null}
+
+      {isMedicationInfo && liveInfoItem ? (
+        <DrugInfoModal
+          title={liveInfoItem.title}
+          qualityControl={liveInfoItem.qualityControl}
+          recommendationLevel={liveInfoItem.code}
+          checked={liveInfoItem.checked}
+          dose={readMedicationField(medicationDrafts, liveInfoItem, "dose")}
+          form={readMedicationField(medicationDrafts, liveInfoItem, "form")}
+          scheme={readMedicationField(medicationDrafts, liveInfoItem, "scheme")}
+          course={readMedicationField(medicationDrafts, liveInfoItem, "course")}
+          comment={liveInfoItem.comment}
+          intake={medicationIntake[liveInfoItem.id] ?? EMPTY_MEDICATION_INTAKE}
+          description={medicationDescriptionSource?.info || "Описание отсутствует"}
+          originalScheme={liveInfoItem.treatmentPlan ?? ""}
+          originalCourse={liveInfoItem.treatmentDuration ?? ""}
+          onClose={closeMedicationInfo}
+          onToggleCart={() => toggleChecked(liveInfoItem.id)}
+          onChangeField={(field, value) =>
+            updateMedicationField(liveInfoItem.id, field, value)
+          }
+          onCommentChange={(value) => updateMedicationComment(liveInfoItem.id, value)}
+          onIntakeChange={(intake) => updateMedicationIntake(liveInfoItem.id, intake)}
+          onReset={() => resetMedicationAssignment(liveInfoItem)}
+          onApplyOriginal={() => applyOriginalRecommendation(liveInfoItem)}
+        />
+      ) : null}
+
+      {infoTarget && !isMedicationInfo ? (
         <div className={styles.modalOverlay} onClick={closeInfo}>
           <div
             className={`${styles.modal} ${styles.infoModal}`}
@@ -722,7 +908,7 @@ export default function PrescriptionChecklist({
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
       {commentTarget && (
         <div
