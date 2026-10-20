@@ -7,7 +7,10 @@ import DrugInfoModal, {
 } from "./medications/DrugInfoModal";
 import DrugRow, { type MedicationField } from "./medications/DrugRow";
 import InteractionsPanel from "./medications/InteractionsPanel";
+import { applyMedsSelection, buildMedsRowView, matchMedsDrug } from "./medications/medsClient";
+import type { MedsRowSelection } from "./medications/medsCatalogTypes";
 import medicationStyles from "./medications/medications.module.css";
+import { useMedsCatalog } from "./medications/useMedsCatalog";
 import styles from "./PrescriptionChecklist.module.css";
 
 export type ChecklistItem = {
@@ -210,7 +213,11 @@ const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
   );
 };
 
-type MedicationDraft = Partial<Record<MedicationField, string>>;
+type MedicationDraft = Partial<Record<MedicationField, string>> & {
+  inn?: string;
+  trade?: string;
+  recordId?: string;
+};
 
 const medicationFallback = (item: ChecklistItem, field: MedicationField) => {
   if (field === "scheme") return item.treatmentPlan ?? "";
@@ -311,6 +318,12 @@ export default function PrescriptionChecklist({
   const [medicationIntake, setMedicationIntake] = useState<
     Record<string, MedicationIntake>
   >({});
+  const medicationCatalogKey = sections
+    .flatMap((section) =>
+      section.categoryId === "medications" ? section.items.map((item) => item.title) : [],
+    )
+    .join("\u0000");
+  const medsCatalog = useMedsCatalog(medicationCatalogKey);
 
   const toggleChecked = (id: string) => {
     setSections((prev) =>
@@ -496,11 +509,58 @@ export default function PrescriptionChecklist({
     );
   }, [clearSelectionSignal]);
 
+  const readMedsSelection = (item: ChecklistItem): MedsRowSelection => ({
+    inn: medicationDrafts[item.id]?.inn ?? "",
+    trade: medicationDrafts[item.id]?.trade ?? "",
+    dose: readMedicationField(medicationDrafts, item, "dose"),
+    form: readMedicationField(medicationDrafts, item, "form"),
+    recordId: medicationDrafts[item.id]?.recordId ?? "",
+  });
+
+  const commitMedsSelection = (
+    item: ChecklistItem,
+    patch: Partial<Pick<MedsRowSelection, "inn" | "trade" | "dose" | "form">>,
+  ) => {
+    const drug = matchMedsDrug(medsCatalog, item.title);
+
+    setMedicationDrafts((current) => {
+      const draft = current[item.id] ?? {};
+      const next = applyMedsSelection(
+        drug,
+        {
+          inn: draft.inn ?? "",
+          trade: draft.trade ?? "",
+          dose: draft.dose ?? "",
+          form: draft.form ?? "",
+          recordId: draft.recordId ?? "",
+        },
+        patch,
+      );
+
+      return {
+        ...current,
+        [item.id]: {
+          ...draft,
+          ...next,
+        },
+      };
+    });
+  };
+
   const updateMedicationField = (
     id: string,
     field: MedicationField,
     value: string,
   ) => {
+    const item = sections
+      .flatMap((section) => section.items)
+      .find((entry) => entry.id === id);
+
+    if (item && (field === "dose" || field === "form")) {
+      commitMedsSelection(item, { [field]: value });
+      return;
+    }
+
     setMedicationDrafts((current) => ({
       ...current,
       [id]: {
@@ -533,6 +593,9 @@ export default function PrescriptionChecklist({
       ...current,
       [item.id]: {
         ...current[item.id],
+        inn: "",
+        trade: "",
+        recordId: "",
         dose: "",
         form: "",
         scheme: item.treatmentPlan ?? "",
@@ -590,6 +653,9 @@ export default function PrescriptionChecklist({
     ? (getMergedItems(liveInfoItem).find((item) => item.id === activeInfoItemId) ??
       getMergedItems(liveInfoItem)[0] ??
       liveInfoItem)
+    : null;
+  const liveMedsView = liveInfoItem
+    ? buildMedsRowView(matchMedsDrug(medsCatalog, liveInfoItem.title), readMedsSelection(liveInfoItem))
     : null;
 
   const closeMedicationInfo = () => {
@@ -709,8 +775,16 @@ export default function PrescriptionChecklist({
                 </div>
               ) : null}
 
-              {section.items.map((item) =>
-                activeCategoryId === "medications" ? (
+              {section.items.map((item) => {
+                const medsView =
+                  activeCategoryId === "medications"
+                    ? buildMedsRowView(
+                        matchMedsDrug(medsCatalog, item.title),
+                        readMedsSelection(item),
+                      )
+                    : null;
+
+                return activeCategoryId === "medications" && medsView ? (
                   <DrugRow
                     key={item.id}
                     item={item}
@@ -718,12 +792,17 @@ export default function PrescriptionChecklist({
                     form={readMedicationField(medicationDrafts, item, "form")}
                     scheme={readMedicationField(medicationDrafts, item, "scheme")}
                     course={readMedicationField(medicationDrafts, item, "course")}
+                    doseOptions={medsView.doseOptions}
+                    formOptions={medsView.formOptions}
+                    nameMenu={medsView.nameMenu}
                     onToggle={toggleChecked}
                     onOpenInfo={openInfo}
                     onOpenComment={(id, comment) =>
                       setCommentTarget({ id, value: comment })
                     }
                     onChangeField={updateMedicationField}
+                    onSelectInn={(_id, inn) => commitMedsSelection(item, { inn })}
+                    onSelectTrade={(_id, trade) => commitMedsSelection(item, { trade })}
                   />
                 ) : (
                 <article
@@ -796,8 +875,8 @@ export default function PrescriptionChecklist({
                     {item.comment || "Комментарий..."}
                   </button>
                 </article>
-                ),
-              )}
+                );
+              })}
             </div>
           ))}
             </div>
@@ -828,6 +907,11 @@ export default function PrescriptionChecklist({
           description={medicationDescriptionSource?.info || "Описание отсутствует"}
           originalScheme={liveInfoItem.treatmentPlan ?? ""}
           originalCourse={liveInfoItem.treatmentDuration ?? ""}
+          catalogLabel={liveMedsView?.catalogLabel ?? ""}
+          catalogOptions={{
+            doses: liveMedsView?.doseOptions ?? [],
+            forms: liveMedsView?.formOptions ?? [],
+          }}
           onClose={closeMedicationInfo}
           onToggleCart={() => toggleChecked(liveInfoItem.id)}
           onChangeField={(field, value) =>

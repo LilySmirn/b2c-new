@@ -1,6 +1,6 @@
 /**
- * Контракт будущего справочника препаратов из `design/cart/API-meds.md`.
- * Эндпоинт не подключён: типы описывают ответ, но запрос к нему не выполняется.
+ * Контракт справочника препаратов из `design/cart/API-meds.md`.
+ * Сейчас данные читает `medsClient.ts` из локального JSON.
  * В этом ответе нет КК, уровня рекомендаций, описания, схемы и курса.
  */
 
@@ -35,6 +35,44 @@ export type MedsCatalogResponse = {
 export type MedsCatalogFieldOptions = {
   doses: readonly string[];
   forms: readonly string[];
+};
+
+/** Выбор пользователя по одной строке таблицы. Не меняет название клинической рекомендации. */
+export type MedsRowSelection = {
+  inn: string;
+  trade: string;
+  dose: string;
+  form: string;
+  recordId: string;
+};
+
+export type MedsNameMenu =
+  | {
+      mode: "drug";
+      trades: readonly string[];
+      selectedTrade: string;
+    }
+  | {
+      mode: "group";
+      inns: readonly string[];
+      trades: readonly string[];
+      selectedInn: string;
+      selectedTrade: string;
+    };
+
+export type MedsRowView = {
+  nameMenu: MedsNameMenu | null;
+  doseOptions: readonly string[];
+  formOptions: readonly string[];
+  catalogLabel: string;
+};
+
+export const EMPTY_MEDS_SELECTION: MedsRowSelection = {
+  inn: "",
+  trade: "",
+  dose: "",
+  form: "",
+  recordId: "",
 };
 
 const uniqueValues = (values: readonly string[]) =>

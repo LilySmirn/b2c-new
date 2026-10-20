@@ -3,6 +3,7 @@ import checklistStyles from "../PrescriptionChecklist.module.css";
 import DoseField from "./DoseField";
 import DrugNameField from "./DrugNameField";
 import DrugTextField from "./DrugTextField";
+import type { MedsNameMenu } from "./medsCatalogTypes";
 import styles from "./medications.module.css";
 
 export type MedicationField = "dose" | "form" | "scheme" | "course";
@@ -13,11 +14,16 @@ type DrugRowProps = {
   form: string;
   scheme: string;
   course: string;
+  doseOptions?: readonly string[];
+  formOptions?: readonly string[];
+  nameMenu?: MedsNameMenu | null;
   schemeDrugCount?: number;
   onToggle: (id: string) => void;
   onOpenInfo: (item: ChecklistItem) => void;
   onOpenComment: (id: string, comment: string) => void;
   onChangeField: (id: string, field: MedicationField, value: string) => void;
+  onSelectInn?: (id: string, inn: string) => void;
+  onSelectTrade?: (id: string, trade: string) => void;
 };
 
 export default function DrugRow({
@@ -26,11 +32,16 @@ export default function DrugRow({
   form,
   scheme,
   course,
+  doseOptions = [],
+  formOptions = [],
+  nameMenu = null,
   schemeDrugCount,
   onToggle,
   onOpenInfo,
   onOpenComment,
   onChangeField,
+  onSelectInn,
+  onSelectTrade,
 }: DrugRowProps) {
   const isScheme = typeof schemeDrugCount === "number" && schemeDrugCount > 0;
 
@@ -69,19 +80,23 @@ export default function DrugRow({
       <DrugNameField
         title={item.title}
         checked={item.checked}
-        selectable={!isScheme}
+        menu={nameMenu}
         schemeDrugCount={schemeDrugCount}
         onToggle={() => onToggle(item.id)}
+        onSelectInn={(inn) => onSelectInn?.(item.id, inn)}
+        onSelectTrade={(trade) => onSelectTrade?.(item.id, trade)}
       />
 
       <DoseField
+        label="Доза"
         value={dose}
+        options={doseOptions}
         onChange={(value) => onChangeField(item.id, "dose", value)}
       />
-      <DrugTextField
-        field="form"
-        placeholder="Форма"
+      <DoseField
+        label="Форма"
         value={form}
+        options={formOptions}
         onChange={(value) => onChangeField(item.id, "form", value)}
       />
       <DrugTextField

@@ -69,6 +69,15 @@
   overflow-wrap: anywhere;
 }
 
+.catalogChoice {
+  margin: 4px 0 0;
+  color: #0b5fad;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .badges {
   display: flex;
   flex-wrap: wrap;

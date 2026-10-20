@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import CatalogPopover, { CatalogOption } from "./CatalogPopover";
 import type { MedicationField } from "./DrugRow";
 import type { MedsCatalogFieldOptions } from "./medsCatalogTypes";
 import styles from "./DrugInfoModal.module.css";
@@ -72,12 +73,22 @@ export const formatIntake = (intake: MedicationIntake) => {
 
 export const buildAssignmentPreview = (parts: {
   title: string;
+  selection?: string;
   dose?: string;
   form?: string;
   intake?: string;
   scheme?: string;
   course?: string;
-}) => assignmentParts([parts.title, parts.dose, parts.form, parts.intake, parts.scheme, parts.course]).join(" · ");
+}) =>
+  assignmentParts([
+    parts.title,
+    parts.selection,
+    parts.dose,
+    parts.form,
+    parts.intake,
+    parts.scheme,
+    parts.course,
+  ]).join(" · ");
 
 type DrugInfoModalProps = {
   title: string;
@@ -93,7 +104,9 @@ type DrugInfoModalProps = {
   description: string;
   originalScheme: string;
   originalCourse: string;
-  /** Варианты из будущего `standard_dose` / `standard_form`. Пока список пуст. */
+  /** Выбранные МНН и торговое наименование. Исходное название назначения остаётся в `title`. */
+  catalogLabel?: string;
+  /** Варианты `standard_dose` / `standard_form` для текущего МНН и торгового наименования. */
   catalogOptions?: MedsCatalogFieldOptions;
   onClose: () => void;
   onToggleCart: () => void;
@@ -121,13 +134,20 @@ function CatalogComboField({
   onChange: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const hasList = options.length > 0;
-  const listId = useId();
+
+  useEffect(() => {
+    if (!hasList) setOpen(false);
+  }, [hasList]);
 
   return (
     <div className={styles.field}>
       <span className={styles.fieldLabel}>{label}</span>
-      <div className={`${styles.combo} ${hasList ? styles.comboHasList : ""}`}>
+      <div
+        ref={anchorRef}
+        className={`${styles.combo} ${hasList ? styles.comboHasList : ""}`}
+      >
         <input
           type="text"
           className={styles.control}
@@ -144,32 +164,31 @@ function CatalogComboField({
             aria-label={`Варианты: ${label}`}
             aria-haspopup="listbox"
             aria-expanded={open}
-            aria-controls={listId}
             onClick={() => setOpen((current) => !current)}
           >
             ▾
           </button>
         ) : null}
-        {hasList && open ? (
-          <div id={listId} className={styles.comboList} role="listbox">
+        {hasList ? (
+          <CatalogPopover
+            open={open}
+            anchorRef={anchorRef}
+            label={label}
+            onClose={() => setOpen(false)}
+          >
             {options.map((option) => (
-              <button
+              <CatalogOption
                 key={option}
-                type="button"
-                role="option"
-                aria-selected={option === value}
-                className={`${styles.comboOption} ${
-                  option === value ? styles.comboOptionCurrent : ""
-                }`}
-                onClick={() => {
+                selected={option === value}
+                onSelect={() => {
                   onChange(option);
                   setOpen(false);
                 }}
               >
                 {option}
-              </button>
+              </CatalogOption>
             ))}
-          </div>
+          </CatalogPopover>
         ) : null}
       </div>
     </div>
@@ -190,6 +209,7 @@ export default function DrugInfoModal({
   description,
   originalScheme,
   originalCourse,
+  catalogLabel = "",
   catalogOptions,
   onClose,
   onToggleCart,
@@ -205,10 +225,12 @@ export default function DrugInfoModal({
   const hasOriginalRecommendation = Boolean(sourceScheme || sourceCourse);
   const doseOptions = visibleOptions(catalogOptions?.doses);
   const formOptions = visibleOptions(catalogOptions?.forms);
+  const selectedCatalog = catalogLabel.trim();
   const intakeLabel = formatIntake(intake);
   const preview =
     buildAssignmentPreview({
       title,
+      selection: selectedCatalog,
       dose,
       form,
       intake: intakeLabel,
@@ -218,7 +240,7 @@ export default function DrugInfoModal({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" || event.defaultPrevented) return;
 
       event.preventDefault();
       onClose();
@@ -248,6 +270,7 @@ export default function DrugInfoModal({
               <h2 id={titleId} className={styles.title}>
                 {title}
               </h2>
+              {selectedCatalog ? <p className={styles.catalogChoice}>{selectedCatalog}</p> : null}
               {sourceScheme || sourceCourse ? (
                 <p className={styles.subtitle}>
                   {assignmentParts([sourceScheme, sourceCourse]).join(" · ")}

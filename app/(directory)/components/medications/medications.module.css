@@ -46,6 +46,10 @@
   min-height: 35px;
 }
 
+.nameSlot {
+  min-width: 0;
+}
+
 .nameButton,
 .namePlain {
   box-sizing: border-box;
@@ -88,6 +92,15 @@
   overflow-wrap: anywhere;
 }
 
+.nameButton[aria-expanded="true"] {
+  border-color: #0085ff;
+  background: #edf7ff;
+}
+
+.nameButton[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
 .nameSub {
   display: block;
   margin-top: 2px;
@@ -96,6 +109,10 @@
   font: 400 11px/1.25 Arial, sans-serif;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.nameSubSelected {
+  color: #0b5fad;
 }
 
 .chevron {
@@ -154,17 +171,17 @@
   outline: none;
 }
 
-.dose {
+.combo {
   position: relative;
   width: 100%;
   min-width: 0;
 }
 
-.dose .field {
+.combo .field {
   padding-right: 28px;
 }
 
-.doseToggle {
+.comboToggle {
   position: absolute;
   top: 1px;
   right: 1px;
@@ -173,10 +190,22 @@
   align-items: center;
   justify-content: center;
   width: 26px;
+  border: 0;
   border-left: 1px solid #e5e9ef;
   border-radius: 0 5px 5px 0;
   background: #f8fafc;
   color: #64748b;
   font: 400 11px/1 Arial, sans-serif;
   pointer-events: none;
+}
+
+button.comboToggle {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+button.comboToggle:hover,
+button.comboToggle[aria-expanded="true"] {
+  background: #edf7ff;
+  color: #0085ff;
 }
