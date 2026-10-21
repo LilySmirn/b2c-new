@@ -1,23 +1,25 @@
 /**
  * Справочник препаратов для вкладки «Препараты».
  *
- * Сейчас источник — локальный `design/cart/meds-mock-cart.json`.
- * Компоненты не импортируют JSON и не знают, мок это или сеть.
+ * Единая точка — `resolveMeds`. Сейчас она локально имитирует
+ * `POST /meds/resolve`: тело запроса — массив строк, ответ —
+ * `{ drugs, interactions: null }` по `design/cart/API-meds (1).md`.
+ * Записи берутся из `design/cart/meds-mock-cart-v4-contract.json`.
  *
- * Чтобы подключить реальный API, замените `resolveMeds` на
- * `POST https://apimock.com/meds/resolve` с телом `string[]`
- * и ответом `MedsCatalogResponse` из `API-meds.md`.
- * `readMedsCatalog` при этом может возвращать пустой каталог,
- * пока ответ сети не пришёл. Разбор полей ниже менять не нужно.
+ * Чтобы подключить реальный API, замените тело `resolveMeds` на HTTP-запрос
+ * с тем же телом и тем же типом ответа. Таблицу и попап менять не нужно.
  */
 
-import rawCatalog from "../../../../design/cart/meds-mock-cart.json";
+import rawCatalog from "../../../../design/cart/meds-mock-cart-v4-contract.json";
 import {
+  EMPTY_MEDS_CATALOG,
   EMPTY_MEDS_SELECTION,
+  type MedsCatalogComponent,
+  type MedsCatalogComponentType,
   type MedsCatalogDrug,
+  type MedsCatalogEntry,
   type MedsCatalogInnGroup,
   type MedsCatalogItemRecord,
-  type MedsCatalogItemType,
   type MedsCatalogResponse,
   type MedsNameMenu,
   type MedsRowSelection,
@@ -48,49 +50,82 @@ const readGroup = (value: unknown): MedsCatalogInnGroup | null => {
   const row = value as Record<string, unknown>;
   if (typeof row.name !== "string" || !Array.isArray(row.items)) return null;
 
+  const items = row.items.map(readItem);
+  if (items.some((item) => item === null)) return null;
+
   return {
     name: row.name,
-    items: row.items.flatMap((item) => {
-      const record = readItem(item);
-      return record ? [record] : [];
-    }),
+    items: items as MedsCatalogItemRecord[],
   };
 };
 
-const isCatalogType = (value: unknown): value is MedsCatalogItemType =>
+const readGroups = (value: unknown): MedsCatalogInnGroup[] | null => {
+  if (!Array.isArray(value)) return null;
+
+  const groups = value.map(readGroup);
+  if (groups.some((group) => group === null)) return null;
+
+  return groups as MedsCatalogInnGroup[];
+};
+
+const isComponentType = (value: unknown): value is MedsCatalogComponentType =>
   value === "drug" || value === "group" || value === "other";
 
-const readDrug = (value: unknown): MedsCatalogDrug | null => {
+const readComponent = (value: unknown): MedsCatalogComponent | null => {
   if (!value || typeof value !== "object") return null;
 
   const row = value as Record<string, unknown>;
-  if (typeof row.name !== "string" || !isCatalogType(row.type) || !Array.isArray(row.data)) {
-    return null;
+  if (typeof row.name !== "string" || !isComponentType(row.type)) return null;
+
+  const data = readGroups(row.data);
+  if (!data) return null;
+
+  if (row.type === "drug") return { name: row.name, type: "drug", data };
+  if (row.type === "group") return { name: row.name, type: "group", data };
+
+  return { name: row.name, type: "other", data };
+};
+
+const readEntry = (value: unknown): MedsCatalogEntry | null => {
+  if (!value || typeof value !== "object") return null;
+
+  const row = value as Record<string, unknown>;
+  if (typeof row.name !== "string") return null;
+
+  if (row.type === "combination") {
+    if (!Array.isArray(row.combination_data)) return null;
+
+    const combination = row.combination_data.map(readComponent);
+    if (combination.some((item) => item === null)) return null;
+
+    return {
+      name: row.name,
+      type: "combination",
+      combination_data: combination as MedsCatalogComponent[],
+    };
   }
 
+  if (!isComponentType(row.type)) return null;
+
+  return readComponent({ name: row.name, type: row.type, data: row.data });
+};
+
+export const parseMedsCatalogResponse = (value: unknown): MedsCatalogResponse | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const source = value as { drugs?: unknown };
+  if (!Array.isArray(source.drugs)) return null;
+
+  const drugs = source.drugs.map(readEntry);
+  if (drugs.some((drug) => drug === null)) return null;
+
   return {
-    name: row.name,
-    type: row.type,
-    data: row.data.flatMap((group) => {
-      const record = readGroup(group);
-      return record ? [record] : [];
-    }),
+    drugs: drugs as MedsCatalogEntry[],
+    interactions: null,
   };
 };
 
-const readCatalog = (value: unknown): MedsCatalogResponse => {
-  const source = value && typeof value === "object" ? (value as { drugs?: unknown }) : {};
-  const drugs = Array.isArray(source.drugs)
-    ? source.drugs.flatMap((drug) => {
-        const record = readDrug(drug);
-        return record ? [record] : [];
-      })
-    : [];
-
-  return { drugs, interactions: null };
-};
-
-const mockCatalog = readCatalog(rawCatalog);
+const sourceCatalog = parseMedsCatalogResponse(rawCatalog) ?? EMPTY_MEDS_CATALOG;
 
 /** Пробелы схлопываются, сравнение без учёта регистра. Состав названия не угадывается. */
 export const normalizeMedsName = (value: string) =>
@@ -130,15 +165,20 @@ const clearIncompatible = (
   return "";
 };
 
-const itemsOf = (drug: MedsCatalogDrug | null) =>
-  drug ? drug.data.flatMap((group) => group.items) : [];
+const itemsOf = (drug: MedsCatalogEntry | null) => {
+  if (!drug || drug.type === "combination") return [];
 
-const groupByInn = (drug: MedsCatalogDrug, inn: string) =>
-  drug.data.find((group) => sameName(group.name, inn)) ?? null;
+  return drug.data.flatMap((group) => group.items);
+};
+
+const groupByInn = (
+  drug: Extract<MedsCatalogEntry, { type: "group" }>,
+  inn: string,
+) => drug.data.find((group) => sameName(group.name, inn)) ?? null;
 
 /** Записи выбранного МНН и, если торговое есть в каталоге, только этого торгового имени. */
-const scopeItems = (drug: MedsCatalogDrug | null, inn: string, trade: string) => {
-  if (!drug || drug.type === "other") return [];
+const scopeItems = (drug: MedsCatalogEntry | null, inn: string, trade: string) => {
+  if (!drug || drug.type === "other" || drug.type === "combination") return [];
 
   const items =
     drug.type === "group"
@@ -169,29 +209,69 @@ const fieldValues = (
   field: "standard_dose" | "standard_form" | "name_trade",
 ) => uniqueNames(items.map((item) => item[field]));
 
+const otherEntry = (name: string): MedsCatalogEntry => ({
+  name,
+  type: "other",
+  data: [
+    {
+      name,
+      items: [
+        {
+          standard_MNN: name,
+          SMNN_code: "",
+          standard_form: "",
+          standard_dose: "",
+          name_trade: "",
+          code_ATC: "",
+          name_unit: "",
+        },
+      ],
+    },
+  ],
+});
+
+const withRequestName = (entry: MedsCatalogEntry, name: string): MedsCatalogEntry => {
+  if (entry.type === "combination") {
+    return {
+      name,
+      type: "combination",
+      combination_data: structuredClone(entry.combination_data),
+    };
+  }
+
+  if (entry.type === "drug") {
+    return { name, type: "drug", data: structuredClone(entry.data) };
+  }
+
+  if (entry.type === "group") {
+    return { name, type: "group", data: structuredClone(entry.data) };
+  }
+
+  return { name, type: "other", data: structuredClone(entry.data) };
+};
+
+const findSourceEntry = (name: string) =>
+  sourceCatalog.drugs.find((drug) => sameName(drug.name, name)) ?? null;
+
+/**
+ * Синхронная имитация `POST /meds/resolve`.
+ * Пустой массив даёт пустой ответ. Порядок, число и повторы строк сохраняются.
+ */
 export const readMedsCatalog = (names: readonly string[] = []): MedsCatalogResponse => {
-  if (names.length === 0) return mockCatalog;
+  if (names.length === 0) return EMPTY_MEDS_CATALOG;
 
-  const seen = new Set<string>();
-  const drugs: MedsCatalogDrug[] = [];
-
-  names.forEach((name) => {
-    const drug = matchMedsDrug(mockCatalog, name);
-    if (!drug) return;
-
-    const key = normalizeMedsName(drug.name);
-    if (seen.has(key)) return;
-
-    seen.add(key);
-    drugs.push(drug);
-  });
-
-  return { drugs, interactions: null };
+  return {
+    drugs: names.map((name) => {
+      const found = findSourceEntry(name);
+      return found ? withRequestName(found, name) : otherEntry(name);
+    }),
+    interactions: null,
+  };
 };
 
 /**
  * Единая точка получения справочника.
- * Сейчас сразу отдаёт локальный JSON. Позже здесь будет запрос к API.
+ * Сейчас сразу отдаёт локальный JSON. Позже здесь будет `POST /meds/resolve`.
  */
 export const resolveMeds = (names: readonly string[] = []): Promise<MedsCatalogResponse> =>
   Promise.resolve(readMedsCatalog(names));
@@ -206,6 +286,25 @@ export const matchMedsDrug = (
   return catalog.drugs.find((drug) => sameName(drug.name, prescriptionName)) ?? null;
 };
 
+/** Связывает строку назначения с ответом по позиции запроса, а не только по названию. */
+export const matchMedsDrugForItem = (
+  catalog: MedsCatalogResponse,
+  query: { ids: readonly string[]; names: readonly string[] } | null,
+  item: { id: string; title: string; sourceIds?: readonly string[] },
+): MedsCatalogDrug | null => {
+  if (
+    query &&
+    query.ids.length === catalog.drugs.length &&
+    query.names.length === catalog.drugs.length
+  ) {
+    const wanted = new Set([item.id, ...(item.sourceIds ?? [])]);
+    const index = query.ids.findIndex((id) => wanted.has(id));
+    if (index >= 0) return catalog.drugs[index] ?? null;
+  }
+
+  return matchMedsDrug(catalog, item.title);
+};
+
 export const listMedsInns = (drug: MedsCatalogDrug | null) => {
   if (!drug || drug.type !== "group") return [];
 
@@ -213,7 +312,7 @@ export const listMedsInns = (drug: MedsCatalogDrug | null) => {
 };
 
 export const listMedsTrades = (drug: MedsCatalogDrug | null, inn: string) => {
-  if (!drug || drug.type === "other") return [];
+  if (!drug || drug.type === "other" || drug.type === "combination") return [];
 
   if (drug.type === "group") {
     if (!inn.trim()) return [];
@@ -246,7 +345,7 @@ const resolveRecordId = (
   drug: MedsCatalogDrug | null,
   selection: Pick<MedsRowSelection, "inn" | "trade" | "dose" | "form">,
 ) => {
-  if (!drug || drug.type === "other") return "";
+  if (!drug || drug.type === "other" || drug.type === "combination") return "";
   if (!selection.trade.trim() || !selection.dose.trim() || !selection.form.trim()) return "";
 
   const pool = drug.type === "group" ? (groupByInn(drug, selection.inn)?.items ?? []) : itemsOf(drug);
@@ -262,7 +361,10 @@ const resolveRecordId = (
   return matched[0].SMNN_code.trim();
 };
 
-const catalogInnForTrade = (drug: MedsCatalogDrug, trade: string) =>
+const catalogInnForTrade = (
+  drug: Extract<MedsCatalogEntry, { type: "drug" }>,
+  trade: string,
+) =>
   drug.data.find((group) => group.items.some((item) => sameName(item.name_trade, trade)))?.name ??
   "";
 
@@ -278,7 +380,7 @@ export const applyMedsSelection = (
   let dose = patch.dose ?? current.dose;
   let form = patch.form ?? current.form;
 
-  if (!drug || drug.type === "other") {
+  if (!drug || drug.type === "other" || drug.type === "combination") {
     return { inn, trade, dose, form, recordId: "" };
   }
 

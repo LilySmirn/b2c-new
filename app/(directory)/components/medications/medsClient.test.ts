@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import sourceCatalog from "../../../../design/cart/meds-mock-cart-v4-contract.json";
 import {
   applyMedsSelection,
   buildMedsRowView,
@@ -8,13 +9,15 @@ import {
   listMedsInns,
   listMedsTrades,
   matchMedsDrug,
+  matchMedsDrugForItem,
   normalizeMedsName,
   readMedsCatalog,
   resolveMeds,
 } from "./medsClient";
 import { EMPTY_MEDS_SELECTION, type MedsCatalogDrug, type MedsRowSelection } from "./medsCatalogTypes";
 
-const catalog = readMedsCatalog();
+const sourceNames = sourceCatalog.drugs.map((drug) => drug.name);
+const catalog = readMedsCatalog(sourceNames);
 const drug = (name: string) => {
   const found = matchMedsDrug(catalog, name);
   assert.ok(found, name);
@@ -35,15 +38,47 @@ describe("meds catalog mock", () => {
     assert.equal(matchMedsDrug(catalog, "Ромашка"), null);
   });
 
-  it("сохраняет порядок запроса и не выдумывает отсутствующие препараты", async () => {
+  it("сохраняет порядок, повторы и отвечает other на неизвестное название", async () => {
     const resolved = await resolveMeds(["Левофлоксацин", "Нет такого", "Ребамипид", "Ребамипид"]);
 
     assert.deepEqual(
       resolved.drugs.map((item) => item.name),
-      ["Левофлоксацин", "Ребамипид"],
+      ["Левофлоксацин", "Нет такого", "Ребамипид", "Ребамипид"],
     );
+    assert.equal(resolved.drugs[1]?.type, "other");
     assert.equal(resolved.interactions, null);
-    assert.equal(catalog.drugs.length, 13);
+    assert.notEqual(resolved.drugs[2], resolved.drugs[3]);
+    assert.equal(sourceNames.length, 14);
+    assert.equal(catalog.drugs.length, 14);
+
+    if (resolved.drugs[1]?.type !== "other") return;
+
+    const item = resolved.drugs[1].data[0]?.items[0];
+    assert.equal(item?.standard_MNN, "Нет такого");
+    assert.equal(item?.SMNN_code, "");
+    assert.equal(item?.standard_form, "");
+    assert.equal(item?.standard_dose, "");
+    assert.equal(item?.name_trade, "");
+    assert.equal(item?.code_ATC, "");
+    assert.equal(item?.name_unit, "");
+  });
+
+  it("на пустой массив возвращает пустой ответ", async () => {
+    assert.deepEqual(await resolveMeds([]), { drugs: [], interactions: null });
+    assert.deepEqual(readMedsCatalog(), { drugs: [], interactions: null });
+  });
+
+  it("отдаёт записи v4 в порядке запроса и не подменяет имя строки", async () => {
+    const resolved = await resolveMeds(sourceNames);
+
+    resolved.drugs.forEach((drug, index) => {
+      assert.equal(drug.name, sourceNames[index]);
+      assert.equal(drug.type, sourceCatalog.drugs[index]?.type);
+    });
+
+    const spaced = await resolveMeds(["  Кларитромицин  "]);
+    assert.equal(spaced.drugs[0]?.name, "  Кларитромицин  ");
+    assert.equal(spaced.drugs[0]?.type, "drug");
   });
 
   it("для обычного препарата даёт торговые имена, дозы и формы без автовыбора", () => {
@@ -157,6 +192,12 @@ describe("meds catalog mock", () => {
       assert.deepEqual(view.doseOptions, []);
       assert.deepEqual(view.formOptions, []);
       assert.deepEqual(listMedsTrades(entry, entry.name), []);
+      if (entry.type !== "other") continue;
+      const item = entry.data[0]?.items[0];
+      assert.equal(item?.name_trade, "");
+      assert.equal(item?.standard_dose, "");
+      assert.equal(item?.standard_form, "");
+      assert.equal(item?.SMNN_code, "");
     }
   });
 
@@ -228,5 +269,49 @@ describe("meds catalog mock", () => {
       form: "ТАБЛЕТКИ",
     }), {});
     assert.equal(fromMock.recordId, "");
+  });
+
+  it("читает combination_data и не превращает комбинацию в один препарат", () => {
+    const combo = drug("Омепразол + фактор VIII + Ромашка");
+    assert.equal(combo.type, "combination");
+    assert.equal("data" in combo, false);
+    if (combo.type !== "combination") return;
+
+    assert.deepEqual(
+      combo.combination_data.map((item) => item.type),
+      ["drug", "group", "other"],
+    );
+    assert.equal(combo.combination_data[0]?.data[0]?.items[0]?.name_trade, "Омепразол");
+    assert.equal(combo.combination_data[1]?.type, "group");
+    assert.equal(combo.combination_data[1]?.data[0]?.name, "ОКТОКОГ АЛЬФА");
+    assert.equal(combo.combination_data[2]?.data[0]?.items[0]?.name_trade, "");
+    assert.equal(combo.combination_data[2]?.data[0]?.items[0]?.standard_dose, "");
+    assert.equal(combo.combination_data[2]?.data[0]?.items[0]?.SMNN_code, "");
+
+    const view = buildMedsRowView(combo, EMPTY_MEDS_SELECTION);
+    assert.equal(view.nameMenu, null);
+    assert.deepEqual(view.doseOptions, []);
+    assert.deepEqual(view.formOptions, []);
+
+    const manual = applyMedsSelection(combo, EMPTY_MEDS_SELECTION, { dose: "5 мг", form: "капли" });
+    assert.equal(manual.dose, "5 мг");
+    assert.equal(manual.form, "капли");
+    assert.equal(manual.recordId, "");
+  });
+
+  it("связывает повтор с нужной позицией ответа, а не с первым таким названием", () => {
+    const resolved = readMedsCatalog(["Ребамипид", "Кларитромицин", "Ребамипид"]);
+    const second = matchMedsDrugForItem(
+      resolved,
+      {
+        ids: ["row-1", "row-2", "row-3"],
+        names: ["Ребамипид", "Кларитромицин", "Ребамипид"],
+      },
+      { id: "row-3", title: "Ребамипид", sourceIds: ["row-3"] },
+    );
+
+    assert.equal(second, resolved.drugs[2]);
+    assert.equal(second?.type, "drug");
+    assert.notEqual(second, resolved.drugs[0]);
   });
 });

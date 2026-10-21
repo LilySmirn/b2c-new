@@ -1,43 +1,62 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { readMedsCatalog, resolveMeds } from "./medsClient";
-import type { MedsCatalogResponse } from "./medsCatalogTypes";
+import { useEffect, useState } from "react";
+import { medsCatalogSession, type MedsCatalogSessionEntry } from "./medsCatalogSession";
+import { EMPTY_MEDS_CATALOG, type MedsCatalogResponse } from "./medsCatalogTypes";
 
-const namesFromKey = (namesKey: string) => (namesKey ? namesKey.split("\u0000") : []);
+export type MedsCatalogView = {
+  catalog: MedsCatalogResponse;
+  query: { ids: readonly string[]; names: readonly string[] } | null;
+  status: "idle" | "loading" | "ready" | "error";
+};
+
+const IDLE_VIEW: MedsCatalogView = {
+  catalog: EMPTY_MEDS_CATALOG,
+  query: null,
+  status: "idle",
+};
+
+const viewFromEntry = (
+  recommendationKey: string,
+  entry: MedsCatalogSessionEntry | null,
+): MedsCatalogView => {
+  if (!entry || entry.recommendationKey !== recommendationKey) return IDLE_VIEW;
+
+  if (entry.status !== "ready" || !entry.catalog) {
+    return {
+      catalog: EMPTY_MEDS_CATALOG,
+      query: null,
+      status: entry.status,
+    };
+  }
+
+  return {
+    catalog: entry.catalog,
+    query: { ids: entry.ids, names: entry.names },
+    status: "ready",
+  };
+};
 
 /**
- * Загружает справочник для текущих названий назначений.
- * Пока `resolveMeds` читает JSON, список доступен на первом рендере.
- * Ответ сети, когда он появится, заменяет этот снимок, не очищая черновики строк.
+ * Читает справочник, который уже запрошен при выборе рекомендации.
+ * Сам запрос не отправляет: вкладка, попап и повторный рендер его не запускают.
  */
-export function useMedsCatalog(namesKey: string) {
-  const synced = useMemo(() => readMedsCatalog(namesFromKey(namesKey)), [namesKey]);
-  const [remote, setRemote] = useState<MedsCatalogResponse | null>(null);
-  const [remoteKey, setRemoteKey] = useState<string | null>(null);
+export function useMedsCatalog(recommendationKey: string): MedsCatalogView {
+  const [entry, setEntry] = useState<MedsCatalogSessionEntry | null>(() =>
+    recommendationKey ? medsCatalogSession.read(recommendationKey) : null,
+  );
 
   useEffect(() => {
-    let active = true;
+    if (!recommendationKey) {
+      setEntry(null);
+      return;
+    }
 
-    resolveMeds(namesFromKey(namesKey)).then(
-      (catalog) => {
-        if (!active) return;
+    const publish = () => setEntry(medsCatalogSession.read(recommendationKey));
+    publish();
 
-        setRemote(catalog);
-        setRemoteKey(namesKey);
-      },
-      () => {
-        if (!active) return;
+    return medsCatalogSession.subscribe(publish);
+  }, [recommendationKey]);
 
-        setRemote(null);
-        setRemoteKey(null);
-      },
-    );
-
-    return () => {
-      active = false;
-    };
-  }, [namesKey]);
-
-  return remoteKey === namesKey && remote ? remote : synced;
+  return viewFromEntry(recommendationKey, entry);
 }

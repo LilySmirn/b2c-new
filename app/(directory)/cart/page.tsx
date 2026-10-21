@@ -15,6 +15,8 @@ import {
   sendOpeningEvent,
   type CartVisit,
 } from "@/app/modules/clinicalRecommendationOpening/client";
+import { collectMedicationQuery } from "../components/medications/medicationQuery";
+import { medsCatalogSession } from "../components/medications/medsCatalogSession";
 
 type StoredCartRecommendation = {
   diagnosisTitle?: string;
@@ -226,6 +228,12 @@ export default function CartPreviewPage() {
       isRestoringStoredSelectionsRef.current = true;
       setRecommendationKey(currentRecommendationKey);
 
+      const prescriptions = parsed.recommendation?.prescriptions;
+      if (currentRecommendationKey && Array.isArray(prescriptions)) {
+        const query = collectMedicationQuery(prescriptions);
+        medsCatalogSession.ensure(currentRecommendationKey, query.names, query.ids);
+      }
+
       const crMId = parsed.recommendation?.id?.trim();
       if (crMId) {
         setIsAppendixA3Loading(true);
@@ -333,6 +341,7 @@ export default function CartPreviewPage() {
           appendixA3Tables={appendixA3Tables}
           isAppendixA3Loading={isAppendixA3Loading}
           appendixA3Error={appendixA3Error}
+          medsRecommendationKey={recommendationKey}
         />
         <SideCart
           selectedItems={selectedItems}

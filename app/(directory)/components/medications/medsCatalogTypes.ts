@@ -1,10 +1,12 @@
 /**
- * Контракт справочника препаратов из `design/cart/API-meds.md`.
- * Сейчас данные читает `medsClient.ts` из локального JSON.
- * В этом ответе нет КК, уровня рекомендаций, описания, схемы и курса.
+ * Контракт справочника препаратов из `design/cart/API-meds (1).md`.
+ * Ответ читает `medsClient.ts`. В нём нет КК, уровня рекомендаций,
+ * описания, схемы и курса.
  */
 
-export type MedsCatalogItemType = "drug" | "group" | "other";
+export type MedsCatalogComponentType = "drug" | "group" | "other";
+
+export type MedsCatalogItemType = MedsCatalogComponentType | "combination";
 
 export type MedsCatalogItemRecord = {
   standard_MNN: string;
@@ -21,14 +23,50 @@ export type MedsCatalogInnGroup = {
   items: MedsCatalogItemRecord[];
 };
 
-export type MedsCatalogDrug = {
-  name: string;
-  type: MedsCatalogItemType;
-  data: MedsCatalogInnGroup[];
-};
+/** Вложенный компонент комбинации. Сам тип `combination` сюда не входит. */
+export type MedsCatalogComponent =
+  | {
+      name: string;
+      type: "drug";
+      data: MedsCatalogInnGroup[];
+    }
+  | {
+      name: string;
+      type: "group";
+      data: MedsCatalogInnGroup[];
+    }
+  | {
+      name: string;
+      type: "other";
+      data: MedsCatalogInnGroup[];
+    };
+
+export type MedsCatalogEntry =
+  | {
+      name: string;
+      type: "drug";
+      data: MedsCatalogInnGroup[];
+    }
+  | {
+      name: string;
+      type: "group";
+      data: MedsCatalogInnGroup[];
+    }
+  | {
+      name: string;
+      type: "other";
+      data: MedsCatalogInnGroup[];
+    }
+  | {
+      name: string;
+      type: "combination";
+      combination_data: MedsCatalogComponent[];
+    };
+
+export type MedsCatalogDrug = MedsCatalogEntry;
 
 export type MedsCatalogResponse = {
-  drugs: MedsCatalogDrug[];
+  drugs: MedsCatalogEntry[];
   interactions: null;
 };
 
@@ -73,6 +111,11 @@ export const EMPTY_MEDS_SELECTION: MedsRowSelection = {
   dose: "",
   form: "",
   recordId: "",
+};
+
+export const EMPTY_MEDS_CATALOG: MedsCatalogResponse = {
+  drugs: [],
+  interactions: null,
 };
 
 const uniqueValues = (values: readonly string[]) =>

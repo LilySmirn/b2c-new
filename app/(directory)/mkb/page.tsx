@@ -21,6 +21,8 @@ import { beginCartVisit } from "@/app/modules/clinicalRecommendationOpening/clie
 import { handleInvalidB2cSession } from "@/app/lib/handleInvalidB2cSession";
 import { readSearchState, writeSearchState } from "@/app/lib/searchStateStorage";
 import { normalizeMkbSearchInput } from "@/app/lib/normalizeMkbSearchInput";
+import { collectMedicationQuery } from "../components/medications/medicationQuery";
+import { medsCatalogSession } from "../components/medications/medsCatalogSession";
 
 type MkbSearchResult = {
   code: string;
@@ -168,6 +170,32 @@ const getCartRecommendationKey = (
   [diagnosisTitle, card.id, card.title, card.mkbCodes.join(",")]
     .filter(Boolean)
     .join("|");
+
+const storeSelectedRecommendation = (
+  diagnosisTitle: string,
+  card: RecommendationStandard,
+) => {
+  const recommendationKey = getCartRecommendationKey(diagnosisTitle, card);
+  const query = collectMedicationQuery(card.prescriptions);
+  medsCatalogSession.begin(recommendationKey, query.names, query.ids);
+
+  const serializedCartRecommendation = JSON.stringify({
+    diagnosisTitle,
+    recommendationKey,
+    recommendation: card,
+  });
+
+  window.sessionStorage.setItem(
+    CART_RECOMMENDATION_STORAGE_KEY,
+    serializedCartRecommendation,
+  );
+  window.localStorage.setItem(
+    CART_RECOMMENDATION_STORAGE_KEY,
+    serializedCartRecommendation,
+  );
+
+  return recommendationKey;
+};
 
     const isVisitType = (value: unknown): value is VisitType =>
   typeof value === "string" && visitOptions.some((option) => option.id === value);
@@ -642,22 +670,8 @@ export default function SearchPreviewPage() {
       }
 
       const diagnosisTitle = getBookmarkDiagnosisTitle(bookmark, selectedCard.title);
-
-      const serializedCartRecommendation = JSON.stringify({
-        diagnosisTitle,
-        recommendationKey: getCartRecommendationKey(diagnosisTitle, selectedCard),
-        recommendation: selectedCard,
-      });
-
-      window.sessionStorage.setItem(
-        CART_RECOMMENDATION_STORAGE_KEY,
-        serializedCartRecommendation,
-      );
-      window.localStorage.setItem(
-        CART_RECOMMENDATION_STORAGE_KEY,
-        serializedCartRecommendation,
-      );
-      await beginCartVisit(getCartRecommendationKey(diagnosisTitle, selectedCard));
+      const recommendationKey = storeSelectedRecommendation(diagnosisTitle, selectedCard);
+      await beginCartVisit(recommendationKey);
       router.push("/cart");
     } catch (error) {
       setCardsError("Не удалось открыть закладку. Попробуйте позже.");
@@ -677,22 +691,9 @@ export default function SearchPreviewPage() {
       mkbData,
     });
 
-    const serializedCartRecommendation = JSON.stringify({
-      diagnosisTitle,
-      recommendationKey: getCartRecommendationKey(diagnosisTitle, card),
-      recommendation: card,
-    });
-
-    window.sessionStorage.setItem(
-      CART_RECOMMENDATION_STORAGE_KEY,
-      serializedCartRecommendation,
-    );
-    window.localStorage.setItem(
-      CART_RECOMMENDATION_STORAGE_KEY,
-      serializedCartRecommendation,
-    );
+    const recommendationKey = storeSelectedRecommendation(diagnosisTitle, card);
     try {
-      await beginCartVisit(getCartRecommendationKey(diagnosisTitle, card));
+      await beginCartVisit(recommendationKey);
     } catch {
       setCardsError("Не удалось открыть рекомендацию. Попробуйте позже.");
       return;

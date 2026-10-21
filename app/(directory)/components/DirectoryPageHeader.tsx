@@ -8,6 +8,7 @@ import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
 import SubscriptionExpirationWarning from '@/app/(directory)/components/SubscriptionExpirationWarning';
 import { logout } from '@/app/lib/logout';
+import { medsCatalogSession } from './medications/medsCatalogSession';
 import { getSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
@@ -88,6 +89,7 @@ const clearCartState = () => {
     window.sessionStorage.removeItem(storageKey);
     window.localStorage.removeItem(storageKey);
   });
+  medsCatalogSession.clear();
 };
 
 export default function DirectoryPageHeader({

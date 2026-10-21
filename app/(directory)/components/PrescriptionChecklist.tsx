@@ -7,7 +7,7 @@ import DrugInfoModal, {
 } from "./medications/DrugInfoModal";
 import DrugRow, { type MedicationField } from "./medications/DrugRow";
 import InteractionsPanel from "./medications/InteractionsPanel";
-import { applyMedsSelection, buildMedsRowView, matchMedsDrug } from "./medications/medsClient";
+import { applyMedsSelection, buildMedsRowView, matchMedsDrugForItem } from "./medications/medsClient";
 import type { MedsRowSelection } from "./medications/medsCatalogTypes";
 import medicationStyles from "./medications/medications.module.css";
 import { useMedsCatalog } from "./medications/useMedsCatalog";
@@ -248,6 +248,7 @@ type PrescriptionChecklistProps = {
   appendixA3Tables?: AppendixA3Table[];
   isAppendixA3Loading?: boolean;
   appendixA3Error?: string;
+  medsRecommendationKey?: string;
 };
 
 export default function PrescriptionChecklist({
@@ -260,6 +261,7 @@ export default function PrescriptionChecklist({
   appendixA3Tables = [],
   isAppendixA3Loading = false,
   appendixA3Error = "",
+  medsRecommendationKey = "",
 }: PrescriptionChecklistProps) {
   const [sections, setSections] = useState(() =>
     mergeChecklistSectionsByTitle(initialSections),
@@ -318,12 +320,9 @@ export default function PrescriptionChecklist({
   const [medicationIntake, setMedicationIntake] = useState<
     Record<string, MedicationIntake>
   >({});
-  const medicationCatalogKey = sections
-    .flatMap((section) =>
-      section.categoryId === "medications" ? section.items.map((item) => item.title) : [],
-    )
-    .join("\u0000");
-  const medsCatalog = useMedsCatalog(medicationCatalogKey);
+  const medsCatalogState = useMedsCatalog(medsRecommendationKey);
+  const drugForItem = (item: ChecklistItem) =>
+    matchMedsDrugForItem(medsCatalogState.catalog, medsCatalogState.query, item);
 
   const toggleChecked = (id: string) => {
     setSections((prev) =>
@@ -521,7 +520,7 @@ export default function PrescriptionChecklist({
     item: ChecklistItem,
     patch: Partial<Pick<MedsRowSelection, "inn" | "trade" | "dose" | "form">>,
   ) => {
-    const drug = matchMedsDrug(medsCatalog, item.title);
+    const drug = drugForItem(item);
 
     setMedicationDrafts((current) => {
       const draft = current[item.id] ?? {};
@@ -655,7 +654,7 @@ export default function PrescriptionChecklist({
       liveInfoItem)
     : null;
   const liveMedsView = liveInfoItem
-    ? buildMedsRowView(matchMedsDrug(medsCatalog, liveInfoItem.title), readMedsSelection(liveInfoItem))
+    ? buildMedsRowView(drugForItem(liveInfoItem), readMedsSelection(liveInfoItem))
     : null;
 
   const closeMedicationInfo = () => {
@@ -778,10 +777,7 @@ export default function PrescriptionChecklist({
               {section.items.map((item) => {
                 const medsView =
                   activeCategoryId === "medications"
-                    ? buildMedsRowView(
-                        matchMedsDrug(medsCatalog, item.title),
-                        readMedsSelection(item),
-                      )
+                    ? buildMedsRowView(drugForItem(item), readMedsSelection(item))
                     : null;
 
                 return activeCategoryId === "medications" && medsView ? (
