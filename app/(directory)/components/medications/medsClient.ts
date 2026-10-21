@@ -4,13 +4,13 @@
  * Единая точка — `resolveMeds`. Сейчас она локально имитирует
  * `POST /meds/resolve`: тело запроса — массив строк, ответ —
  * `{ drugs, interactions: null }` по `design/cart/API-meds (1).md`.
- * Записи берутся из `design/cart/meds-mock-cart-v4-contract.json`.
+ * Записи берутся из `design/cart/meds-mock-cart-v5.json`.
  *
  * Чтобы подключить реальный API, замените тело `resolveMeds` на HTTP-запрос
  * с тем же телом и тем же типом ответа. Таблицу и попап менять не нужно.
  */
 
-import rawCatalog from "../../../../design/cart/meds-mock-cart-v4-contract.json";
+import rawCatalog from "../../../../design/cart/meds-mock-cart-v5.json";
 import {
   EMPTY_MEDS_CATALOG,
   EMPTY_MEDS_SELECTION,

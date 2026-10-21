@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import sourceCatalog from "../../../../design/cart/meds-mock-cart-v4-contract.json";
+import sourceCatalog from "../../../../design/cart/meds-mock-cart-v5.json";
 import {
   applyMedsSelection,
   buildMedsRowView,
@@ -68,7 +68,7 @@ describe("meds catalog mock", () => {
     assert.deepEqual(readMedsCatalog(), { drugs: [], interactions: null });
   });
 
-  it("отдаёт записи v4 в порядке запроса и не подменяет имя строки", async () => {
+  it("отдаёт записи мока в порядке запроса и не подменяет имя строки", async () => {
     const resolved = await resolveMeds(sourceNames);
 
     resolved.drugs.forEach((drug, index) => {
@@ -180,7 +180,6 @@ describe("meds catalog mock", () => {
 
   it("не показывает торговые имена для type other", () => {
     for (const name of [
-      "Стандартная тройная терапия",
       "Водорастворимый контрастный препарат (V08A Рентгеноконтрастные средства, содержащие йод)",
       "Штаммоспецифические пробиотики",
     ]) {

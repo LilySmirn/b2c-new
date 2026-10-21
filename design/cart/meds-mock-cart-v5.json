@@ -1,0 +1,667 @@
+{
+  "drugs": [
+    {
+      "name": "Водорастворимый контрастный препарат (V08A Рентгеноконтрастные средства, содержащие йод)",
+      "type": "other",
+      "data": [
+        {
+          "name": "Водорастворимый контрастный препарат (V08A Рентгеноконтрастные средства, содержащие йод)",
+          "items": [
+            {
+              "standard_MNN": "Водорастворимый контрастный препарат (V08A Рентгеноконтрастные средства, содержащие йод)",
+              "SMNN_code": "",
+              "standard_form": "",
+              "standard_dose": "",
+              "name_trade": "",
+              "code_ATC": "",
+              "name_unit": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ингибиторы протонного насоса",
+      "type": "group",
+      "data": [
+        {
+          "name": "ОМЕПРАЗОЛ",
+          "items": [
+            {
+              "standard_MNN": "ОМЕПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "КАПСУЛЫ",
+              "standard_dose": "20 мг",
+              "name_trade": "Омез",
+              "code_ATC": "A02BC01",
+              "name_unit": "капсула"
+            },
+            {
+              "standard_MNN": "ОМЕПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "КАПСУЛЫ",
+              "standard_dose": "40 мг",
+              "name_trade": "Омепразол",
+              "code_ATC": "A02BC01",
+              "name_unit": "капсула"
+            }
+          ]
+        },
+        {
+          "name": "ПАНТОПРАЗОЛ",
+          "items": [
+            {
+              "standard_MNN": "ПАНТОПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "20 мг",
+              "name_trade": "Контролок",
+              "code_ATC": "A02BC02",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ПАНТОПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "40 мг",
+              "name_trade": "Контролок",
+              "code_ATC": "A02BC02",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ПАНТОПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "40 мг",
+              "name_trade": "Нольпаза",
+              "code_ATC": "A02BC02",
+              "name_unit": "таблетка"
+            }
+          ]
+        },
+        {
+          "name": "ЭЗОМЕПРАЗОЛ",
+          "items": [
+            {
+              "standard_MNN": "ЭЗОМЕПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "20 мг",
+              "name_trade": "Нексиум",
+              "code_ATC": "A02BC05",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ЭЗОМЕПРАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "40 мг",
+              "name_trade": "Нексиум",
+              "code_ATC": "A02BC05",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Блокаторы H2-гистаминовых рецепторов",
+      "type": "group",
+      "data": [
+        {
+          "name": "ФАМОТИДИН",
+          "items": [
+            {
+              "standard_MNN": "ФАМОТИДИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "20 мг",
+              "name_trade": "Квамател",
+              "code_ATC": "A02BA03",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ФАМОТИДИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "40 мг",
+              "name_trade": "Квамател",
+              "code_ATC": "A02BA03",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ФАМОТИДИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "20 мг",
+              "name_trade": "Фамотидин",
+              "code_ATC": "A02BA03",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ребамипид",
+      "type": "drug",
+      "data": [
+        {
+          "name": "РЕБАМИПИД",
+          "items": [
+            {
+              "standard_MNN": "РЕБАМИПИД",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "100 мг",
+              "name_trade": "Ребагит",
+              "code_ATC": "A02BX",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "РЕБАМИПИД",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "100 мг",
+              "name_trade": "Ребамипид",
+              "code_ATC": "A02BX",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Кларитромицин",
+      "type": "drug",
+      "data": [
+        {
+          "name": "КЛАРИТРОМИЦИН",
+          "items": [
+            {
+              "standard_MNN": "КЛАРИТРОМИЦИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "250 мг",
+              "name_trade": "Клацид",
+              "code_ATC": "J01FA09",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "КЛАРИТРОМИЦИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "500 мг",
+              "name_trade": "Клацид",
+              "code_ATC": "J01FA09",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "КЛАРИТРОМИЦИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "500 мг",
+              "name_trade": "Фромилид",
+              "code_ATC": "J01FA09",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Амоксициллин",
+      "type": "drug",
+      "data": [
+        {
+          "name": "АМОКСИЦИЛЛИН",
+          "items": [
+            {
+              "standard_MNN": "АМОКСИЦИЛЛИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+              "standard_dose": "500 мг",
+              "name_trade": "Флемоксин Солютаб",
+              "code_ATC": "J01CA04",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "АМОКСИЦИЛЛИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+              "standard_dose": "1000 мг",
+              "name_trade": "Флемоксин Солютаб",
+              "code_ATC": "J01CA04",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "АМОКСИЦИЛЛИН",
+              "SMNN_code": "",
+              "standard_form": "КАПСУЛЫ",
+              "standard_dose": "500 мг",
+              "name_trade": "Амоксициллин",
+              "code_ATC": "J01CA04",
+              "name_unit": "капсула"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Висмута трикалия дицитрат",
+      "type": "drug",
+      "data": [
+        {
+          "name": "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ",
+          "items": [
+            {
+              "standard_MNN": "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "120 мг",
+              "name_trade": "Де-Нол",
+              "code_ATC": "A02BX05",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "120 мг",
+              "name_trade": "Улькавис",
+              "code_ATC": "A02BX05",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Тетрациклин",
+      "type": "drug",
+      "data": [
+        {
+          "name": "ТЕТРАЦИКЛИН",
+          "items": [
+            {
+              "standard_MNN": "ТЕТРАЦИКЛИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "100 мг",
+              "name_trade": "Тетрациклин",
+              "code_ATC": "J01AA07",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ТЕТРАЦИКЛИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "250 мг",
+              "name_trade": "Тетрациклин",
+              "code_ATC": "J01AA07",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Метронидазол",
+      "type": "drug",
+      "data": [
+        {
+          "name": "МЕТРОНИДАЗОЛ",
+          "items": [
+            {
+              "standard_MNN": "МЕТРОНИДАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "250 мг",
+              "name_trade": "Трихопол",
+              "code_ATC": "J01XD01",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "МЕТРОНИДАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "250 мг",
+              "name_trade": "Метронидазол",
+              "code_ATC": "J01XD01",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "МЕТРОНИДАЗОЛ",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "500 мг",
+              "name_trade": "Метронидазол",
+              "code_ATC": "J01XD01",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Стандартная тройная терапия",
+      "type": "combination",
+      "combination_data": [
+        {
+          "name": "Ингибиторы протонного насоса",
+          "type": "group",
+          "data": [
+            {
+              "name": "ОМЕПРАЗОЛ",
+              "items": [
+                {
+                  "standard_MNN": "ОМЕПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "КАПСУЛЫ",
+                  "standard_dose": "20 мг",
+                  "name_trade": "Омез",
+                  "code_ATC": "A02BC01",
+                  "name_unit": "капсула"
+                },
+                {
+                  "standard_MNN": "ОМЕПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "КАПСУЛЫ",
+                  "standard_dose": "40 мг",
+                  "name_trade": "Омепразол",
+                  "code_ATC": "A02BC01",
+                  "name_unit": "капсула"
+                }
+              ]
+            },
+            {
+              "name": "ПАНТОПРАЗОЛ",
+              "items": [
+                {
+                  "standard_MNN": "ПАНТОПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "20 мг",
+                  "name_trade": "Контролок",
+                  "code_ATC": "A02BC02",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "ПАНТОПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "40 мг",
+                  "name_trade": "Контролок",
+                  "code_ATC": "A02BC02",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "ПАНТОПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "40 мг",
+                  "name_trade": "Нольпаза",
+                  "code_ATC": "A02BC02",
+                  "name_unit": "таблетка"
+                }
+              ]
+            },
+            {
+              "name": "ЭЗОМЕПРАЗОЛ",
+              "items": [
+                {
+                  "standard_MNN": "ЭЗОМЕПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "20 мг",
+                  "name_trade": "Нексиум",
+                  "code_ATC": "A02BC05",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "ЭЗОМЕПРАЗОЛ",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "40 мг",
+                  "name_trade": "Нексиум",
+                  "code_ATC": "A02BC05",
+                  "name_unit": "таблетка"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Амоксициллин",
+          "type": "drug",
+          "data": [
+            {
+              "name": "АМОКСИЦИЛЛИН",
+              "items": [
+                {
+                  "standard_MNN": "АМОКСИЦИЛЛИН",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+                  "standard_dose": "500 мг",
+                  "name_trade": "Флемоксин Солютаб",
+                  "code_ATC": "J01CA04",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "АМОКСИЦИЛЛИН",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+                  "standard_dose": "1000 мг",
+                  "name_trade": "Флемоксин Солютаб",
+                  "code_ATC": "J01CA04",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "АМОКСИЦИЛЛИН",
+                  "SMNN_code": "",
+                  "standard_form": "КАПСУЛЫ",
+                  "standard_dose": "500 мг",
+                  "name_trade": "Амоксициллин",
+                  "code_ATC": "J01CA04",
+                  "name_unit": "капсула"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Кларитромицин",
+          "type": "drug",
+          "data": [
+            {
+              "name": "КЛАРИТРОМИЦИН",
+              "items": [
+                {
+                  "standard_MNN": "КЛАРИТРОМИЦИН",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "250 мг",
+                  "name_trade": "Клацид",
+                  "code_ATC": "J01FA09",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "КЛАРИТРОМИЦИН",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "500 мг",
+                  "name_trade": "Клацид",
+                  "code_ATC": "J01FA09",
+                  "name_unit": "таблетка"
+                },
+                {
+                  "standard_MNN": "КЛАРИТРОМИЦИН",
+                  "SMNN_code": "",
+                  "standard_form": "ТАБЛЕТКИ",
+                  "standard_dose": "500 мг",
+                  "name_trade": "Фромилид",
+                  "code_ATC": "J01FA09",
+                  "name_unit": "таблетка"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Калий-конкурентный ингибитор протонной помпы",
+      "type": "group",
+      "data": [
+        {
+          "name": "ВОНOПРАЗАН",
+          "items": [
+            {
+              "standard_MNN": "ВОНOПРАЗАН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "10 мг",
+              "name_trade": "Тестовый бренд — вонопразан",
+              "code_ATC": "",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ВОНOПРАЗАН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "20 мг",
+              "name_trade": "Тестовый бренд — вонопразан",
+              "code_ATC": "",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Левофлоксацин",
+      "type": "drug",
+      "data": [
+        {
+          "name": "ЛЕВОФЛОКСАЦИН",
+          "items": [
+            {
+              "standard_MNN": "ЛЕВОФЛОКСАЦИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "250 мг",
+              "name_trade": "Таваник",
+              "code_ATC": "J01MA12",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ЛЕВОФЛОКСАЦИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "500 мг",
+              "name_trade": "Таваник",
+              "code_ATC": "J01MA12",
+              "name_unit": "таблетка"
+            },
+            {
+              "standard_MNN": "ЛЕВОФЛОКСАЦИН",
+              "SMNN_code": "",
+              "standard_form": "ТАБЛЕТКИ",
+              "standard_dose": "500 мг",
+              "name_trade": "Левофлоксацин",
+              "code_ATC": "J01MA12",
+              "name_unit": "таблетка"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Штаммоспецифические пробиотики",
+      "type": "other",
+      "data": [
+        {
+          "name": "Штаммоспецифические пробиотики",
+          "items": [
+            {
+              "standard_MNN": "Штаммоспецифические пробиотики",
+              "SMNN_code": "",
+              "standard_form": "",
+              "standard_dose": "",
+              "name_trade": "",
+              "code_ATC": "",
+              "name_unit": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Омепразол + фактор VIII + Ромашка",
+      "type": "combination",
+      "combination_data": [
+        {
+          "name": "ОМЕПРАЗОЛ",
+          "type": "drug",
+          "data": [
+            {
+              "name": "ОМЕПРАЗОЛ",
+              "items": [
+                {
+                  "standard_MNN": "ОМЕПРАЗОЛ",
+                  "SMNN_code": "21.20.10.112-000001-1-00122-0000000000000",
+                  "standard_form": "КАПСУЛЫ",
+                  "standard_dose": "20 мг",
+                  "name_trade": "Омепразол",
+                  "code_ATC": "A02BC01",
+                  "name_unit": "шт. (капсула)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Фактор свертывания крови VIII",
+          "type": "group",
+          "data": [
+            {
+              "name": "ОКТОКОГ АЛЬФА",
+              "items": [
+                {
+                  "standard_MNN": "ОКТОКОГ АЛЬФА",
+                  "SMNN_code": "21.20.10.132-000021-1-00016-0000000000000",
+                  "standard_form": "ЛИОФИЛИЗАТ ДЛЯ ПРИГОТОВЛЕНИЯ РАСТВОРА ДЛЯ ВНУТРИВЕННОГО ВВЕДЕНИЯ",
+                  "standard_dose": "500 МЕ",
+                  "name_trade": "Адвейт",
+                  "code_ATC": "B02BD02",
+                  "name_unit": "МЕ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ромашка",
+          "type": "other",
+          "data": [
+            {
+              "name": "Ромашка",
+              "items": [
+                {
+                  "standard_MNN": "Ромашка",
+                  "SMNN_code": "",
+                  "standard_form": "",
+                  "standard_dose": "",
+                  "name_trade": "",
+                  "code_ATC": "",
+                  "name_unit": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "interactions": null
+}

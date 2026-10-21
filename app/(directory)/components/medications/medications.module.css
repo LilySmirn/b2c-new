@@ -115,6 +115,10 @@
   color: #0b5fad;
 }
 
+.schemeSummary {
+  white-space: normal;
+}
+
 .chevron {
   width: 10px;
   height: 7px;
@@ -127,6 +131,7 @@
   flex-direction: column;
   gap: 6px;
   align-items: flex-start;
+  width: 100%;
   min-width: 0;
 }
 

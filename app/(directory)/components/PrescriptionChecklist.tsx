@@ -7,8 +7,15 @@ import DrugInfoModal, {
 } from "./medications/DrugInfoModal";
 import DrugRow, { type MedicationField } from "./medications/DrugRow";
 import InteractionsPanel from "./medications/InteractionsPanel";
+import SchemeWizard from "./medications/SchemeWizard";
+import {
+  combinationSelectionSummary,
+  sanitizeCombinationDraft,
+  type CombinationDraft,
+} from "./medications/combinationSelection";
+import { persistBrowserCombinationSelection, readBrowserCombinationSelections } from "./medications/combinationSelectionStorage";
 import { applyMedsSelection, buildMedsRowView, matchMedsDrugForItem } from "./medications/medsClient";
-import type { MedsRowSelection } from "./medications/medsCatalogTypes";
+import type { MedsCatalogComponent, MedsRowSelection } from "./medications/medsCatalogTypes";
 import medicationStyles from "./medications/medications.module.css";
 import { useMedsCatalog } from "./medications/useMedsCatalog";
 import styles from "./PrescriptionChecklist.module.css";
@@ -320,9 +327,23 @@ export default function PrescriptionChecklist({
   const [medicationIntake, setMedicationIntake] = useState<
     Record<string, MedicationIntake>
   >({});
+  const [combinationByItemId, setCombinationByItemId] = useState<
+    Record<string, CombinationDraft>
+  >({});
+  const [schemeSession, setSchemeSession] = useState<{
+    itemId: string;
+    title: string;
+    components: readonly MedsCatalogComponent[];
+    confirmed: CombinationDraft | null;
+  } | null>(null);
   const medsCatalogState = useMedsCatalog(medsRecommendationKey);
   const drugForItem = (item: ChecklistItem) =>
     matchMedsDrugForItem(medsCatalogState.catalog, medsCatalogState.query, item);
+
+  useEffect(() => {
+    setSchemeSession(null);
+    setCombinationByItemId(readBrowserCombinationSelections(medsRecommendationKey));
+  }, [medsRecommendationKey]);
 
   const toggleChecked = (id: string) => {
     setSections((prev) =>
@@ -610,6 +631,15 @@ export default function PrescriptionChecklist({
     });
   };
 
+  const confirmCombination = (itemId: string, draft: CombinationDraft) => {
+    setCombinationByItemId((current) => ({
+      ...current,
+      [itemId]: draft,
+    }));
+    persistBrowserCombinationSelection(medsRecommendationKey, itemId, draft);
+    setSchemeSession(null);
+  };
+
   const applyOriginalRecommendation = (item: ChecklistItem) => {
     const scheme = item.treatmentPlan ?? "";
     const course = item.treatmentDuration ?? "";
@@ -775,10 +805,17 @@ export default function PrescriptionChecklist({
               ) : null}
 
               {section.items.map((item) => {
+                const entry =
+                  activeCategoryId === "medications" ? drugForItem(item) : null;
                 const medsView =
                   activeCategoryId === "medications"
-                    ? buildMedsRowView(drugForItem(item), readMedsSelection(item))
+                    ? buildMedsRowView(entry, readMedsSelection(item))
                     : null;
+                const components =
+                  entry?.type === "combination" ? entry.combination_data : null;
+                const confirmedScheme = components
+                  ? sanitizeCombinationDraft(components, combinationByItemId[item.id])
+                  : null;
 
                 return activeCategoryId === "medications" && medsView ? (
                   <DrugRow
@@ -791,6 +828,24 @@ export default function PrescriptionChecklist({
                     doseOptions={medsView.doseOptions}
                     formOptions={medsView.formOptions}
                     nameMenu={medsView.nameMenu}
+                    schemeDrugCount={components?.length}
+                    schemeSummary={
+                      components
+                        ? combinationSelectionSummary(components, confirmedScheme)
+                        : ""
+                    }
+                    schemeOpen={schemeSession?.itemId === item.id}
+                    onOpenScheme={
+                      components
+                        ? () =>
+                            setSchemeSession({
+                              itemId: item.id,
+                              title: item.title,
+                              components,
+                              confirmed: confirmedScheme,
+                            })
+                        : undefined
+                    }
                     onToggle={toggleChecked}
                     onOpenInfo={openInfo}
                     onOpenComment={(id, comment) =>
@@ -887,6 +942,17 @@ export default function PrescriptionChecklist({
 
       {/* Временный режим: панель всегда видна на «Препаратах», без проверки совместимости. */}
       {activeCategoryId === "medications" ? <InteractionsPanel /> : null}
+
+      {schemeSession ? (
+        <SchemeWizard
+          key={schemeSession.itemId}
+          title={schemeSession.title}
+          components={schemeSession.components}
+          confirmed={schemeSession.confirmed}
+          onClose={() => setSchemeSession(null)}
+          onConfirm={(draft) => confirmCombination(schemeSession.itemId, draft)}
+        />
+      ) : null}
 
       {isMedicationInfo && liveInfoItem ? (
         <DrugInfoModal

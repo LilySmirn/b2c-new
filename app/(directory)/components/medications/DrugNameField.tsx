@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import CatalogPopover, { CatalogOption } from "./CatalogPopover";
 import popoverStyles from "./CatalogPopover.module.css";
+import { ruNoun, schemeBadgeText } from "./combinationSelection";
 import type { MedsNameMenu } from "./medsCatalogTypes";
 import styles from "./medications.module.css";
 
@@ -9,19 +10,12 @@ type DrugNameFieldProps = {
   checked: boolean;
   menu: MedsNameMenu | null;
   schemeDrugCount?: number;
+  schemeSummary?: string;
+  schemeOpen?: boolean;
+  onOpenScheme?: () => void;
   onToggle: () => void;
   onSelectInn: (inn: string) => void;
   onSelectTrade: (trade: string) => void;
-};
-
-const drugCountWord = (count: number) => {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-
-  if (mod10 === 1 && mod100 !== 11) return "препарат";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "препарата";
-
-  return "препаратов";
 };
 
 function Chevron() {
@@ -57,11 +51,15 @@ export default function DrugNameField({
   checked,
   menu,
   schemeDrugCount,
+  schemeSummary = "",
+  schemeOpen = false,
+  onOpenScheme,
   onToggle,
   onSelectInn,
   onSelectTrade,
 }: DrugNameFieldProps) {
   const isScheme = typeof schemeDrugCount === "number" && schemeDrugCount > 0;
+  const schemeCount = typeof schemeDrugCount === "number" ? schemeDrugCount : 0;
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"inn" | "trade">("inn");
@@ -91,6 +89,11 @@ export default function DrugNameField({
     setOpen(true);
   };
 
+  const openScheme = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onOpenScheme?.();
+  };
+
   if (!isScheme && !menu) {
     return (
       <div className={styles.nameSlot}>
@@ -112,22 +115,38 @@ export default function DrugNameField({
       ref={anchorRef}
       type="button"
       className={styles.nameButton}
-      aria-pressed={menu ? undefined : checked}
-      aria-haspopup={menu ? "listbox" : undefined}
-      aria-expanded={menu ? open : undefined}
-      aria-label={menu ? `Варианты названия: ${title}` : `Выбрать ${title}`}
-      title={menu ? `${title}. ${hint}` : title}
-      onClick={menu ? toggleMenu : toggleRow}
+      aria-pressed={isScheme || menu ? undefined : checked}
+      aria-haspopup={isScheme ? "dialog" : menu ? "listbox" : undefined}
+      aria-expanded={isScheme ? schemeOpen : menu ? open : undefined}
+      aria-label={
+        isScheme ? `Настроить схему: ${title}` : menu ? `Варианты названия: ${title}` : `Выбрать ${title}`
+      }
+      title={
+        isScheme
+          ? schemeSummary
+            ? `${title}. ${schemeSummary}`
+            : title
+          : menu
+            ? `${title}. ${hint}`
+            : title
+      }
+      onClick={isScheme ? openScheme : menu ? toggleMenu : toggleRow}
     >
       <span className={styles.nameText}>
         {title}
-        {menu ? (
+        {isScheme ? (
+          <span className={`${styles.nameSub} ${styles.schemeSummary} ${schemeSummary ? styles.nameSubSelected : ""}`}>
+            {schemeSummary ||
+              `Откройте и выберите ${schemeCount} ${ruNoun(
+                schemeCount,
+                "препарат",
+                "препарата",
+                "препаратов",
+              )}`}
+          </span>
+        ) : menu ? (
           <span className={`${styles.nameSub} ${hintSelected ? styles.nameSubSelected : ""}`}>
             {hint}
-          </span>
-        ) : isScheme ? (
-          <span className={styles.nameSub}>
-            {`Откройте и выберите ${schemeDrugCount} ${drugCountWord(schemeDrugCount)}`}
           </span>
         ) : null}
       </span>
@@ -136,7 +155,7 @@ export default function DrugNameField({
   );
 
   const menuLayer =
-    menu && open ? (
+    !isScheme && menu && open ? (
       <CatalogPopover
         open={open}
         anchorRef={anchorRef}
@@ -199,9 +218,7 @@ export default function DrugNameField({
 
   return (
     <div className={styles.schemeBlock}>
-      <span className={styles.schemeBadge}>
-        {`Схема · ${schemeDrugCount} ${drugCountWord(schemeDrugCount)}`}
-      </span>
+      <span className={styles.schemeBadge}>{schemeBadgeText(schemeCount)}</span>
       {nameButton}
       {menuLayer}
     </div>

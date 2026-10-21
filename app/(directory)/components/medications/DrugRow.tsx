@@ -18,6 +18,9 @@ type DrugRowProps = {
   formOptions?: readonly string[];
   nameMenu?: MedsNameMenu | null;
   schemeDrugCount?: number;
+  schemeSummary?: string;
+  schemeOpen?: boolean;
+  onOpenScheme?: () => void;
   onToggle: (id: string) => void;
   onOpenInfo: (item: ChecklistItem) => void;
   onOpenComment: (id: string, comment: string) => void;
@@ -36,6 +39,9 @@ export default function DrugRow({
   formOptions = [],
   nameMenu = null,
   schemeDrugCount,
+  schemeSummary,
+  schemeOpen,
+  onOpenScheme,
   onToggle,
   onOpenInfo,
   onOpenComment,
@@ -82,6 +88,9 @@ export default function DrugRow({
         checked={item.checked}
         menu={nameMenu}
         schemeDrugCount={schemeDrugCount}
+        schemeSummary={schemeSummary}
+        schemeOpen={schemeOpen}
+        onOpenScheme={onOpenScheme}
         onToggle={() => onToggle(item.id)}
         onSelectInn={(inn) => onSelectInn?.(item.id, inn)}
         onSelectTrade={(trade) => onSelectTrade?.(item.id, trade)}
