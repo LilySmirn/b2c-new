@@ -905,9 +905,11 @@ export default function PrescriptionChecklist({
           comment={liveInfoItem.comment}
           intake={medicationIntake[liveInfoItem.id] ?? EMPTY_MEDICATION_INTAKE}
           description={medicationDescriptionSource?.info || "Описание отсутствует"}
+          infoComment={medicationDescriptionSource?.infoComment ?? ""}
           originalScheme={liveInfoItem.treatmentPlan ?? ""}
           originalCourse={liveInfoItem.treatmentDuration ?? ""}
-          catalogLabel={liveMedsView?.catalogLabel ?? ""}
+          tradeName={medicationDrafts[liveInfoItem.id]?.trade ?? ""}
+          innName={medicationDrafts[liveInfoItem.id]?.inn ?? ""}
           catalogOptions={{
             doses: liveMedsView?.doseOptions ?? [],
             forms: liveMedsView?.formOptions ?? [],

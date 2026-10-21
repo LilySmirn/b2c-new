@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import CatalogPopover, { CatalogOption } from "./CatalogPopover";
 import type { MedicationField } from "./DrugRow";
 import type { MedsCatalogFieldOptions } from "./medsCatalogTypes";
@@ -62,6 +63,41 @@ const assignmentParts = (parts: Array<string | undefined>) =>
     .map((part) => (part ?? "").trim())
     .filter((part) => part.length > 0 && part !== "undefined" && part !== "null");
 
+const normalizeName = (value: string) =>
+  value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ru-RU");
+
+/** Каталог хранит МНН прописными. В шапке показываем обычный регистр, исходные данные не меняются. */
+const formatCatalogName = (value: string) => {
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  if (!trimmed) return "";
+
+  const letters = trimmed.replace(/[^0-9A-Za-zА-Яа-яЁё]/g, "");
+  if (!letters) return trimmed;
+
+  const isUpper =
+    letters === letters.toLocaleUpperCase("ru-RU") &&
+    letters !== letters.toLocaleLowerCase("ru-RU");
+
+  if (!isUpper) return trimmed;
+
+  return (
+    trimmed.charAt(0).toLocaleUpperCase("ru-RU") + trimmed.slice(1).toLocaleLowerCase("ru-RU")
+  );
+};
+
+const medicationHeading = (assignmentTitle: string, trade: string, inn: string) => {
+  const tradeName = trade.trim();
+  const substance = inn.trim();
+  const fallback = assignmentTitle.trim();
+  const primary = tradeName || (substance ? formatCatalogName(substance) : fallback);
+  const secondary =
+    tradeName && substance && normalizeName(substance) !== normalizeName(tradeName)
+      ? formatCatalogName(substance)
+      : "";
+
+  return { primary, secondary };
+};
+
 export const formatIntake = (intake: MedicationIntake) => {
   const times = INTAKE_OPTIONS.filter((option) => intake[option.id]).map(
     (option) => TIME_LABELS[option.id],
@@ -102,10 +138,14 @@ type DrugInfoModalProps = {
   comment: string;
   intake: MedicationIntake;
   description: string;
+  /** Раздел «Комментарий» клинической рекомендации. Не поле «Комментарий» назначения. */
+  infoComment?: string;
   originalScheme: string;
   originalCourse: string;
-  /** Выбранные МНН и торговое наименование. Исходное название назначения остаётся в `title`. */
-  catalogLabel?: string;
+  /** Выбранное торговое наименование (`name_trade`). */
+  tradeName?: string;
+  /** Выбранное МНН (`standard_MNN`). */
+  innName?: string;
   /** Варианты `standard_dose` / `standard_form` для текущего МНН и торгового наименования. */
   catalogOptions?: MedsCatalogFieldOptions;
   onClose: () => void;
@@ -195,6 +235,98 @@ function CatalogComboField({
   );
 }
 
+function KrCommentDialog({ text, onClose }: { text: string; onClose: () => void }) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        ),
+      ).filter((node) => !node.hasAttribute("disabled"));
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (!(active instanceof HTMLElement) || !dialog.contains(active)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className={styles.krLayer}>
+      <div className={styles.krBackdrop} onClick={onClose} />
+      <div
+        ref={dialogRef}
+        className={styles.krDialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
+        <div className={styles.krHead}>
+          <h2 id={titleId} className={styles.krTitle}>
+            Полный комментарий из КР
+          </h2>
+          <button
+            ref={closeRef}
+            type="button"
+            className={styles.close}
+            onClick={onClose}
+            aria-label="Закрыть комментарий из КР"
+          >
+            ×
+          </button>
+        </div>
+        <div className={styles.krBody}>{text}</div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export default function DrugInfoModal({
   title,
   qualityControl,
@@ -207,9 +339,11 @@ export default function DrugInfoModal({
   comment,
   intake,
   description,
+  infoComment = "",
   originalScheme,
   originalCourse,
-  catalogLabel = "",
+  tradeName = "",
+  innName = "",
   catalogOptions,
   onClose,
   onToggleCart,
@@ -220,27 +354,50 @@ export default function DrugInfoModal({
   onApplyOriginal,
 }: DrugInfoModalProps) {
   const titleId = useId();
+  const krTriggerRef = useRef<HTMLButtonElement>(null);
+  const krWasOpen = useRef(false);
+  const [krOpen, setKrOpen] = useState(false);
+  const krOpenRef = useRef(false);
   const sourceScheme = originalScheme.trim();
   const sourceCourse = originalCourse.trim();
   const hasOriginalRecommendation = Boolean(sourceScheme || sourceCourse);
   const doseOptions = visibleOptions(catalogOptions?.doses);
   const formOptions = visibleOptions(catalogOptions?.forms);
-  const selectedCatalog = catalogLabel.trim();
+  const heading = medicationHeading(title, tradeName, innName);
+  const recommendation = recommendationLevel.trim();
+  const krText = infoComment.trim();
   const intakeLabel = formatIntake(intake);
-  const preview =
-    buildAssignmentPreview({
-      title,
-      selection: selectedCatalog,
-      dose,
-      form,
-      intake: intakeLabel,
-      scheme,
-      course,
-    }) || "Заполните назначение";
+  const patientSummary = buildAssignmentPreview({
+    title: heading.primary,
+    selection: heading.secondary,
+    dose,
+    form,
+    intake: intakeLabel,
+    scheme,
+    course,
+  });
+  const hasPatientNote = comment.trim().length > 0;
+  krOpenRef.current = krOpen && Boolean(krText);
+
+  useEffect(() => {
+    if (!krText) setKrOpen(false);
+  }, [krText]);
+
+  useEffect(() => {
+    if (krOpen) {
+      krWasOpen.current = true;
+      return;
+    }
+
+    if (!krWasOpen.current) return;
+
+    krWasOpen.current = false;
+    krTriggerRef.current?.focus();
+  }, [krOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (event.key !== "Escape" || event.defaultPrevented || krOpenRef.current) return;
 
       event.preventDefault();
       onClose();
@@ -254,37 +411,31 @@ export default function DrugInfoModal({
     onIntakeChange({ ...intake, [id]: !intake[id] });
   };
 
+  const closeKrComment = useCallback(() => setKrOpen(false), []);
+
   return (
     <div className={styles.layer}>
-      <div className={styles.backdrop} onClick={onClose} />
+      <div className={styles.backdrop} onClick={krOpen ? undefined : onClose} />
       <div
         className={styles.dialog}
         role="dialog"
-        aria-modal="true"
+        aria-modal={krOpen ? undefined : true}
         aria-labelledby={titleId}
+        inert={krOpen ? true : undefined}
         onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.head}>
           <div className={styles.headMain}>
-            <div>
-              <h2 id={titleId} className={styles.title}>
-                {title}
-              </h2>
-              {selectedCatalog ? <p className={styles.catalogChoice}>{selectedCatalog}</p> : null}
-              {sourceScheme || sourceCourse ? (
-                <p className={styles.subtitle}>
-                  {assignmentParts([sourceScheme, sourceCourse]).join(" · ")}
-                </p>
-              ) : null}
-            </div>
-            <div className={styles.badges}>
-              {qualityControl ? <span className={styles.badge}>КК</span> : null}
-              {recommendationLevel.trim() ? (
-                <span className={styles.badge}>{recommendationLevel.trim()}</span>
-              ) : null}
-              <span className={styles.badge}>Лекарственный препарат</span>
-            </div>
-            <p className={styles.status}>{preview}</p>
+            <h2 id={titleId} className={styles.title}>
+              {heading.primary}
+            </h2>
+            {heading.secondary ? <p className={styles.subtitle}>{heading.secondary}</p> : null}
+            {qualityControl || recommendation ? (
+              <div className={styles.badges}>
+                {qualityControl ? <span className={styles.badge}>КК</span> : null}
+                {recommendation ? <span className={styles.badge}>{recommendation}</span> : null}
+              </div>
+            ) : null}
           </div>
           <div className={styles.headActions}>
             <button
@@ -296,7 +447,7 @@ export default function DrugInfoModal({
               <span className={styles.cartBox} aria-hidden="true">
                 {checked ? "✓" : ""}
               </span>
-              <span>В корзину</span>
+              <span>{checked ? "В назначении" : "Добавить в назначение"}</span>
             </button>
             <button
               type="button"
@@ -310,8 +461,7 @@ export default function DrugInfoModal({
         </div>
 
         <div className={styles.layout}>
-          <section className={styles.assign} aria-label="Назначение">
-            <h3 className={styles.colTitle}>Назначение</h3>
+          <div className={styles.assignTop}>
             <div className={styles.fields}>
               <CatalogComboField
                 label="Доза"
@@ -371,7 +521,32 @@ export default function DrugInfoModal({
                   onChange={(event) => onChangeField("scheme", event.target.value)}
                 />
               </label>
+            </div>
+          </div>
 
+          <div className={styles.guideSlot}>
+            <div className={`${styles.block} ${styles.guide}`}>
+              <div className={styles.cardHead}>
+                <h4>Справка</h4>
+                {krText ? (
+                  <button
+                    ref={krTriggerRef}
+                    type="button"
+                    className={styles.cardAction}
+                    onClick={() => setKrOpen(true)}
+                  >
+                    Полный комментарий из КР
+                  </button>
+                ) : null}
+              </div>
+              <div className={styles.guideBody}>
+                <p>{description.trim() || "Описание отсутствует"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.assignRest}>
+            <div className={styles.fields}>
               <div className={`${styles.field} ${styles.fieldWide}`}>
                 <span className={styles.fieldLabel}>Курс</span>
                 <div className={styles.rels}>
@@ -414,8 +589,15 @@ export default function DrugInfoModal({
             </div>
 
             <div className={styles.preview}>
-              <span className={styles.previewLabel}>Для пациента / корзины</span>
-              <strong className={styles.previewText}>{preview}</strong>
+              <span className={styles.previewLabel}>Комментарий для пациента</span>
+              {patientSummary || hasPatientNote ? (
+                <div className={styles.previewText}>
+                  {patientSummary ? <p>{patientSummary}</p> : null}
+                  {hasPatientNote ? <p className={styles.previewNote}>{comment}</p> : null}
+                </div>
+              ) : (
+                <strong className={styles.previewText}>Заполните назначение</strong>
+              )}
             </div>
 
             <div className={styles.actions}>
@@ -426,16 +608,21 @@ export default function DrugInfoModal({
                 Готово
               </button>
             </div>
-          </section>
+          </div>
 
-          <section className={styles.ref} aria-label="Справка">
-            <h3 className={styles.colTitle}>Справка</h3>
+          <div className={styles.notes}>
             <div className={styles.block}>
-              <h4>Суть</h4>
-              <p>{description.trim() || "Описание отсутствует"}</p>
-            </div>
-            <div className={styles.block}>
-              <h4>Как обычно дают</h4>
+              <div className={styles.cardHead}>
+                <h4>Как обычно дают</h4>
+                <button
+                  type="button"
+                  className={styles.cardAction}
+                  disabled={!hasOriginalRecommendation}
+                  onClick={onApplyOriginal}
+                >
+                  Подставить в назначение
+                </button>
+              </div>
               {hasOriginalRecommendation ? (
                 <>
                   {sourceScheme ? <p>{sourceScheme}</p> : null}
@@ -444,22 +631,15 @@ export default function DrugInfoModal({
               ) : (
                 <p>{MISSING_USUAL_TEXT}</p>
               )}
-              <button
-                type="button"
-                className={styles.btn}
-                disabled={!hasOriginalRecommendation}
-                onClick={onApplyOriginal}
-              >
-                Подставить в назначение
-              </button>
             </div>
             <div className={styles.block}>
               <h4>Осторожно</h4>
               <p>{CAUTION_TEXT}</p>
             </div>
-          </section>
+          </div>
         </div>
       </div>
+      {krOpen && krText ? <KrCommentDialog text={krText} onClose={closeKrComment} /> : null}
     </div>
   );
 }
