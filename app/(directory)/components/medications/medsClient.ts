@@ -1,16 +1,24 @@
 /**
  * Справочник препаратов для вкладки «Препараты».
  *
- * Единая точка — `resolveMeds`. Сейчас она локально имитирует
- * `POST /meds/resolve`: тело запроса — массив строк, ответ —
- * `{ drugs, interactions: null }` по `design/cart/API-meds (1).md`.
- * Записи берутся из `design/cart/meds-mock-cart-v5.json`.
+ * Единая точка — `resolveMeds`. В режиме `real` (по умолчанию) она отправляет
+ * `POST /api/meds` с массивом исходных названий. Маршрут Next.js пересылает
+ * этот массив на `POST https://easymed.pro/php/API/get-meds.php`.
+ * В режиме `mock` записи берутся из `design/cart/meds-mock-cart-v5.json`.
  *
- * Чтобы подключить реальный API, замените тело `resolveMeds` на HTTP-запрос
- * с тем же телом и тем же типом ответа. Таблицу и попап менять не нужно.
+ * Ответ читается по `design/cart/API-meds (1).md`:
+ * `drug`, `group` и `other` — через `data`, `combination` — через `combination_data`.
+ * Строка с `++` не разбирается на клиенте: тип назначает сервер.
+ * Ошибка сети не заменяется моковым ответом.
+ *
+ * Пока сервер не отдаёт тестовые схемы, `NEXT_PUBLIC_MEDS_COMBINATION_MOCK=true`
+ * подставляет комбинацию из мока только если исходное название точно совпало
+ * с известной тестовой комбинацией и сервер вернул `other`. Реальный
+ * `combination`, `drug` и `group` не заменяются.
  */
 
 import rawCatalog from "../../../../design/cart/meds-mock-cart-v5.json";
+import { readMedsCombinationMock, readMedsSource, type MedsSource } from "./medsSource";
 import { sortedRuLabels } from "./ruSort";
 import {
   EMPTY_MEDS_CATALOG,
@@ -114,8 +122,9 @@ const readEntry = (value: unknown): MedsCatalogEntry | null => {
 export const parseMedsCatalogResponse = (value: unknown): MedsCatalogResponse | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 
-  const source = value as { drugs?: unknown };
+  const source = value as { drugs?: unknown; interactions?: unknown };
   if (!Array.isArray(source.drugs)) return null;
+  if ("interactions" in source && source.interactions !== null) return null;
 
   const drugs = source.drugs.map(readEntry);
   if (drugs.some((drug) => drug === null)) return null;
@@ -254,6 +263,44 @@ const withRequestName = (entry: MedsCatalogEntry, name: string): MedsCatalogEntr
 const findSourceEntry = (name: string) =>
   sourceCatalog.drugs.find((drug) => sameName(drug.name, name)) ?? null;
 
+/** Целое название: пробелы схлопываются, регистр и знаки сохраняются. Состав не разбирается. */
+const exactMedsName = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const knownMockCombinations = sourceCatalog.drugs.filter(
+  (drug): drug is Extract<MedsCatalogEntry, { type: "combination" }> =>
+    drug.type === "combination",
+);
+
+/**
+ * Временная совместимость: `other` с точно известным тестовым названием
+ * становится заранее описанной комбинацией. Остальные ответы не меняются.
+ */
+const applyKnownCombinationMock = (
+  catalog: MedsCatalogResponse,
+  names: readonly string[],
+  enabled: boolean,
+): MedsCatalogResponse => {
+  if (!enabled) return catalog;
+
+  let changed = false;
+  const drugs = catalog.drugs.map((entry, index) => {
+    if (entry.type !== "other") return entry;
+
+    const requestedName = names[index] ?? entry.name;
+    const key = exactMedsName(requestedName);
+    const mock =
+      knownMockCombinations.find((item) => exactMedsName(item.name) === key) ?? null;
+    if (!mock) return entry;
+
+    changed = true;
+    return withRequestName(mock, requestedName);
+  });
+
+  if (!changed) return catalog;
+
+  return { drugs, interactions: null };
+};
+
 /**
  * Синхронная имитация `POST /meds/resolve`.
  * Пустой массив даёт пустой ответ. Порядок, число и повторы строк сохраняются.
@@ -270,12 +317,115 @@ export const readMedsCatalog = (names: readonly string[] = []): MedsCatalogRespo
   };
 };
 
+/** Браузерный адрес. Апстрим вызывает только серверный маршрут `/api/meds`. */
+export const MEDS_RESOLVE_PATH = "/api/meds";
+
+const REAL_MEDS_TIMEOUT_MS = 35_000;
+
+export type MedsResolveFailure = "network" | "timeout" | "http" | "invalid-json" | "invalid-shape";
+
+export class MedsResolveError extends Error {
+  readonly reason: MedsResolveFailure;
+  readonly status: number | null;
+
+  constructor(reason: MedsResolveFailure, message: string, status: number | null = null) {
+    super(message);
+    this.name = "MedsResolveError";
+    this.reason = reason;
+    this.status = status;
+  }
+}
+
+export type ResolveMedsOptions = {
+  source?: MedsSource;
+  /** Временная подстановка известных тестовых комбинаций. По умолчанию читается из env. */
+  combinationMock?: boolean;
+  fetchImpl?: typeof fetch;
+  endpoint?: string;
+  timeoutMs?: number;
+};
+
+const isTimeout = (error: unknown) =>
+  error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+
+const requestRealMeds = async (
+  names: readonly string[],
+  options: ResolveMedsOptions,
+): Promise<MedsCatalogResponse> => {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const payload = Array.from(names);
+  let response: Response;
+
+  try {
+    response = await fetchImpl(options.endpoint ?? MEDS_RESOLVE_PATH, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(options.timeoutMs ?? REAL_MEDS_TIMEOUT_MS),
+      cache: "no-store",
+    });
+  } catch (error) {
+    const timedOut = isTimeout(error);
+    throw new MedsResolveError(
+      timedOut ? "timeout" : "network",
+      timedOut ? "Meds catalog request timed out" : "Meds catalog request failed",
+    );
+  }
+
+  if (!response.ok) {
+    throw new MedsResolveError(
+      "http",
+      `Meds catalog request failed with HTTP ${response.status}`,
+      response.status,
+    );
+  }
+
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    throw new MedsResolveError(
+      "invalid-json",
+      "Meds catalog response is not JSON",
+      response.status,
+    );
+  }
+
+  const catalog = parseMedsCatalogResponse(body);
+  if (!catalog || catalog.drugs.length !== payload.length) {
+    throw new MedsResolveError(
+      "invalid-shape",
+      "Meds catalog response does not match the request",
+      response.status,
+    );
+  }
+
+  return catalog;
+};
+
 /**
  * Единая точка получения справочника.
- * Сейчас сразу отдаёт локальный JSON. Позже здесь будет `POST /meds/resolve`.
+ * `real` отправляет исходные названия методом POST. `mock` читает локальный JSON.
+ * Режимы не подменяют друг друга. Ошибочный ответ real не заменяется моком.
+ * Временная комбинация подставляется только после успешного разбора `other`.
  */
-export const resolveMeds = (names: readonly string[] = []): Promise<MedsCatalogResponse> =>
-  Promise.resolve(readMedsCatalog(names));
+export const resolveMeds = async (
+  names: readonly string[] = [],
+  options: ResolveMedsOptions = {},
+): Promise<MedsCatalogResponse> => {
+  const source = options.source ?? readMedsSource();
+  if (source === "mock") return readMedsCatalog(names);
+
+  const catalog = await requestRealMeds(names, options);
+  return applyKnownCombinationMock(
+    catalog,
+    names,
+    options.combinationMock ?? readMedsCombinationMock(),
+  );
+};
 
 export const matchMedsDrug = (
   catalog: MedsCatalogResponse,

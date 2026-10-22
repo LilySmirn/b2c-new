@@ -171,14 +171,13 @@ const getCartRecommendationKey = (
     .filter(Boolean)
     .join("|");
 
-const storeSelectedRecommendation = (
+const MEDS_LOAD_ERROR = "Не удалось загрузить справочник препаратов. Попробуйте ещё раз.";
+
+const persistSelectedRecommendation = (
   diagnosisTitle: string,
   card: RecommendationStandard,
 ) => {
   const recommendationKey = getCartRecommendationKey(diagnosisTitle, card);
-  const query = collectMedicationQuery(card.prescriptions);
-  medsCatalogSession.begin(recommendationKey, query.names, query.ids);
-
   const serializedCartRecommendation = JSON.stringify({
     diagnosisTitle,
     recommendationKey,
@@ -238,6 +237,15 @@ export default function SearchPreviewPage() {
   const [allowedMkbCodes, setAllowedMkbCodes] = useState<string[] | null | undefined>(undefined);
   const [isMkbAccessLoaded, setIsMkbAccessLoaded] = useState(false);
   const [mkbAccessError, setMkbAccessError] = useState<string | null>(null);
+  const [medsLoadingKey, setMedsLoadingKey] = useState<string | null>(null);
+  const [medsError, setMedsError] = useState<string | null>(null);
+  const medsRequestRef = useRef(0);
+  const medsLoadingKeyRef = useRef<string | null>(null);
+  const medsNavigatingRef = useRef(false);
+  const medsRetryRef = useRef<{
+    diagnosisTitle: string;
+    card: RecommendationStandard;
+  } | null>(null);
   const [isCardsLoading, setIsCardsLoading] = useState(false);
   const [demoRemaining, setDemoRemaining] = useState<number | null>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
@@ -610,6 +618,14 @@ export default function SearchPreviewPage() {
     () => mkbData?.standards[ageGroup][visitType] ?? [],
     [ageGroup, mkbData, visitType],
   );
+  const cardDiagnosisTitle = submittedDiagnosisTitle ?? submittedCode;
+  const medsLoadingCardVisible = Boolean(
+    medsLoadingKey &&
+      recommendationCards.some(
+        (card) =>
+          getCartRecommendationKey(cardDiagnosisTitle ?? card.title, card) === medsLoadingKey,
+      ),
+  );
   const recommendedMatches = useMemo(
     () => (ageGroup === "child" ? mkbData?.recommendations.child : mkbData?.recommendations.grownup) ?? [],
     [ageGroup, mkbData],
@@ -631,6 +647,80 @@ export default function SearchPreviewPage() {
       bookmarkTitle.includes(":")
       ? bookmarkTitle
       : `${bookmark.code}: ${bookmarkTitle}`;
+  };
+
+  const releaseMedsLoading = (recommendationKey: string) => {
+    if (medsLoadingKeyRef.current === recommendationKey) {
+      medsLoadingKeyRef.current = null;
+    }
+    setMedsLoadingKey((current) => (current === recommendationKey ? null : current));
+  };
+
+  const openSelectedRecommendation = async (
+    diagnosisTitle: string,
+    card: RecommendationStandard,
+  ) => {
+    if (medsNavigatingRef.current) return;
+
+    const recommendationKey = getCartRecommendationKey(diagnosisTitle, card);
+    if (medsLoadingKeyRef.current === recommendationKey) return;
+
+    const query = collectMedicationQuery(card.prescriptions);
+    const requestId = ++medsRequestRef.current;
+    const isCurrent = () => requestId === medsRequestRef.current;
+    medsLoadingKeyRef.current = recommendationKey;
+    medsRetryRef.current = { diagnosisTitle, card };
+    setMedsError(null);
+    persistSelectedRecommendation(diagnosisTitle, card);
+
+    const cached = medsCatalogSession.hasReady(recommendationKey, query.names, query.ids);
+    setMedsLoadingKey(cached ? null : recommendationKey);
+
+    let loadResult: Awaited<ReturnType<typeof medsCatalogSession.load>>;
+    try {
+      loadResult = await medsCatalogSession.load(recommendationKey, query.names, query.ids);
+    } catch {
+      if (!isCurrent()) return;
+      releaseMedsLoading(recommendationKey);
+      setMedsError(MEDS_LOAD_ERROR);
+      return;
+    }
+
+    if (!isCurrent()) return;
+    if (loadResult.status === "stale") {
+      releaseMedsLoading(recommendationKey);
+      return;
+    }
+    if (loadResult.status !== "ready") {
+      releaseMedsLoading(recommendationKey);
+      setMedsError(MEDS_LOAD_ERROR);
+      return;
+    }
+
+    try {
+      const visit = await beginCartVisit(recommendationKey, isCurrent);
+      if (!isCurrent()) return;
+      if (!visit) {
+        releaseMedsLoading(recommendationKey);
+        return;
+      }
+    } catch {
+      if (!isCurrent()) return;
+      releaseMedsLoading(recommendationKey);
+      setMedsError("Не удалось открыть рекомендацию. Попробуйте позже.");
+      return;
+    }
+
+    if (!isCurrent()) return;
+    medsNavigatingRef.current = true;
+    releaseMedsLoading(recommendationKey);
+    router.push("/cart");
+  };
+
+  const retryMedsLoad = () => {
+    const retry = medsRetryRef.current;
+    if (!retry) return;
+    void openSelectedRecommendation(retry.diagnosisTitle, retry.card);
   };
 
   const handleBookmarkSelect = async (bookmark: BookmarkItem) => {
@@ -670,17 +760,15 @@ export default function SearchPreviewPage() {
       }
 
       const diagnosisTitle = getBookmarkDiagnosisTitle(bookmark, selectedCard.title);
-      const recommendationKey = storeSelectedRecommendation(diagnosisTitle, selectedCard);
-      await beginCartVisit(recommendationKey);
-      router.push("/cart");
+      await openSelectedRecommendation(diagnosisTitle, selectedCard);
     } catch (error) {
       setCardsError("Не удалось открыть закладку. Попробуйте позже.");
     }
   };
 
-  const handleCardSelect = async (card: RecommendationStandard) => {
+  const handleCardSelect = (card: RecommendationStandard) => {
     const diagnosisTitle = submittedDiagnosisTitle ?? submittedCode ?? card.title;
-    
+
     writeStoredSearchState({
       query,
       visitType,
@@ -691,14 +779,7 @@ export default function SearchPreviewPage() {
       mkbData,
     });
 
-    const recommendationKey = storeSelectedRecommendation(diagnosisTitle, card);
-    try {
-      await beginCartVisit(recommendationKey);
-    } catch {
-      setCardsError("Не удалось открыть рекомендацию. Попробуйте позже.");
-      return;
-    }
-    router.push("/cart");
+    void openSelectedRecommendation(diagnosisTitle, card);
   };
 
   const matchesEmptyText = (() => {
@@ -767,6 +848,21 @@ export default function SearchPreviewPage() {
 
           <Bookmarks onBookmarkSelect={handleBookmarkSelect} />
 
+          {medsError ? (
+            <p className={styles.medsLoadError} role="alert">
+              {medsError}{" "}
+              <button type="button" className={styles.medsRetry} onClick={retryMedsLoad}>
+                Повторить
+              </button>
+            </p>
+          ) : null}
+
+          {medsLoadingKey && !medsLoadingCardVisible ? (
+            <p className={styles.recommendationsMessage}>
+              <LoadingSpinner>Загружаем препараты…</LoadingSpinner>
+            </p>
+          ) : null}
+
             {submittedCode ? (
             <section className={styles.recommendationsSection} aria-label="Клинические рекомендации">
               {isCardsLoading ? (
@@ -779,7 +875,13 @@ export default function SearchPreviewPage() {
                 )
               ) : recommendationCards.length > 0 ? (
                 <div className={styles.recommendationsGrid}>
-                  {recommendationCards.map((card) => (
+                  {recommendationCards.map((card) => {
+                    const cardKey = getCartRecommendationKey(
+                      cardDiagnosisTitle ?? card.title,
+                      card,
+                    );
+
+                    return (
                     <RecommendationCard
                       key={`${card.id}-${card.title}`}
                       title={card.title}
@@ -790,9 +892,11 @@ export default function SearchPreviewPage() {
                       dateApprovement={card.dateApprovement}
                       dateReview={card.dateReview}
                       classification={card.mkbCodes.length > 0 ? card.mkbCodes.join(", ") : submittedCode}
+                      busy={medsLoadingKey === cardKey}
                       onSelect={() => handleCardSelect(card)}
                     />
-                  ))}
+                    );
+                  })}
                 </div>
               ) : null}
             </section>

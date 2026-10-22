@@ -29,6 +29,7 @@ import { applyMedsSelection, buildMedsRowView, matchMedsDrugForItem } from "./me
 import type { MedsCatalogComponent, MedsRowSelection } from "./medications/medsCatalogTypes";
 import medicationStyles from "./medications/medications.module.css";
 import { useMedsCatalog } from "./medications/useMedsCatalog";
+import LoadingSpinner from "./LoadingSpinner";
 import styles from "./PrescriptionChecklist.module.css";
 
 export type ChecklistItem = {
@@ -902,7 +903,17 @@ export default function PrescriptionChecklist({
                   : undefined
               }
             >
-          {visibleSections.map((section) => (
+          {activeCategoryId === "medications" &&
+          medsCatalogState.status !== "ready" &&
+          visibleSections.length > 0 ? (
+            <p className={styles.appendixA3Message} role="status">
+              {medsCatalogState.status === "error" ? (
+                "Не удалось загрузить справочник препаратов. Попробуйте ещё раз."
+              ) : (
+                <LoadingSpinner>Загружаем препараты…</LoadingSpinner>
+              )}
+            </p>
+          ) : visibleSections.map((section) => (
             <div key={section.id} className={styles.sectionBlock}>
               {shouldShowSectionTitle(section) ? (
                 <div

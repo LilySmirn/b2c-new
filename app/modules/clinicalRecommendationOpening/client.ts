@@ -43,14 +43,21 @@ export async function sendOpeningEvent(
   if (!response.ok) throw new Error("Failed to register recommendation event");
 }
 
-export async function beginCartVisit(recommendationKey: string): Promise<CartVisit> {
+export async function beginCartVisit(
+  recommendationKey: string,
+  isCurrent: () => boolean = () => true,
+): Promise<CartVisit | null> {
   const openingRecommendationKey = await normalizeOpeningRecommendationKey(recommendationKey);
+  if (!isCurrent()) return null;
+
   const visit = { visitId: crypto.randomUUID(), recommendationKey: openingRecommendationKey };
   await sendOpeningEvent({
     eventId: createEventId(),
     type: "selected",
     ...visit,
   });
+  if (!isCurrent()) return null;
+
   window.sessionStorage.setItem(CART_VISIT_STORAGE_KEY, JSON.stringify(visit));
   return visit;
 }

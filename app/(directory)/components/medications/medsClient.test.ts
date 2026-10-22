@@ -39,7 +39,9 @@ describe("meds catalog mock", () => {
   });
 
   it("сохраняет порядок, повторы и отвечает other на неизвестное название", async () => {
-    const resolved = await resolveMeds(["Левофлоксацин", "Нет такого", "Ребамипид", "Ребамипид"]);
+    const resolved = await resolveMeds(["Левофлоксацин", "Нет такого", "Ребамипид", "Ребамипид"], {
+      source: "mock",
+    });
 
     assert.deepEqual(
       resolved.drugs.map((item) => item.name),
@@ -64,19 +66,19 @@ describe("meds catalog mock", () => {
   });
 
   it("на пустой массив возвращает пустой ответ", async () => {
-    assert.deepEqual(await resolveMeds([]), { drugs: [], interactions: null });
+    assert.deepEqual(await resolveMeds([], { source: "mock" }), { drugs: [], interactions: null });
     assert.deepEqual(readMedsCatalog(), { drugs: [], interactions: null });
   });
 
   it("отдаёт записи мока в порядке запроса и не подменяет имя строки", async () => {
-    const resolved = await resolveMeds(sourceNames);
+    const resolved = await resolveMeds(sourceNames, { source: "mock" });
 
     resolved.drugs.forEach((drug, index) => {
       assert.equal(drug.name, sourceNames[index]);
       assert.equal(drug.type, sourceCatalog.drugs[index]?.type);
     });
 
-    const spaced = await resolveMeds(["  Кларитромицин  "]);
+    const spaced = await resolveMeds(["  Кларитромицин  "], { source: "mock" });
     assert.equal(spaced.drugs[0]?.name, "  Кларитромицин  ");
     assert.equal(spaced.drugs[0]?.type, "drug");
   });

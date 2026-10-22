@@ -2,8 +2,22 @@
 
 import { parseMedsCatalogResponse, resolveMeds } from "./medsClient";
 import type { MedsCatalogResponse } from "./medsCatalogTypes";
+import { readMedsCombinationMock, readMedsSource, type MedsSource } from "./medsSource";
 
 export const MEDS_CATALOG_STORAGE_KEY = "directoryCartMedsCatalog";
+
+/**
+ * Кэш real и mock не делят один ключ. Включённая временная подстановка комбинаций
+ * тоже пишет в отдельный ключ, чтобы после её отключения не остался тестовый справочник.
+ * Старый ключ без суффикса не читается.
+ */
+export const medsCatalogStorageKey = (
+  source: MedsSource = readMedsSource(),
+  combinationMock: boolean = readMedsCombinationMock(),
+) =>
+  combinationMock
+    ? `${MEDS_CATALOG_STORAGE_KEY}:${source}:combination-mock`
+    : `${MEDS_CATALOG_STORAGE_KEY}:${source}`;
 
 export type MedsCatalogSessionStatus = "loading" | "ready" | "error";
 
@@ -24,11 +38,17 @@ type StorageLike = {
 type MedsResolve = (names: readonly string[]) => Promise<MedsCatalogResponse>;
 
 type StoredMedsCatalog = {
+  source: MedsSource;
+  combinationMock: boolean;
   recommendationKey: string;
   names: string[];
   ids: string[];
   status: MedsCatalogSessionStatus;
   catalog: MedsCatalogResponse | null;
+};
+
+export type MedsCatalogLoadResult = {
+  status: "ready" | "error" | "stale";
 };
 
 type MemoryEntry = MedsCatalogSessionEntry & {
@@ -50,12 +70,24 @@ const browserStorages = (): StorageLike[] => {
 export const createMedsCatalogSession = ({
   storages,
   resolve = resolveMeds,
+  source = readMedsSource(),
+  combinationMock = readMedsCombinationMock(),
 }: {
   storages: () => readonly StorageLike[];
   resolve?: MedsResolve;
+  source?: MedsSource;
+  combinationMock?: boolean;
 }) => {
+  const storageKey = medsCatalogStorageKey(source, combinationMock);
   const memory = new Map<string, MemoryEntry>();
   const listeners = new Set<() => void>();
+  const pending = new Map<
+    number,
+    {
+      promise: Promise<MedsCatalogLoadResult>;
+      resolve: (result: MedsCatalogLoadResult) => void;
+    }
+  >();
   let latestRequestId = 0;
 
   const notify = () => {
@@ -63,11 +95,11 @@ export const createMedsCatalogSession = ({
   };
 
   const persist = (entry: StoredMedsCatalog) => {
-    const serialized = JSON.stringify(entry);
+    const serialized = JSON.stringify({ ...entry, source, combinationMock });
 
     storages().forEach((storage) => {
       try {
-        storage.setItem(MEDS_CATALOG_STORAGE_KEY, serialized);
+        storage.setItem(storageKey, serialized);
       } catch {
         // Сессия в памяти остаётся до перезагрузки страницы.
       }
@@ -76,7 +108,7 @@ export const createMedsCatalogSession = ({
 
   const readPersisted = (): StoredMedsCatalog | null => {
     for (const storage of storages()) {
-      const raw = storage.getItem(MEDS_CATALOG_STORAGE_KEY);
+      const raw = storage.getItem(storageKey);
       if (!raw) continue;
 
       try {
@@ -84,6 +116,8 @@ export const createMedsCatalogSession = ({
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) continue;
 
         const row = parsed as Record<string, unknown>;
+        if (row.source !== source) continue;
+        if ((row.combinationMock === true) !== combinationMock) continue;
         if (typeof row.recommendationKey !== "string" || !row.recommendationKey) continue;
         if (!isStringArray(row.names) || !isStringArray(row.ids)) continue;
         if (row.names.length !== row.ids.length) continue;
@@ -94,6 +128,8 @@ export const createMedsCatalogSession = ({
           if (!catalog || catalog.drugs.length !== row.names.length) continue;
 
           return {
+            source,
+            combinationMock,
             recommendationKey: row.recommendationKey,
             names: row.names,
             ids: row.ids,
@@ -103,6 +139,8 @@ export const createMedsCatalogSession = ({
         }
 
         return {
+          source,
+          combinationMock,
           recommendationKey: row.recommendationKey,
           names: row.names,
           ids: row.ids,
@@ -123,14 +161,68 @@ export const createMedsCatalogSession = ({
     notify();
   };
 
+  const settle = (requestId: number, result: MedsCatalogLoadResult) => {
+    const request = pending.get(requestId);
+    if (!request) return;
+
+    pending.delete(requestId);
+    request.resolve(result);
+  };
+
+  const abandonEarlier = (requestId: number) => {
+    for (const id of [...pending.keys()]) {
+      if (id < requestId) settle(id, { status: "stale" });
+    }
+  };
+
+  const sameQuery = (
+    entry: { names: readonly string[]; ids: readonly string[] },
+    names: readonly string[],
+    ids: readonly string[],
+  ) => sameSequence(entry.names, names) && sameSequence(entry.ids, ids);
+
+  const adoptReady = (
+    recommendationKey: string,
+    names: readonly string[],
+    ids: readonly string[],
+    catalog: MedsCatalogResponse,
+  ): MedsCatalogLoadResult => {
+    const requestId = ++latestRequestId;
+    abandonEarlier(requestId);
+    const namesCopy = [...names];
+    const idsCopy = [...ids];
+
+    memory.set(recommendationKey, {
+      recommendationKey,
+      names: namesCopy,
+      ids: idsCopy,
+      status: "ready",
+      catalog,
+      requestId,
+    });
+    persist({
+      source,
+      combinationMock,
+      recommendationKey,
+      names: namesCopy,
+      ids: idsCopy,
+      status: "ready",
+      catalog,
+    });
+    notify();
+
+    return { status: "ready" };
+  };
+
   const begin = (
     recommendationKey: string,
     names: readonly string[],
     ids: readonly string[],
-  ) => {
-    if (!recommendationKey) return;
+  ): Promise<MedsCatalogLoadResult> => {
+    if (!recommendationKey) return Promise.resolve({ status: "stale" });
 
     const requestId = ++latestRequestId;
+    abandonEarlier(requestId);
     const namesCopy = [...names];
     const idsCopy = [...ids];
     const loading: MemoryEntry = {
@@ -141,8 +233,15 @@ export const createMedsCatalogSession = ({
       catalog: null,
       requestId,
     };
+    let resolveResult: (result: MedsCatalogLoadResult) => void = () => {};
+    const promise = new Promise<MedsCatalogLoadResult>((resolveLoad) => {
+      resolveResult = resolveLoad;
+    });
+    pending.set(requestId, { promise, resolve: resolveResult });
 
     remember(loading, {
+      source,
+      combinationMock,
       recommendationKey,
       names: namesCopy,
       ids: idsCopy,
@@ -152,11 +251,17 @@ export const createMedsCatalogSession = ({
 
     resolve(namesCopy).then(
       (catalog) => {
-        if (requestId !== latestRequestId) return;
+        if (requestId !== latestRequestId) {
+          settle(requestId, { status: "stale" });
+          return;
+        }
         if (catalog.drugs.length !== namesCopy.length) {
+          console.error("[meds] catalog response length does not match the request");
           remember(
             { ...loading, status: "error", catalog: null },
             {
+              source,
+              combinationMock,
               recommendationKey,
               names: namesCopy,
               ids: idsCopy,
@@ -164,12 +269,15 @@ export const createMedsCatalogSession = ({
               catalog: null,
             },
           );
+          settle(requestId, { status: "error" });
           return;
         }
 
         remember(
           { ...loading, status: "ready", catalog },
           {
+            source,
+            combinationMock,
             recommendationKey,
             names: namesCopy,
             ids: idsCopy,
@@ -177,13 +285,23 @@ export const createMedsCatalogSession = ({
             catalog,
           },
         );
+        settle(requestId, { status: "ready" });
       },
-      () => {
-        if (requestId !== latestRequestId) return;
+      (error: unknown) => {
+        if (requestId !== latestRequestId) {
+          settle(requestId, { status: "stale" });
+          return;
+        }
 
+        console.error(
+          "[meds] catalog request failed",
+          error instanceof Error ? error.message : "unknown error",
+        );
         remember(
           { ...loading, status: "error", catalog: null },
           {
+            source,
+            combinationMock,
             recommendationKey,
             names: namesCopy,
             ids: idsCopy,
@@ -191,8 +309,78 @@ export const createMedsCatalogSession = ({
             catalog: null,
           },
         );
+        settle(requestId, { status: "error" });
       },
     );
+
+    return promise;
+  };
+
+  const hasReady = (
+    recommendationKey: string,
+    names: readonly string[],
+    ids: readonly string[],
+  ) => {
+    if (!recommendationKey) return false;
+
+    const current = memory.get(recommendationKey);
+    if (
+      current?.status === "ready" &&
+      current.catalog &&
+      current.catalog.drugs.length === names.length &&
+      sameQuery(current, names, ids)
+    ) {
+      return true;
+    }
+
+    const stored = readPersisted();
+    return Boolean(
+      stored?.status === "ready" &&
+        stored.catalog &&
+        stored.recommendationKey === recommendationKey &&
+        sameQuery(stored, names, ids),
+    );
+  };
+
+  const load = (
+    recommendationKey: string,
+    names: readonly string[],
+    ids: readonly string[],
+  ): Promise<MedsCatalogLoadResult> => {
+    if (!recommendationKey) return Promise.resolve({ status: "stale" });
+
+    const current = memory.get(recommendationKey);
+    if (current && current.requestId === latestRequestId && sameQuery(current, names, ids)) {
+      if (current.status === "ready" && current.catalog) {
+        return Promise.resolve({ status: "ready" });
+      }
+
+      if (current.status === "loading") {
+        const request = pending.get(current.requestId);
+        if (request) return request.promise;
+      }
+    }
+
+    if (
+      current?.status === "ready" &&
+      current.catalog &&
+      current.catalog.drugs.length === names.length &&
+      sameQuery(current, names, ids)
+    ) {
+      return Promise.resolve(adoptReady(recommendationKey, names, ids, current.catalog));
+    }
+
+    const stored = readPersisted();
+    if (
+      stored?.status === "ready" &&
+      stored.catalog &&
+      stored.recommendationKey === recommendationKey &&
+      sameQuery(stored, names, ids)
+    ) {
+      return Promise.resolve(adoptReady(recommendationKey, stored.names, stored.ids, stored.catalog));
+    }
+
+    return begin(recommendationKey, names, ids);
   };
 
   return {
@@ -203,43 +391,12 @@ export const createMedsCatalogSession = ({
       names: readonly string[],
       ids: readonly string[],
     ) {
-      if (!recommendationKey) return;
-
-      const current = memory.get(recommendationKey);
-      if (
-        current &&
-        current.requestId === latestRequestId &&
-        sameSequence(current.names, names) &&
-        sameSequence(current.ids, ids) &&
-        (current.status === "loading" || current.status === "ready")
-      ) {
-        return;
-      }
-
-      const stored = readPersisted();
-      if (
-        stored &&
-        stored.status === "ready" &&
-        stored.catalog &&
-        stored.recommendationKey === recommendationKey &&
-        sameSequence(stored.names, names) &&
-        sameSequence(stored.ids, ids)
-      ) {
-        const requestId = ++latestRequestId;
-        memory.set(recommendationKey, {
-          recommendationKey,
-          names: stored.names,
-          ids: stored.ids,
-          status: "ready",
-          catalog: stored.catalog,
-          requestId,
-        });
-        notify();
-        return;
-      }
-
-      begin(recommendationKey, names, ids);
+      void load(recommendationKey, names, ids);
     },
+
+    hasReady,
+
+    load,
 
     read(recommendationKey: string): MedsCatalogSessionEntry | null {
       if (!recommendationKey) return null;
@@ -258,13 +415,22 @@ export const createMedsCatalogSession = ({
 
     clear() {
       latestRequestId += 1;
+      for (const id of [...pending.keys()]) settle(id, { status: "stale" });
       memory.clear();
+      const keys = new Set([
+        storageKey,
+        medsCatalogStorageKey(source, false),
+        medsCatalogStorageKey(source, true),
+        MEDS_CATALOG_STORAGE_KEY,
+      ]);
       storages().forEach((storage) => {
-        try {
-          storage.removeItem(MEDS_CATALOG_STORAGE_KEY);
-        } catch {
-          // Очистка корзины не должна падать из-за хранилища.
-        }
+        keys.forEach((key) => {
+          try {
+            storage.removeItem(key);
+          } catch {
+            // Очистка корзины не должна падать из-за хранилища.
+          }
+        });
       });
       notify();
     },
@@ -281,4 +447,6 @@ export const createMedsCatalogSession = ({
 
 export const medsCatalogSession = createMedsCatalogSession({
   storages: browserStorages,
+  source: readMedsSource(),
+  combinationMock: readMedsCombinationMock(),
 });

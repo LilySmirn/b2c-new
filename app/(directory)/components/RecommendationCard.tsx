@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import styles from "./RecommendationCard.module.css";
 import eagleIcon from "@/assets/images/eagle.png";
+import LoadingSpinner from "./LoadingSpinner";
 
 type RecommendationCardProps = {
   title: string;
   selected?: boolean;
+  busy?: boolean;
   onSelect?: () => void;
   externalUrl: string;
  standardId: string;
@@ -40,6 +42,7 @@ export default function RecommendationCard({
   dateReview = "—",
   classification,
   selected = false,
+  busy = false,
   onSelect,
   showBookmarkMenu = false,
   onAddBookmark,
@@ -71,6 +74,7 @@ export default function RecommendationCard({
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-pressed={onSelect ? selected : undefined}
+      aria-busy={busy || undefined}
       onClick={onSelect}
       onKeyDown={(event) => {
         if (!onSelect || (event.key !== "Enter" && event.key !== " ")) return;
@@ -79,6 +83,15 @@ export default function RecommendationCard({
         onSelect();
       }}
     >
+      {busy ? (
+        <div
+          className={styles.loadingOverlay}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <LoadingSpinner>Загружаем препараты…</LoadingSpinner>
+        </div>
+      ) : null}
       <div className={`${styles.header} ${showBookmarkMenu ? styles.headerWithMenu : ""}`}>
         <h3 className={styles.title} title={title}>
           {title}

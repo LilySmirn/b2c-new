@@ -5,8 +5,10 @@ import { resolveMeds } from "./medsClient";
 import {
   createMedsCatalogSession,
   MEDS_CATALOG_STORAGE_KEY,
+  medsCatalogStorageKey,
   type MedsCatalogSessionEntry,
 } from "./medsCatalogSession";
+import type { MedsSource } from "./medsSource";
 import type { MedsCatalogResponse } from "./medsCatalogTypes";
 
 const createMemoryStorage = () => {
@@ -25,8 +27,13 @@ const createMemoryStorage = () => {
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-const readStored = (storage: { getItem: (key: string) => string | null }) =>
-  JSON.parse(storage.getItem(MEDS_CATALOG_STORAGE_KEY) ?? "null") as {
+const resolveMock = (names: readonly string[]) => resolveMeds(names, { source: "mock" });
+
+const readStored = (
+  storage: { getItem: (key: string) => string | null },
+  source?: MedsSource,
+) =>
+  JSON.parse(storage.getItem(medsCatalogStorageKey(source)) ?? "null") as {
     recommendationKey?: string;
     status?: string;
     catalog?: MedsCatalogResponse | null;
@@ -64,7 +71,7 @@ describe("meds catalog session", () => {
       storages: () => [storage],
       resolve: (names) => {
         calls.push(names);
-        return resolveMeds(names);
+        return resolveMock(names);
       },
     });
 
@@ -96,7 +103,7 @@ describe("meds catalog session", () => {
 
     session.begin("first", ["Амоксициллин"], ["a"]);
     session.begin("second", ["Кларитромицин"], ["b"]);
-    pending[0]?.resolve(await resolveMeds(["Амоксициллин"]));
+    pending[0]?.resolve(await resolveMock(["Амоксициллин"]));
     await flush();
 
     const whileSecondLoads = readStored(storage);
@@ -107,7 +114,7 @@ describe("meds catalog session", () => {
     assert.equal(session.read("second")?.catalog, null);
     assert.notEqual(session.read("first")?.status, "ready");
 
-    pending[1]?.resolve(await resolveMeds(["Кларитромицин"]));
+    pending[1]?.resolve(await resolveMock(["Кларитромицин"]));
     await flush();
 
     const ready = session.read("second");
@@ -121,7 +128,7 @@ describe("meds catalog session", () => {
     const storage = createMemoryStorage();
     const first = createMedsCatalogSession({
       storages: () => [storage],
-      resolve: resolveMeds,
+      resolve: resolveMock,
     });
 
     first.begin("reco", ["Амоксициллин"], ["1"]);
@@ -132,7 +139,7 @@ describe("meds catalog session", () => {
       storages: () => [storage],
       resolve: (names) => {
         calls += 1;
-        return resolveMeds(names);
+        return resolveMock(names);
       },
     });
 
@@ -171,12 +178,237 @@ describe("meds catalog session", () => {
       storages: () => [createMemoryStorage()],
       resolve: (names) => {
         calls += 1;
-        return resolveMeds(names);
+        return resolveMock(names);
       },
     });
 
     session.ensure("", ["Амоксициллин"], ["1"]);
     session.begin("", ["Амоксициллин"], ["1"]);
+    assert.equal(calls, 0);
+  });
+
+  it("не читает кэш другого режима и не затирает его", async () => {
+    const storage = createMemoryStorage();
+    const mockSession = createMedsCatalogSession({
+      storages: () => [storage],
+      source: "mock",
+      resolve: resolveMock,
+    });
+
+    mockSession.begin("reco", ["Амоксициллин"], ["1"]);
+    await flush();
+    assert.equal(mockSession.read("reco")?.catalog?.drugs[0]?.type, "drug");
+    assert.equal(storage.getItem(medsCatalogStorageKey("real")), null);
+
+    let realCalls = 0;
+    const realSession = createMedsCatalogSession({
+      storages: () => [storage],
+      source: "real",
+      resolve: (names) => {
+        realCalls += 1;
+        return Promise.resolve({
+          drugs: names.map((name) => ({
+            name,
+            type: "other" as const,
+            data: [
+              {
+                name,
+                items: [
+                  {
+                    standard_MNN: name,
+                    SMNN_code: "",
+                    standard_form: "",
+                    standard_dose: "",
+                    name_trade: "",
+                    code_ATC: "",
+                    name_unit: "",
+                  },
+                ],
+              },
+            ],
+          })),
+          interactions: null,
+        });
+      },
+    });
+
+    realSession.ensure("reco", ["Амоксициллин"], ["1"]);
+    assert.equal(realCalls, 1);
+    assert.equal(realSession.read("reco")?.catalog, null);
+    await flush();
+
+    assert.equal(realSession.read("reco")?.status, "ready");
+    assert.equal(realSession.read("reco")?.catalog?.drugs[0]?.type, "other");
+    assert.equal(mockSession.read("reco")?.catalog?.drugs[0]?.type, "drug");
+    assert.notEqual(storage.getItem(medsCatalogStorageKey("mock")), null);
+
+    storage.setItem(MEDS_CATALOG_STORAGE_KEY, "legacy");
+    realSession.clear();
+    assert.equal(storage.getItem(medsCatalogStorageKey("real")), null);
+    assert.equal(storage.getItem(MEDS_CATALOG_STORAGE_KEY), null);
+    assert.notEqual(storage.getItem(medsCatalogStorageKey("mock")), null);
+    assert.equal(mockSession.read("reco")?.catalog?.drugs[0]?.type, "drug");
+  });
+
+  it("ошибка API не стирает сохранённый выбор пользователя", async () => {
+    const storage = createMemoryStorage();
+    const selectionKey = "directoryCartSelections";
+    const combinationKey = "directoryCartCombinationSelections";
+    const savedSelections = JSON.stringify({
+      reco: [{ id: "1", comment: "утро", title: "Омепразол" }],
+    });
+    const savedCombination = JSON.stringify({
+      reco: {
+        "1": {
+          picks: [{ inn: "ОМЕПРАЗОЛ", item: null, confirmed: true }],
+        },
+      },
+    });
+    storage.setItem(selectionKey, savedSelections);
+    storage.setItem(combinationKey, savedCombination);
+
+    const session = createMedsCatalogSession({
+      storages: () => [storage],
+      source: "real",
+      resolve: () => Promise.reject(new Error("timeout")),
+    });
+
+    session.begin("reco", ["Омепразол"], ["1"]);
+    await flush();
+
+    assert.equal(session.read("reco")?.status, "error");
+    assert.equal(session.read("reco")?.catalog, null);
+    assert.equal(storage.getItem(selectionKey), savedSelections);
+    assert.equal(storage.getItem(combinationKey), savedCombination);
+    const storedCatalog = readStored(storage, "real");
+    assert.equal(storedCatalog?.status, "error");
+    assert.equal(storedCatalog?.catalog, null);
+  });
+
+  it("не читает тестовые комбинации после отключения временной подстановки", async () => {
+    const storage = createMemoryStorage();
+    const hybrid = createMedsCatalogSession({
+      storages: () => [storage],
+      source: "real",
+      combinationMock: true,
+      resolve: async (names) => ({
+        drugs: names.map((name) => ({
+          name,
+          type: "combination" as const,
+          combination_data: [
+            {
+              name: "Амоксициллин",
+              type: "drug" as const,
+              data: [
+                {
+                  name: "АМОКСИЦИЛЛИН",
+                  items: [
+                    {
+                      standard_MNN: "АМОКСИЦИЛЛИН",
+                      SMNN_code: "",
+                      standard_form: "",
+                      standard_dose: "",
+                      name_trade: "Тест",
+                      code_ATC: "",
+                      name_unit: "",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        })),
+        interactions: null,
+      }),
+    });
+
+    hybrid.begin("reco", ["Стандартная тройная терапия"], ["1"]);
+    await flush();
+    assert.equal(hybrid.read("reco")?.catalog?.drugs[0]?.type, "combination");
+    assert.equal(storage.getItem(medsCatalogStorageKey("real", false)), null);
+    assert.notEqual(storage.getItem(medsCatalogStorageKey("real", true)), null);
+
+    let calls = 0;
+    const real = createMedsCatalogSession({
+      storages: () => [storage],
+      source: "real",
+      combinationMock: false,
+      resolve: (names) => {
+        calls += 1;
+        return Promise.resolve({
+          drugs: names.map((name) => ({
+            name,
+            type: "other" as const,
+            data: [
+              {
+                name,
+                items: [
+                  {
+                    standard_MNN: name,
+                    SMNN_code: "",
+                    standard_form: "",
+                    standard_dose: "",
+                    name_trade: "",
+                    code_ATC: "",
+                    name_unit: "",
+                  },
+                ],
+              },
+            ],
+          })),
+          interactions: null,
+        });
+      },
+    });
+
+    assert.equal(real.hasReady("reco", ["Стандартная тройная терапия"], ["1"]), false);
+    real.ensure("reco", ["Стандартная тройная терапия"], ["1"]);
+    assert.equal(calls, 1);
+    await flush();
+    assert.equal(real.read("reco")?.catalog?.drugs[0]?.type, "other");
+    assert.equal(hybrid.read("reco")?.catalog?.drugs[0]?.type, "combination");
+  });
+
+  it("load не повторяет запрос и не принимает устаревший ответ", async () => {
+    const pending: Array<{
+      resolve: (value: MedsCatalogResponse) => void;
+    }> = [];
+    const session = createMedsCatalogSession({
+      storages: () => [createMemoryStorage()],
+      resolve: () =>
+        new Promise((resolve) => {
+          pending.push({ resolve });
+        }),
+    });
+
+    const first = session.load("first", ["Амоксициллин"], ["1"]);
+    const duplicate = session.load("first", ["Амоксициллин"], ["1"]);
+    assert.equal(pending.length, 1);
+
+    const second = session.load("second", ["Кларитромицин"], ["2"]);
+    assert.equal(pending.length, 2);
+    assert.equal((await first).status, "stale");
+    assert.equal((await duplicate).status, "stale");
+    assert.notEqual(session.read("first")?.status, "ready");
+
+    pending[1]?.resolve(await resolveMock(["Кларитромицин"]));
+    assert.equal((await second).status, "ready");
+    assert.equal(session.read("second")?.catalog?.drugs[0]?.name, "Кларитромицин");
+    assert.equal(session.hasReady("second", ["Кларитромицин"], ["2"]), true);
+
+    let calls = 0;
+    const cached = createMedsCatalogSession({
+      storages: () => [createMemoryStorage()],
+      resolve: (names) => {
+        calls += 1;
+        return resolveMock(names);
+      },
+    });
+    cached.begin("reco", ["Амоксициллин"], ["1"]);
+    await flush();
+    calls = 0;
+    assert.equal(cached.hasReady("reco", ["Амоксициллин"], ["1"]), true);
+    assert.equal((await cached.load("reco", ["Амоксициллин"], ["1"])).status, "ready");
     assert.equal(calls, 0);
   });
 });
