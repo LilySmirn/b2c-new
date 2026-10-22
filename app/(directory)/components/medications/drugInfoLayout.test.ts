@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 const directory = dirname(fileURLToPath(import.meta.url));
 const css = readFileSync(join(directory, "DrugInfoModal.module.css"), "utf8");
 const view = readFileSync(join(directory, "DrugInfoModal.tsx"), "utf8");
+const interactions = readFileSync(join(directory, "InteractionsPanel.tsx"), "utf8");
+const checklist = readFileSync(join(directory, "../PrescriptionChecklist.tsx"), "utf8");
 
 const guideBody = css.match(/\.guideBody\s*\{([^}]+)\}/)?.[1] ?? "";
 
@@ -19,21 +21,44 @@ const referenceSection = (name: string) => {
 };
 
 describe("правая колонка попапа назначения", () => {
-  it("справка ограничена строками до поля «Схема», а не фиксированной высотой", () => {
+  it("короткая справка складывается подряд, длинная ограничена низом «Схемы»", () => {
     assert.match(guideBody, /height:\s*auto/);
     assert.match(guideBody, /overflow-y:\s*auto/);
     assert.match(guideBody, /flex:\s*0\s+1\s+auto/);
     assert.doesNotMatch(guideBody, /max-height:\s*min\(320px,\s*46vh\)/);
     assert.doesNotMatch(guideBody, /height:\s*100%/);
     assert.doesNotMatch(guideBody, /flex:\s*1\b/);
-    assert.match(css, /\.guideSection\s*\{[^}]*grid-row:\s*1\s*\/\s*4/);
-    assert.match(css, /\.guideSection\s*\{[^}]*height:\s*0/);
-    assert.match(css, /\.guideSection\s*\{[^}]*min-height:\s*100%/);
-    assert.match(css, /\.usualSection\s*\{[^}]*grid-row:\s*4/);
-    assert.match(css, /\.cautionSection\s*\{[^}]*grid-row:\s*5/);
+    assert.match(css, /\.side\s*\{[^}]*display:\s*flex/);
+    assert.match(css, /\.side\s*\{[^}]*flex-direction:\s*column/);
+    assert.match(css, /\.side\s*\{[^}]*justify-content:\s*flex-start/);
+    assert.match(css, /\.side\s*\{[^}]*gap:\s*12px/);
+    assert.doesNotMatch(css, /\.side\s*\{[^}]*justify-content:\s*space-between/);
+    assert.match(view, /data-guide-layout=\{guideOverflow \? "aligned" : "compact"\}/);
+    assert.match(
+      css,
+      /\.side\[data-guide-layout="aligned"\] \.guideSection\s*\{[^}]*grid-row:\s*1\s*\/\s*4/,
+    );
+    assert.match(
+      css,
+      /\.side\[data-guide-layout="aligned"\] \.guideSection\s*\{[^}]*height:\s*0/,
+    );
+    assert.match(
+      css,
+      /\.side\[data-guide-layout="aligned"\] \.guideSection\s*\{[^}]*min-height:\s*100%/,
+    );
+    assert.match(
+      css,
+      /\.side\[data-guide-layout="aligned"\] \.usualSection\s*\{[^}]*grid-row:\s*4/,
+    );
+    assert.match(
+      css,
+      /\.side\[data-guide-layout="aligned"\] \.cautionSection\s*\{[^}]*grid-row:\s*5/,
+    );
     assert.match(css, /@media\s*\(max-width:\s*860px\)\s*\{[\s\S]*?\.guideBody\s*\{[^}]*max-height:\s*min\(320px,\s*46vh\)/);
     assert.doesNotMatch(css, /\.dialog\s*\{[^}]*overflow-x:\s*hidden/);
     assert.doesNotMatch(css, /\.guide\s*\{[^}]*position:\s*absolute/);
+    assert.match(view, /Как указано в КР/);
+    assert.doesNotMatch(view, /Как обычно дают/);
   });
 
   it("состав схемы стоит над колонками и делится на равные сжимаемые карточки", () => {
@@ -80,5 +105,17 @@ describe("правая колонка попапа назначения", () => 
     assert.match(view, /schemeInputPlaceholder\(chips\.length\)/);
     assert.doesNotMatch(view, /placeholder="Схема"/);
     assert.doesNotMatch(view, /value="Схема"/);
+  });
+});
+
+describe("блок межлекарственных взаимодействий", () => {
+  it("скрыт флагом и не удаляет реализацию панели", () => {
+    assert.match(interactions, /export const SHOW_MEDICATION_INTERACTIONS = false/);
+    assert.match(interactions, /function InteractionsPanel/);
+    assert.match(
+      checklist,
+      /SHOW_MEDICATION_INTERACTIONS && activeCategoryId === "medications" \?/,
+    );
+    assert.match(checklist, /<InteractionsPanel \/>/);
   });
 });

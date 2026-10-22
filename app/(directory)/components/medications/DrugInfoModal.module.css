@@ -189,22 +189,27 @@
 
 .assign,
 .side {
-  display: grid;
-  grid-template-rows: subgrid;
   grid-row: 1 / -1;
-  align-items: start;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
 }
 
 .assign {
+  display: grid;
+  grid-template-rows: subgrid;
+  align-items: start;
   grid-column: 1;
   border-right: 1px solid #e8eef5;
   background: #fff;
 }
 
 .side {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
   grid-column: 2;
   background: #f8fafc;
 }
@@ -235,24 +240,14 @@
   max-width: 100%;
 }
 
-.guideSection {
-  grid-row: 1 / 4;
-  align-self: stretch;
-  /* Не участвует в расчёте высоты строк: их задают поля слева до «Схемы». */
-  height: 0;
-  min-height: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.usualSection {
-  grid-row: 4;
-  align-self: start;
-}
-
+.guideSection,
+.usualSection,
 .cautionSection {
-  grid-row: 5;
-  align-self: start;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .sideHead {
@@ -888,6 +883,37 @@
   .slots[data-count="3"],
   .slots[data-count="4"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 861px) {
+    /* Длинная справка упирается в низ «Схемы»: дальше прежнее выравнивание строк. */
+    .side[data-guide-layout="aligned"] {
+      display: grid;
+      grid-template-rows: subgrid;
+      align-items: start;
+      justify-content: start;
+    }
+
+    .side[data-guide-layout="aligned"] .guideSection {
+      grid-row: 1 / 4;
+      align-self: stretch;
+      /* Не участвует в расчёте высоты строк: их задают поля слева до «Схемы». */
+      height: 0;
+      min-height: 100%;
+      overflow: hidden;
+    }
+
+    .side[data-guide-layout="aligned"] .usualSection {
+      grid-row: 4;
+      align-self: start;
+    }
+
+    .side[data-guide-layout="aligned"] .cautionSection {
+      grid-row: 5;
+      align-self: start;
+    }
   }
 }
 

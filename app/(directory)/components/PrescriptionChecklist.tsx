@@ -17,7 +17,9 @@ import DrugInfoModal, {
   type MedicationIntake,
 } from "./medications/DrugInfoModal";
 import DrugRow, { type MedicationField } from "./medications/DrugRow";
-import InteractionsPanel from "./medications/InteractionsPanel";
+import InteractionsPanel, {
+  SHOW_MEDICATION_INTERACTIONS,
+} from "./medications/InteractionsPanel";
 import SchemeWizard from "./medications/SchemeWizard";
 import {
   combinationSelectionSummary,
@@ -1085,8 +1087,9 @@ export default function PrescriptionChecklist({
         </div>
       </div>
 
-      {/* Временный режим: панель всегда видна на «Препаратах», без проверки совместимости. */}
-      {activeCategoryId === "medications" ? <InteractionsPanel /> : null}
+      {SHOW_MEDICATION_INTERACTIONS && activeCategoryId === "medications" ? (
+        <InteractionsPanel />
+      ) : null}
 
       {schemeSession ? (
         <SchemeWizard

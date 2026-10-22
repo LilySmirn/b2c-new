@@ -41,6 +41,8 @@ const COURSE_PRESETS = ["3 дня", "5 дней", "7 дней", "10 дней", "
 const MISSING_USUAL_TEXT =
   "В клинической рекомендации нет данных о схеме и продолжительности курса.";
 
+const USUAL_SECTION_TITLE = "Как указано в КР";
+
 const CAUTION_TEXT =
   "Информация о межлекарственных взаимодействиях будет доступна после подключения проверки совместимости препаратов.";
 
@@ -82,11 +84,15 @@ type DrugInfoModalProps = {
   onApplyOriginal: () => void;
 };
 
-/** Полоса прокрутки нужна только если текст выше места до нижнего края «Схемы». */
-const guideNeedsScroll = (section: HTMLElement, body: HTMLElement) => {
+/** Полоса нужна, только если текст справки выше нижнего края поля «Схема». */
+const guideNeedsScroll = (
+  section: HTMLElement,
+  body: HTMLElement,
+  schemeField: HTMLElement,
+) => {
   const frame = body.parentElement;
   const heading = section.querySelector<HTMLElement>("[data-reference-heading]");
-  if (!frame || !heading || section.clientHeight === 0) return false;
+  if (!frame || !heading) return false;
 
   const sectionStyle = getComputedStyle(section);
   const frameStyle = getComputedStyle(frame);
@@ -98,29 +104,32 @@ const guideNeedsScroll = (section: HTMLElement, body: HTMLElement) => {
     Number.parseFloat(frameStyle.borderBottomWidth);
   const sectionChrome =
     Number.parseFloat(sectionStyle.paddingTop) +
-    Number.parseFloat(sectionStyle.paddingBottom);
-  let available =
-    section.clientHeight -
-    sectionChrome -
-    heading.getBoundingClientRect().height -
-    gap -
-    frameChrome;
-
-  const maxHeight = getComputedStyle(body).maxHeight;
-  if (maxHeight.endsWith("px")) {
-    const parsed = Number.parseFloat(maxHeight);
-    if (Number.isFinite(parsed)) available = Math.min(available, parsed);
-  }
-
-  if (!Number.isFinite(available) || available <= 0) return false;
+    Number.parseFloat(sectionStyle.paddingBottom) +
+    Number.parseFloat(sectionStyle.borderTopWidth) +
+    Number.parseFloat(sectionStyle.borderBottomWidth);
 
   // Ширина без полосы: иначе scrollbar уменьшает строку и создаёт ложное переполнение.
   const previous = body.style.overflowY;
   body.style.overflowY = "hidden";
-  const natural = body.scrollHeight;
+  const naturalBody = body.scrollHeight;
   body.style.overflowY = previous;
 
-  return natural - available > 1;
+  const sectionTop = section.getBoundingClientRect().top;
+  const schemeBottom = schemeField.getBoundingClientRect().bottom;
+  // На узком экране колонки стоят друг под другом, и край «Схемы» выше справки.
+  if (schemeBottom <= sectionTop + 1) {
+    const maxHeight = getComputedStyle(body).maxHeight;
+    if (!maxHeight.endsWith("px")) return false;
+    const parsed = Number.parseFloat(maxHeight);
+    return Number.isFinite(parsed) && parsed > 0 && naturalBody - parsed > 1;
+  }
+
+  const natural =
+    sectionChrome + heading.getBoundingClientRect().height + gap + frameChrome + naturalBody;
+  const limit = schemeBottom - sectionTop;
+  if (!Number.isFinite(natural) || !Number.isFinite(limit) || limit <= 0) return false;
+
+  return natural - limit > 1;
 };
 
 const visibleOptions = (values: readonly string[] | undefined) =>
@@ -324,6 +333,8 @@ export default function DrugInfoModal({
   onApplyOriginal,
 }: DrugInfoModalProps) {
   const titleId = useId();
+  const layoutRef = useRef<HTMLDivElement>(null);
+  const schemeFieldRef = useRef<HTMLDivElement>(null);
   const guideSectionRef = useRef<HTMLElement>(null);
   const guideBodyRef = useRef<HTMLDivElement>(null);
   const [guideOverflow, setGuideOverflow] = useState(false);
@@ -369,26 +380,23 @@ export default function DrugInfoModal({
   krOpenRef.current = krOpen && Boolean(krText);
 
   useLayoutEffect(() => {
+    const layout = layoutRef.current;
+    const schemeField = schemeFieldRef.current;
     const section = guideSectionRef.current;
     const body = guideBodyRef.current;
-    if (!section || !body) return;
+    if (!layout || !schemeField || !section || !body) return;
 
-    let frame = 0;
     const measure = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const needsScroll = guideNeedsScroll(section, body);
-        setGuideOverflow((current) => (current === needsScroll ? current : needsScroll));
-      });
+      const needsScroll = guideNeedsScroll(section, body, schemeField);
+      setGuideOverflow((current) => (current === needsScroll ? current : needsScroll));
     };
 
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(section);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    observer.observe(layout);
+    observer.observe(schemeField);
+    observer.observe(body);
+    return () => observer.disconnect();
   }, [description]);
 
   useEffect(() => {
@@ -519,7 +527,7 @@ export default function DrugInfoModal({
             </section>
           ) : null}
 
-          <div className={styles.layout}>
+          <div ref={layoutRef} className={styles.layout}>
             <div className={styles.assign}>
               <div className={styles.doseRow}>
                 <CatalogComboField
@@ -569,7 +577,7 @@ export default function DrugInfoModal({
                   </div>
                 </div>
 
-                <div className={styles.field}>
+                <div ref={schemeFieldRef} className={styles.field}>
                   <span className={styles.fieldLabel} id={`${titleId}-scheme`}>
                     Схема
                   </span>
@@ -663,7 +671,10 @@ export default function DrugInfoModal({
               </div>
             </div>
 
-            <div className={styles.side}>
+            <div
+              className={styles.side}
+              data-guide-layout={guideOverflow ? "aligned" : "compact"}
+            >
               <section
                 ref={guideSectionRef}
                 className={`${styles.sideSection} ${styles.guideSection}`}
@@ -697,10 +708,10 @@ export default function DrugInfoModal({
               <section
                 className={`${styles.sideSection} ${styles.usualSection}`}
                 data-reference-section="usual"
-                aria-label="Как обычно дают"
+                aria-label={USUAL_SECTION_TITLE}
               >
                 <div className={styles.sideHead} data-reference-heading>
-                  <h4>Как обычно дают</h4>
+                  <h4>{USUAL_SECTION_TITLE}</h4>
                   <button
                     type="button"
                     className={styles.cardAction}
