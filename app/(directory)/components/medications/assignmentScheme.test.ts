@@ -3,8 +3,8 @@ import { describe, it } from "node:test";
 import {
   applyMedsSelection,
   matchMedsDrug,
-  readMedsCatalog,
 } from "./medsClient";
+import { readMedsCatalog } from "./medsMockCatalog";
 import {
   chooseCombinationInn,
   chooseCombinationTrade,

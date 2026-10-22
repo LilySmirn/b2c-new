@@ -1,15 +1,30 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { combinationComponents, combinationSteps } from "./combinationSelection";
+import {
+  chooseCombinationInn,
+  chooseCombinationTrade,
+  combinationComponents,
+  combinationDrugCount,
+  combinationSchemeRow,
+  combinationSteps,
+  commitCombinationDraft,
+  confirmCombinationOther,
+  createCombinationWizard,
+  innsOf,
+  schemeBadgeText,
+} from "./combinationSelection";
+import { showsSchemeComposition } from "./assignmentScheme";
 import { collectMedicationQuery } from "./medicationQuery";
 import {
   listMedsTrades,
+  matchMedsDrugForItem,
   MEDS_RESOLVE_PATH,
   MedsResolveError,
   resolveMeds,
 } from "./medsClient";
-import type { MedsCatalogItemRecord, MedsCatalogResponse } from "./medsCatalogTypes";
-import { readMedsCombinationMock, readMedsSource } from "./medsSource";
+import type { MedsCatalogComponent, MedsCatalogItemRecord, MedsCatalogResponse } from "./medsCatalogTypes";
+import { mockCatalogReads } from "./medsMockCatalog";
+import { readMedsSource } from "./medsSource";
 
 const PLUS_PLUS = "Омепразол++Амоксициллин++Кларитромицин";
 
@@ -335,134 +350,242 @@ const other = (name: string) => ({
   data: [{ name, items: [item({ standard_MNN: name })] }],
 });
 
-describe("временная подстановка тестовых комбинаций", () => {
-  it("включается только явным true", () => {
-    assert.equal(readMedsCombinationMock(undefined), false);
-    assert.equal(readMedsCombinationMock(""), false);
-    assert.equal(readMedsCombinationMock("false"), false);
-    assert.equal(readMedsCombinationMock("1"), false);
-    assert.equal(readMedsCombinationMock(" TRUE "), true);
+const drugEntry = (name: string, trade: string) => ({
+  name,
+  type: "drug" as const,
+  data: [
+    {
+      name,
+      items: [
+        item({
+          standard_MNN: name,
+          SMNN_code: `code-${name}`,
+          standard_form: "КАПСУЛЫ",
+          standard_dose: "20 мг",
+          name_trade: trade,
+          code_ATC: "A02BC01",
+          name_unit: "шт. (капсула)",
+        }),
+      ],
+    },
+  ],
+});
+
+const groupEntry = (name: string, inn: string, trade: string): MedsCatalogComponent => ({
+  name,
+  type: "group",
+  data: [
+    {
+      name: inn,
+      items: [
+        item({
+          standard_MNN: inn,
+          SMNN_code: `code-${inn}`,
+          standard_form: "ЛИОФИЛИЗАТ ДЛЯ ПРИГОТОВЛЕНИЯ РАСТВОРА ДЛЯ ВНУТРИВЕННОГО ВВЕДЕНИЯ",
+          standard_dose: "500 МЕ",
+          name_trade: trade,
+          code_ATC: "B02BD02",
+          name_unit: "МЕ",
+        }),
+      ],
+    },
+  ],
+});
+
+const otherComponent = (name: string): MedsCatalogComponent => ({
+  name,
+  type: "other",
+  data: [{ name, items: [item({ standard_MNN: name })] }],
+});
+
+const combinationEntry = (name: string, combination_data: MedsCatalogComponent[]) => ({
+  name,
+  type: "combination" as const,
+  combination_data,
+});
+
+const finishScheme = (components: readonly MedsCatalogComponent[]) => {
+  let state = createCombinationWizard(components, null);
+
+  for (let guard = 0; guard < 12 && state.cursor.view === "step"; guard += 1) {
+    const component = components[state.cursor.step];
+    if (!component) break;
+
+    if (component.type === "other") {
+      state = confirmCombinationOther(state, components);
+      continue;
+    }
+
+    if (component.type === "group" && state.cursor.stage === "inn") {
+      const inn = innsOf(component)[0];
+      assert.ok(inn);
+      state = chooseCombinationInn(state, components, inn);
+      continue;
+    }
+
+    state = chooseCombinationTrade(state, components, 0);
+  }
+
+  return commitCombinationDraft(state, components);
+};
+
+describe("режим real не подменяет ответ моком", () => {
+  it("игнорирует прежний флаг и оставляет other с названием тестовой схемы", async () => {
+    const previous = process.env.NEXT_PUBLIC_MEDS_COMBINATION_MOCK;
+    process.env.NEXT_PUBLIC_MEDS_COMBINATION_MOCK = "true";
+    const readsBefore = mockCatalogReads;
+
+    try {
+      const names = [
+        "Кларитромицин",
+        "Омепразол + Амоксициллин",
+        PLUS_PLUS,
+        "Стандартная тройная терапия",
+        "Штаммоспецифические пробиотики",
+      ];
+      const resolved = await resolveMeds(names, {
+        source: "real",
+        fetchImpl: async (_input, init) => {
+          assert.deepEqual(JSON.parse(String(init?.body)), names);
+          return catalogResponse(names.map((name) => other(name)));
+        },
+      });
+
+      assert.equal(mockCatalogReads, readsBefore);
+      assert.deepEqual(
+        resolved.drugs.map((drug) => drug.type),
+        ["other", "other", "other", "other", "other"],
+      );
+      assert.equal(resolved.drugs[3]?.name, "Стандартная тройная терапия");
+      assert.equal(combinationDrugCount(resolved.drugs[3]), null);
+      assert.equal(showsSchemeComposition(resolved.drugs[3]?.type), false);
+      assert.equal(combinationSchemeRow(resolved.drugs[3] ?? other(""), null), null);
+    } finally {
+      if (previous === undefined) delete process.env.NEXT_PUBLIC_MEDS_COMBINATION_MOCK;
+      else process.env.NEXT_PUBLIC_MEDS_COMBINATION_MOCK = previous;
+    }
   });
 
-  it("подставляет известную схему только когда сервер вернул other", async () => {
-    const names = ["Стандартная тройная терапия", "Кларитромицин", "Ингибиторы протонного насоса", "Ромашка"];
-    const resolved = await resolveMeds(names, {
+  it("строит строки таблицы из клинической рекомендации и ответа API, без лишних строк", async () => {
+    const items = [
+      { id: "ppi", title: "Омепразол" },
+      { id: "named", title: "Стандартная тройная терапия" },
+      { id: "plus", title: PLUS_PLUS },
+      { id: "ab", title: "Кларитромицин" },
+    ];
+    const query = collectMedicationQuery([{ categoryId: "medications", items }]);
+    const resolved = await resolveMeds(query.names, {
       source: "real",
-      combinationMock: true,
       fetchImpl: async () =>
         catalogResponse([
-          other("другое эхо сервера"),
+          drugEntry("Омепразол", "Омез"),
+          other("Стандартная тройная терапия"),
+          other(PLUS_PLUS),
           {
             name: "Кларитромицин",
-            type: "drug",
-            data: [
-              {
-                name: "Кларитромицин",
-                items: [item({ standard_MNN: "КЛАРИТРОМИЦИН", name_trade: "Только с сервера" })],
-              },
-            ],
-          },
-          {
-            name: "Ингибиторы протонного насоса",
             type: "group",
             data: [
               {
-                name: "ОМЕПРАЗОЛ",
-                items: [item({ standard_MNN: "ОМЕПРАЗОЛ", name_trade: "Только группа сервера" })],
+                name: "КЛАРИТРОМИЦИН",
+                items: [item({ standard_MNN: "КЛАРИТРОМИЦИН", name_trade: "Клацид" })],
               },
             ],
           },
-          other("Ромашка"),
         ]),
     });
 
-    assert.equal(resolved.drugs[0]?.name, "Стандартная тройная терапия");
-    assert.equal(resolved.drugs[0]?.type, "combination");
-    if (resolved.drugs[0]?.type !== "combination") return;
+    const rows = items.map((item) => matchMedsDrugForItem(resolved, query, item));
+
+    assert.equal(rows.length, items.length);
     assert.deepEqual(
-      combinationSteps(resolved.drugs[0].combination_data).map((step) => step.name),
-      ["Ингибиторы протонного насоса", "Амоксициллин", "Кларитромицин"],
+      rows.map((row) => row?.name),
+      items.map((item) => item.title),
     );
-    assert.equal(resolved.drugs[1]?.type, "drug");
-    assert.deepEqual(listMedsTrades(resolved.drugs[1] ?? null, ""), ["Только с сервера"]);
-    assert.equal(resolved.drugs[2]?.type, "group");
-    assert.equal(resolved.drugs[3]?.type, "other");
+    assert.deepEqual(
+      rows.map((row) => row?.type),
+      ["drug", "other", "other", "group"],
+    );
+    assert.deepEqual(
+      rows.map((row) => showsSchemeComposition(row?.type)),
+      [false, false, false, false],
+    );
+    assert.equal(resolved.drugs.length, query.names.length);
   });
 
-  it("не подменяет обычный other, строку с ++ и название, которого нет среди тестовых схем", async () => {
-    const names = [
-      "Кларитромицин",
-      "Омепразол + Амоксициллин",
-      PLUS_PLUS,
-      "стандартная тройная терапия",
-      "Штаммоспецифические пробиотики",
+  it("проводит combination из 2, 3 и 4 компонентов через ответ API и мастер схем", async () => {
+    const tripleName = "Стандартная тройная терапия";
+    const items = [
+      { id: "two", title: "Назначение из двух" },
+      { id: "three", title: tripleName },
+      { id: "four", title: "Назначение из четырёх" },
+      { id: "plain", title: tripleName },
     ];
-    const resolved = await resolveMeds(names, {
+    const two = [
+      drugEntry("ОМЕПРАЗОЛ", "Омепразол"),
+      drugEntry("АМОКСИЦИЛЛИН", "Амоксициллин"),
+    ];
+    const three = [
+      drugEntry("ОМЕПРАЗОЛ", "Омепразол"),
+      groupEntry("Фактор свертывания крови VIII", "ОКТОКОГ АЛЬФА", "Адвейт"),
+      otherComponent("Ромашка"),
+    ];
+    const four = [
+      drugEntry("ОМЕПРАЗОЛ", "Омепразол"),
+      drugEntry("АМОКСИЦИЛЛИН", "Амоксициллин"),
+      drugEntry("КЛАРИТРОМИЦИН", "Клацид"),
+      otherComponent("Ромашка"),
+    ];
+    const query = collectMedicationQuery([{ categoryId: "medications", items }]);
+    const resolved = await resolveMeds(query.names, {
       source: "real",
-      combinationMock: true,
       fetchImpl: async (_input, init) => {
-        assert.deepEqual(JSON.parse(String(init?.body)), names);
-        return catalogResponse(names.map((name) => other(name)));
+        assert.deepEqual(JSON.parse(String(init?.body)), query.names);
+        return catalogResponse([
+          combinationEntry(items[0].title, two),
+          combinationEntry(items[1].title, three),
+          combinationEntry(items[2].title, four),
+          other(items[3].title),
+        ]);
       },
     });
 
+    const rows = items.map((row) => matchMedsDrugForItem(resolved, query, row));
     assert.deepEqual(
-      resolved.drugs.map((drug) => drug.type),
-      ["other", "other", "other", "other", "other"],
+      rows.map((row) => row?.type),
+      ["combination", "combination", "combination", "other"],
     );
-    assert.equal(
-      resolved.drugs[0]?.type === "other" && resolved.drugs[0].data[0]?.items[0]?.name_trade,
-      "",
+    assert.deepEqual(
+      rows.map((row) => combinationDrugCount(row)),
+      [2, 3, 4, null],
     );
-  });
 
-  it("оставляет серверный other, если временная подстановка выключена", async () => {
-    const resolved = await resolveMeds(["Стандартная тройная терапия"], {
-      source: "real",
-      combinationMock: false,
-      fetchImpl: async () => catalogResponse([other("Стандартная тройная терапия")]),
+    const badgeByCount: Record<number, string> = {
+      2: "СХЕМА · 2 ПРЕПАРАТА",
+      3: "СХЕМА · 3 ПРЕПАРАТА",
+      4: "СХЕМА · 4 ПРЕПАРАТА",
+    };
+
+    rows.slice(0, 3).forEach((row, index) => {
+      assert.equal(row?.type, "combination");
+      if (row?.type !== "combination") return;
+
+      const count = row.combination_data.length;
+      assert.equal(schemeBadgeText(count).toLocaleUpperCase("ru-RU"), badgeByCount[count]);
+      assert.equal(showsSchemeComposition(row.type), true);
+
+      const draft = finishScheme(combinationComponents(row));
+      assert.ok(draft);
+      const scheme = combinationSchemeRow(row, draft);
+      assert.equal(scheme?.title, items[index]?.title);
+      assert.equal(scheme?.componentCount, count);
+      assert.equal(scheme?.dose, "");
+      assert.equal(scheme?.form, "");
+      assert.match(scheme?.summary ?? "", /\S/);
     });
 
-    assert.equal(resolved.drugs[0]?.type, "other");
-  });
-
-  it("оставляет реальный combination важнее мока", async () => {
-    const resolved = await resolveMeds(["Стандартная тройная терапия"], {
-      source: "real",
-      combinationMock: true,
-      fetchImpl: async () =>
-        catalogResponse([
-          {
-            name: "Стандартная тройная терапия",
-            type: "combination",
-            combination_data: [
-              {
-                name: "С сервера",
-                type: "drug",
-                data: [{ name: "С сервера", items: [item({ standard_MNN: "С СЕРВЕРА" })] }],
-              },
-            ],
-          },
-        ]),
-    });
-
-    assert.equal(resolved.drugs[0]?.type, "combination");
-    if (resolved.drugs[0]?.type !== "combination") return;
-    assert.deepEqual(
-      combinationSteps(resolved.drugs[0].combination_data).map((step) => step.name),
-      ["С сервера"],
-    );
-  });
-
-  it("не заменяет ошибку реального API тестовой схемой", async () => {
-    await assert.rejects(
-      () =>
-        resolveMeds(["Стандартная тройная терапия"], {
-          source: "real",
-          combinationMock: true,
-          fetchImpl: async () => jsonResponse({ error: "Meds catalog request failed" }, 503),
-        }),
-      (error: unknown) => error instanceof MedsResolveError && error.reason === "http",
-    );
+    const plain = rows[3];
+    assert.equal(plain?.name, tripleName);
+    assert.equal(showsSchemeComposition(plain?.type), false);
+    assert.equal(combinationSchemeRow(plain ?? other(tripleName), null), null);
   });
 });

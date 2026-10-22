@@ -11,9 +11,9 @@ import {
   matchMedsDrug,
   matchMedsDrugForItem,
   normalizeMedsName,
-  readMedsCatalog,
   resolveMeds,
 } from "./medsClient";
+import { readMedsCatalog } from "./medsMockCatalog";
 import { EMPTY_MEDS_SELECTION, type MedsCatalogDrug, type MedsCatalogItemRecord, type MedsRowSelection } from "./medsCatalogTypes";
 
 const sourceNames = sourceCatalog.drugs.map((drug) => drug.name);

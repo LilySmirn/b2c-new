@@ -2,22 +2,31 @@
 
 import { parseMedsCatalogResponse, resolveMeds } from "./medsClient";
 import type { MedsCatalogResponse } from "./medsCatalogTypes";
-import { readMedsCombinationMock, readMedsSource, type MedsSource } from "./medsSource";
+import { readMedsSource, type MedsSource } from "./medsSource";
 
 export const MEDS_CATALOG_STORAGE_KEY = "directoryCartMedsCatalog";
 
 /**
- * Кэш real и mock не делят один ключ. Включённая временная подстановка комбинаций
- * тоже пишет в отдельный ключ, чтобы после её отключения не остался тестовый справочник.
- * Старый ключ без суффикса не читается.
+ * Версия ключа справочника. v2 отделяет ответ API от прежнего гибридного кэша,
+ * где часть `other` подменялась тестовыми комбинациями.
  */
-export const medsCatalogStorageKey = (
-  source: MedsSource = readMedsSource(),
-  combinationMock: boolean = readMedsCombinationMock(),
-) =>
-  combinationMock
-    ? `${MEDS_CATALOG_STORAGE_KEY}:${source}:combination-mock`
-    : `${MEDS_CATALOG_STORAGE_KEY}:${source}`;
+export const MEDS_CATALOG_STORAGE_VERSION = "v2";
+
+/**
+ * Кэш real и mock не делят один ключ.
+ * Ключи без версии и ключ `:combination-mock` не читаются.
+ */
+export const medsCatalogStorageKey = (source: MedsSource = readMedsSource()) =>
+  `${MEDS_CATALOG_STORAGE_KEY}:${MEDS_CATALOG_STORAGE_VERSION}:${source}`;
+
+/** Прежние ключи справочника. Их содержимое больше не используется. */
+export const LEGACY_MEDS_CATALOG_STORAGE_KEYS = [
+  MEDS_CATALOG_STORAGE_KEY,
+  `${MEDS_CATALOG_STORAGE_KEY}:real`,
+  `${MEDS_CATALOG_STORAGE_KEY}:mock`,
+  `${MEDS_CATALOG_STORAGE_KEY}:real:combination-mock`,
+  `${MEDS_CATALOG_STORAGE_KEY}:mock:combination-mock`,
+] as const;
 
 export type MedsCatalogSessionStatus = "loading" | "ready" | "error";
 
@@ -39,7 +48,6 @@ type MedsResolve = (names: readonly string[]) => Promise<MedsCatalogResponse>;
 
 type StoredMedsCatalog = {
   source: MedsSource;
-  combinationMock: boolean;
   recommendationKey: string;
   names: string[];
   ids: string[];
@@ -67,18 +75,29 @@ const browserStorages = (): StorageLike[] => {
   return [window.sessionStorage, window.localStorage];
 };
 
+const dropLegacyCatalogCache = (stores: readonly StorageLike[]) => {
+  stores.forEach((storage) => {
+    LEGACY_MEDS_CATALOG_STORAGE_KEYS.forEach((key) => {
+      try {
+        storage.removeItem(key);
+      } catch {
+        // Устаревший справочник не должен мешать открытию корзины.
+      }
+    });
+  });
+};
+
 export const createMedsCatalogSession = ({
   storages,
   resolve = resolveMeds,
   source = readMedsSource(),
-  combinationMock = readMedsCombinationMock(),
 }: {
   storages: () => readonly StorageLike[];
   resolve?: MedsResolve;
   source?: MedsSource;
-  combinationMock?: boolean;
 }) => {
-  const storageKey = medsCatalogStorageKey(source, combinationMock);
+  const storageKey = medsCatalogStorageKey(source);
+  dropLegacyCatalogCache(storages());
   const memory = new Map<string, MemoryEntry>();
   const listeners = new Set<() => void>();
   const pending = new Map<
@@ -95,7 +114,7 @@ export const createMedsCatalogSession = ({
   };
 
   const persist = (entry: StoredMedsCatalog) => {
-    const serialized = JSON.stringify({ ...entry, source, combinationMock });
+    const serialized = JSON.stringify({ ...entry, source });
 
     storages().forEach((storage) => {
       try {
@@ -117,7 +136,7 @@ export const createMedsCatalogSession = ({
 
         const row = parsed as Record<string, unknown>;
         if (row.source !== source) continue;
-        if ((row.combinationMock === true) !== combinationMock) continue;
+        if (row.combinationMock === true) continue;
         if (typeof row.recommendationKey !== "string" || !row.recommendationKey) continue;
         if (!isStringArray(row.names) || !isStringArray(row.ids)) continue;
         if (row.names.length !== row.ids.length) continue;
@@ -129,7 +148,6 @@ export const createMedsCatalogSession = ({
 
           return {
             source,
-            combinationMock,
             recommendationKey: row.recommendationKey,
             names: row.names,
             ids: row.ids,
@@ -140,7 +158,6 @@ export const createMedsCatalogSession = ({
 
         return {
           source,
-          combinationMock,
           recommendationKey: row.recommendationKey,
           names: row.names,
           ids: row.ids,
@@ -202,7 +219,6 @@ export const createMedsCatalogSession = ({
     });
     persist({
       source,
-      combinationMock,
       recommendationKey,
       names: namesCopy,
       ids: idsCopy,
@@ -241,7 +257,6 @@ export const createMedsCatalogSession = ({
 
     remember(loading, {
       source,
-      combinationMock,
       recommendationKey,
       names: namesCopy,
       ids: idsCopy,
@@ -261,7 +276,6 @@ export const createMedsCatalogSession = ({
             { ...loading, status: "error", catalog: null },
             {
               source,
-              combinationMock,
               recommendationKey,
               names: namesCopy,
               ids: idsCopy,
@@ -277,7 +291,6 @@ export const createMedsCatalogSession = ({
           { ...loading, status: "ready", catalog },
           {
             source,
-            combinationMock,
             recommendationKey,
             names: namesCopy,
             ids: idsCopy,
@@ -301,7 +314,6 @@ export const createMedsCatalogSession = ({
           { ...loading, status: "error", catalog: null },
           {
             source,
-            combinationMock,
             recommendationKey,
             names: namesCopy,
             ids: idsCopy,
@@ -417,12 +429,7 @@ export const createMedsCatalogSession = ({
       latestRequestId += 1;
       for (const id of [...pending.keys()]) settle(id, { status: "stale" });
       memory.clear();
-      const keys = new Set([
-        storageKey,
-        medsCatalogStorageKey(source, false),
-        medsCatalogStorageKey(source, true),
-        MEDS_CATALOG_STORAGE_KEY,
-      ]);
+      const keys = new Set<string>([storageKey, ...LEGACY_MEDS_CATALOG_STORAGE_KEYS]);
       storages().forEach((storage) => {
         keys.forEach((key) => {
           try {
@@ -448,5 +455,4 @@ export const createMedsCatalogSession = ({
 export const medsCatalogSession = createMedsCatalogSession({
   storages: browserStorages,
   source: readMedsSource(),
-  combinationMock: readMedsCombinationMock(),
 });

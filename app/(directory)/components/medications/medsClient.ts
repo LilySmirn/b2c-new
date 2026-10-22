@@ -5,23 +5,18 @@
  * `POST /api/meds` с массивом исходных названий. Маршрут Next.js пересылает
  * этот массив на `POST https://easymed.pro/php/API/get-meds.php`.
  * В режиме `mock` записи берутся из `design/cart/meds-mock-cart-v5.json`.
+ * Этот JSON подгружается только в режиме `mock` и не участвует в `real`.
  *
  * Ответ читается по `design/cart/API-meds (1).md`:
  * `drug`, `group` и `other` — через `data`, `combination` — через `combination_data`.
- * Строка с `++` не разбирается на клиенте: тип назначает сервер.
- * Ошибка сети не заменяется моковым ответом.
- *
- * Пока сервер не отдаёт тестовые схемы, `NEXT_PUBLIC_MEDS_COMBINATION_MOCK=true`
- * подставляет комбинацию из мока только если исходное название точно совпало
- * с известной тестовой комбинацией и сервер вернул `other`. Реальный
- * `combination`, `drug` и `group` не заменяются.
+ * Тип берётся из поля `type` ответа. Название, `+` и `++` тип не назначают.
+ * Строка с `++` передаётся на сервер как есть и не разбирается на клиенте.
+ * Ошибка сети не заменяется моковым ответом. Ответ `real` не дополняется моком.
  */
 
-import rawCatalog from "../../../../design/cart/meds-mock-cart-v5.json";
-import { readMedsCombinationMock, readMedsSource, type MedsSource } from "./medsSource";
+import { readMedsSource, type MedsSource } from "./medsSource";
 import { sortedRuLabels } from "./ruSort";
 import {
-  EMPTY_MEDS_CATALOG,
   EMPTY_MEDS_SELECTION,
   type MedsCatalogComponent,
   type MedsCatalogComponentType,
@@ -135,8 +130,6 @@ export const parseMedsCatalogResponse = (value: unknown): MedsCatalogResponse | 
   };
 };
 
-const sourceCatalog = parseMedsCatalogResponse(rawCatalog) ?? EMPTY_MEDS_CATALOG;
-
 /** Пробелы схлопываются, сравнение без учёта регистра. Состав названия не угадывается. */
 export const normalizeMedsName = (value: string) =>
   value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ru-RU");
@@ -219,104 +212,6 @@ const fieldValues = (
   field: "standard_dose" | "standard_form" | "name_trade",
 ) => uniqueNames(items.map((item) => item[field]));
 
-const otherEntry = (name: string): MedsCatalogEntry => ({
-  name,
-  type: "other",
-  data: [
-    {
-      name,
-      items: [
-        {
-          standard_MNN: name,
-          SMNN_code: "",
-          standard_form: "",
-          standard_dose: "",
-          name_trade: "",
-          code_ATC: "",
-          name_unit: "",
-        },
-      ],
-    },
-  ],
-});
-
-const withRequestName = (entry: MedsCatalogEntry, name: string): MedsCatalogEntry => {
-  if (entry.type === "combination") {
-    return {
-      name,
-      type: "combination",
-      combination_data: structuredClone(entry.combination_data),
-    };
-  }
-
-  if (entry.type === "drug") {
-    return { name, type: "drug", data: structuredClone(entry.data) };
-  }
-
-  if (entry.type === "group") {
-    return { name, type: "group", data: structuredClone(entry.data) };
-  }
-
-  return { name, type: "other", data: structuredClone(entry.data) };
-};
-
-const findSourceEntry = (name: string) =>
-  sourceCatalog.drugs.find((drug) => sameName(drug.name, name)) ?? null;
-
-/** Целое название: пробелы схлопываются, регистр и знаки сохраняются. Состав не разбирается. */
-const exactMedsName = (value: string) => value.trim().replace(/\s+/g, " ");
-
-const knownMockCombinations = sourceCatalog.drugs.filter(
-  (drug): drug is Extract<MedsCatalogEntry, { type: "combination" }> =>
-    drug.type === "combination",
-);
-
-/**
- * Временная совместимость: `other` с точно известным тестовым названием
- * становится заранее описанной комбинацией. Остальные ответы не меняются.
- */
-const applyKnownCombinationMock = (
-  catalog: MedsCatalogResponse,
-  names: readonly string[],
-  enabled: boolean,
-): MedsCatalogResponse => {
-  if (!enabled) return catalog;
-
-  let changed = false;
-  const drugs = catalog.drugs.map((entry, index) => {
-    if (entry.type !== "other") return entry;
-
-    const requestedName = names[index] ?? entry.name;
-    const key = exactMedsName(requestedName);
-    const mock =
-      knownMockCombinations.find((item) => exactMedsName(item.name) === key) ?? null;
-    if (!mock) return entry;
-
-    changed = true;
-    return withRequestName(mock, requestedName);
-  });
-
-  if (!changed) return catalog;
-
-  return { drugs, interactions: null };
-};
-
-/**
- * Синхронная имитация `POST /meds/resolve`.
- * Пустой массив даёт пустой ответ. Порядок, число и повторы строк сохраняются.
- */
-export const readMedsCatalog = (names: readonly string[] = []): MedsCatalogResponse => {
-  if (names.length === 0) return EMPTY_MEDS_CATALOG;
-
-  return {
-    drugs: names.map((name) => {
-      const found = findSourceEntry(name);
-      return found ? withRequestName(found, name) : otherEntry(name);
-    }),
-    interactions: null,
-  };
-};
-
 /** Браузерный адрес. Апстрим вызывает только серверный маршрут `/api/meds`. */
 export const MEDS_RESOLVE_PATH = "/api/meds";
 
@@ -338,8 +233,6 @@ export class MedsResolveError extends Error {
 
 export type ResolveMedsOptions = {
   source?: MedsSource;
-  /** Временная подстановка известных тестовых комбинаций. По умолчанию читается из env. */
-  combinationMock?: boolean;
   fetchImpl?: typeof fetch;
   endpoint?: string;
   timeoutMs?: number;
@@ -408,23 +301,21 @@ const requestRealMeds = async (
 
 /**
  * Единая точка получения справочника.
- * `real` отправляет исходные названия методом POST. `mock` читает локальный JSON.
- * Режимы не подменяют друг друга. Ошибочный ответ real не заменяется моком.
- * Временная комбинация подставляется только после успешного разбора `other`.
+ * `real` отправляет исходные названия методом POST и возвращает ответ как есть.
+ * `mock` читает локальный JSON и не обращается к сети.
+ * Режимы не смешиваются: ошибка или `other` в `real` не дополняются моком.
  */
 export const resolveMeds = async (
   names: readonly string[] = [],
   options: ResolveMedsOptions = {},
 ): Promise<MedsCatalogResponse> => {
   const source = options.source ?? readMedsSource();
-  if (source === "mock") return readMedsCatalog(names);
+  if (source === "mock") {
+    const { readMedsCatalog } = await import("./medsMockCatalog");
+    return readMedsCatalog(names);
+  }
 
-  const catalog = await requestRealMeds(names, options);
-  return applyKnownCombinationMock(
-    catalog,
-    names,
-    options.combinationMock ?? readMedsCombinationMock(),
-  );
+  return requestRealMeds(names, options);
 };
 
 export const matchMedsDrug = (

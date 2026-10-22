@@ -4,6 +4,7 @@ import { collectMedicationQuery } from "./medicationQuery";
 import { resolveMeds } from "./medsClient";
 import {
   createMedsCatalogSession,
+  LEGACY_MEDS_CATALOG_STORAGE_KEYS,
   MEDS_CATALOG_STORAGE_KEY,
   medsCatalogStorageKey,
   type MedsCatalogSessionEntry,
@@ -285,54 +286,60 @@ describe("meds catalog session", () => {
     assert.equal(storedCatalog?.catalog, null);
   });
 
-  it("не читает тестовые комбинации после отключения временной подстановки", async () => {
+  it("не использует устаревший гибридный кэш и не трогает сохранённые назначения", async () => {
     const storage = createMemoryStorage();
-    const hybrid = createMedsCatalogSession({
-      storages: () => [storage],
+    const selectionKey = "directoryCartSelections";
+    const combinationKey = "directoryCartCombinationSelections";
+    storage.setItem(selectionKey, "saved-selection");
+    storage.setItem(combinationKey, "saved-scheme");
+
+    const hybridCatalog = {
       source: "real",
       combinationMock: true,
-      resolve: async (names) => ({
-        drugs: names.map((name) => ({
-          name,
-          type: "combination" as const,
-          combination_data: [
-            {
-              name: "Амоксициллин",
-              type: "drug" as const,
-              data: [
-                {
-                  name: "АМОКСИЦИЛЛИН",
-                  items: [
-                    {
-                      standard_MNN: "АМОКСИЦИЛЛИН",
-                      SMNN_code: "",
-                      standard_form: "",
-                      standard_dose: "",
-                      name_trade: "Тест",
-                      code_ATC: "",
-                      name_unit: "",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        })),
+      recommendationKey: "reco",
+      names: ["Стандартная тройная терапия"],
+      ids: ["1"],
+      status: "ready",
+      catalog: {
+        drugs: [
+          {
+            name: "Стандартная тройная терапия",
+            type: "combination",
+            combination_data: [
+              {
+                name: "Амоксициллин",
+                type: "drug",
+                data: [
+                  {
+                    name: "АМОКСИЦИЛЛИН",
+                    items: [
+                      {
+                        standard_MNN: "АМОКСИЦИЛЛИН",
+                        SMNN_code: "",
+                        standard_form: "",
+                        standard_dose: "",
+                        name_trade: "Тест",
+                        code_ATC: "",
+                        name_unit: "",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
         interactions: null,
-      }),
-    });
-
-    hybrid.begin("reco", ["Стандартная тройная терапия"], ["1"]);
-    await flush();
-    assert.equal(hybrid.read("reco")?.catalog?.drugs[0]?.type, "combination");
-    assert.equal(storage.getItem(medsCatalogStorageKey("real", false)), null);
-    assert.notEqual(storage.getItem(medsCatalogStorageKey("real", true)), null);
+      },
+    };
+    const hybridJson = JSON.stringify(hybridCatalog);
+    LEGACY_MEDS_CATALOG_STORAGE_KEYS.forEach((key) => storage.setItem(key, hybridJson));
+    storage.setItem(medsCatalogStorageKey("real"), hybridJson);
 
     let calls = 0;
     const real = createMedsCatalogSession({
       storages: () => [storage],
       source: "real",
-      combinationMock: false,
       resolve: (names) => {
         calls += 1;
         return Promise.resolve({
@@ -361,12 +368,23 @@ describe("meds catalog session", () => {
       },
     });
 
+    LEGACY_MEDS_CATALOG_STORAGE_KEYS.forEach((key) => {
+      assert.equal(storage.getItem(key), null);
+    });
+    assert.equal(storage.getItem(selectionKey), "saved-selection");
+    assert.equal(storage.getItem(combinationKey), "saved-scheme");
     assert.equal(real.hasReady("reco", ["Стандартная тройная терапия"], ["1"]), false);
     real.ensure("reco", ["Стандартная тройная терапия"], ["1"]);
     assert.equal(calls, 1);
     await flush();
+
     assert.equal(real.read("reco")?.catalog?.drugs[0]?.type, "other");
-    assert.equal(hybrid.read("reco")?.catalog?.drugs[0]?.type, "combination");
+    const stored = readStored(storage, "real");
+    assert.equal(stored?.status, "ready");
+    assert.equal(stored?.catalog?.drugs[0]?.type, "other");
+    assert.equal(storage.getItem(selectionKey), "saved-selection");
+    assert.equal(storage.getItem(combinationKey), "saved-scheme");
+    assert.equal(JSON.parse(storage.getItem(medsCatalogStorageKey("real")) ?? "{}").combinationMock, undefined);
   });
 
   it("load не повторяет запрос и не принимает устаревший ответ", async () => {

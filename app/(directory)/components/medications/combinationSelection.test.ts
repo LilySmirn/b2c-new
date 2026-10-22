@@ -3,8 +3,8 @@ import { describe, it } from "node:test";
 import {
   buildMedsRowView,
   matchMedsDrug,
-  readMedsCatalog,
 } from "./medsClient";
+import { readMedsCatalog } from "./medsMockCatalog";
 import {
   canCommitCombination,
   catalogItemCard,
