@@ -8,6 +8,7 @@ import type {
   MedsCatalogEntry,
   MedsCatalogItemRecord,
 } from "./medsCatalogTypes";
+import { compareRu } from "./ruSort";
 
 export type CombinationPick = {
   inn: string;
@@ -119,6 +120,22 @@ export const innsOf = (component: MedsCatalogComponent) => {
 
   return names;
 };
+
+/**
+ * Варианты для списка мастера. Порядок `combination_data` и `tradeItemsOf` не меняется.
+ * Одинаковое торговое имя с другой дозой или формой остаётся отдельной строкой.
+ */
+export const sortedTradeChoices = (items: readonly MedsCatalogItemRecord[]) =>
+  items
+    .map((item, sourceIndex) => ({ item, sourceIndex }))
+    .sort((left, right) => {
+      const leftLabel = left.item.name_trade.trim() || left.item.standard_MNN.trim();
+      const rightLabel = right.item.name_trade.trim() || right.item.standard_MNN.trim();
+      const byTrade = compareRu(leftLabel, rightLabel);
+      if (byTrade !== 0) return byTrade;
+
+      return left.sourceIndex - right.sourceIndex;
+    });
 
 /** Торговые записи компонента. Одинаковые названия с разной дозой или формой не склеиваются. */
 export const tradeItemsOf = (component: MedsCatalogComponent, inn: string) => {

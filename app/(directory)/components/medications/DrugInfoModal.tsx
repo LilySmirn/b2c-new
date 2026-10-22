@@ -1,27 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import {
+  buildPatientComment,
+  hasCustomAssignment,
+  medicationHeading,
+  removeSchemeChip,
+  schemeChips,
+  schemeInputPlaceholder,
+  tableScheduleValue,
+  type CombinationAssignmentView,
+  type MedicationIntake,
+  type SchemeChipId,
+} from "./assignmentScheme";
 import CatalogPopover, { CatalogOption } from "./CatalogPopover";
 import type { MedicationField } from "./DrugRow";
 import type { MedsCatalogFieldOptions } from "./medsCatalogTypes";
 import styles from "./DrugInfoModal.module.css";
 
-export type MedicationIntake = {
-  morning: boolean;
-  day: boolean;
-  evening: boolean;
-  night: boolean;
-  relation: "" | "before" | "with" | "after";
-};
-
-export const EMPTY_MEDICATION_INTAKE: MedicationIntake = {
-  morning: false,
-  day: false,
-  evening: false,
-  night: false,
-  relation: "",
-};
+export type { MedicationIntake } from "./assignmentScheme";
+export { EMPTY_MEDICATION_INTAKE, formatIntake, buildAssignmentPreview } from "./assignmentScheme";
 
 const INTAKE_OPTIONS = [
   { id: "morning", label: "Утро" },
@@ -39,92 +38,11 @@ const RELATION_OPTIONS = [
 
 const COURSE_PRESETS = ["3 дня", "5 дней", "7 дней", "10 дней", "14 дней"];
 
-const TIME_LABELS: Record<(typeof INTAKE_OPTIONS)[number]["id"], string> = {
-  morning: "утром",
-  day: "днём",
-  evening: "вечером",
-  night: "ночью",
-};
-
-const RELATION_LABELS: Record<Exclude<MedicationIntake["relation"], "">, string> = {
-  before: "до еды",
-  with: "во время еды",
-  after: "после еды",
-};
-
 const MISSING_USUAL_TEXT =
   "В клинической рекомендации нет данных о схеме и продолжительности курса.";
 
 const CAUTION_TEXT =
   "Информация о межлекарственных взаимодействиях будет доступна после подключения проверки совместимости препаратов.";
-
-const assignmentParts = (parts: Array<string | undefined>) =>
-  parts
-    .map((part) => (part ?? "").trim())
-    .filter((part) => part.length > 0 && part !== "undefined" && part !== "null");
-
-const normalizeName = (value: string) =>
-  value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ru-RU");
-
-/** Каталог хранит МНН прописными. В шапке показываем обычный регистр, исходные данные не меняются. */
-const formatCatalogName = (value: string) => {
-  const trimmed = value.trim().replace(/\s+/g, " ");
-  if (!trimmed) return "";
-
-  const letters = trimmed.replace(/[^0-9A-Za-zА-Яа-яЁё]/g, "");
-  if (!letters) return trimmed;
-
-  const isUpper =
-    letters === letters.toLocaleUpperCase("ru-RU") &&
-    letters !== letters.toLocaleLowerCase("ru-RU");
-
-  if (!isUpper) return trimmed;
-
-  return (
-    trimmed.charAt(0).toLocaleUpperCase("ru-RU") + trimmed.slice(1).toLocaleLowerCase("ru-RU")
-  );
-};
-
-const medicationHeading = (assignmentTitle: string, trade: string, inn: string) => {
-  const tradeName = trade.trim();
-  const substance = inn.trim();
-  const fallback = assignmentTitle.trim();
-  const primary = tradeName || (substance ? formatCatalogName(substance) : fallback);
-  const secondary =
-    tradeName && substance && normalizeName(substance) !== normalizeName(tradeName)
-      ? formatCatalogName(substance)
-      : "";
-
-  return { primary, secondary };
-};
-
-export const formatIntake = (intake: MedicationIntake) => {
-  const times = INTAKE_OPTIONS.filter((option) => intake[option.id]).map(
-    (option) => TIME_LABELS[option.id],
-  );
-  const relation = intake.relation ? RELATION_LABELS[intake.relation] : "";
-
-  return assignmentParts([...times, relation]).join(", ");
-};
-
-export const buildAssignmentPreview = (parts: {
-  title: string;
-  selection?: string;
-  dose?: string;
-  form?: string;
-  intake?: string;
-  scheme?: string;
-  course?: string;
-}) =>
-  assignmentParts([
-    parts.title,
-    parts.selection,
-    parts.dose,
-    parts.form,
-    parts.intake,
-    parts.scheme,
-    parts.course,
-  ]).join(" · ");
 
 type DrugInfoModalProps = {
   title: string;
@@ -148,6 +66,13 @@ type DrugInfoModalProps = {
   innName?: string;
   /** Варианты `standard_dose` / `standard_form` для текущего МНН и торгового наименования. */
   catalogOptions?: MedsCatalogFieldOptions;
+  /** Собственный текст комментария врача, а не автоматически скопированная схема КР. */
+  noteCustom?: boolean;
+  /** Заполненный вид многокомпонентной схемы. Для остальных типов не передаётся. */
+  combination?: CombinationAssignmentView | null;
+  /** Не закрывать попап, пока поверх открыт мастер схемы. */
+  dismissLocked?: boolean;
+  onOpenScheme?: () => void;
   onClose: () => void;
   onToggleCart: () => void;
   onChangeField: (field: MedicationField, value: string) => void;
@@ -155,6 +80,47 @@ type DrugInfoModalProps = {
   onIntakeChange: (intake: MedicationIntake) => void;
   onReset: () => void;
   onApplyOriginal: () => void;
+};
+
+/** Полоса прокрутки нужна только если текст выше места до нижнего края «Схемы». */
+const guideNeedsScroll = (section: HTMLElement, body: HTMLElement) => {
+  const frame = body.parentElement;
+  const heading = section.querySelector<HTMLElement>("[data-reference-heading]");
+  if (!frame || !heading || section.clientHeight === 0) return false;
+
+  const sectionStyle = getComputedStyle(section);
+  const frameStyle = getComputedStyle(frame);
+  const gap = Number.parseFloat(sectionStyle.rowGap || sectionStyle.gap || "0") || 0;
+  const frameChrome =
+    Number.parseFloat(frameStyle.paddingTop) +
+    Number.parseFloat(frameStyle.paddingBottom) +
+    Number.parseFloat(frameStyle.borderTopWidth) +
+    Number.parseFloat(frameStyle.borderBottomWidth);
+  const sectionChrome =
+    Number.parseFloat(sectionStyle.paddingTop) +
+    Number.parseFloat(sectionStyle.paddingBottom);
+  let available =
+    section.clientHeight -
+    sectionChrome -
+    heading.getBoundingClientRect().height -
+    gap -
+    frameChrome;
+
+  const maxHeight = getComputedStyle(body).maxHeight;
+  if (maxHeight.endsWith("px")) {
+    const parsed = Number.parseFloat(maxHeight);
+    if (Number.isFinite(parsed)) available = Math.min(available, parsed);
+  }
+
+  if (!Number.isFinite(available) || available <= 0) return false;
+
+  // Ширина без полосы: иначе scrollbar уменьшает строку и создаёт ложное переполнение.
+  const previous = body.style.overflowY;
+  body.style.overflowY = "hidden";
+  const natural = body.scrollHeight;
+  body.style.overflowY = previous;
+
+  return natural - available > 1;
 };
 
 const visibleOptions = (values: readonly string[] | undefined) =>
@@ -345,6 +311,10 @@ export default function DrugInfoModal({
   tradeName = "",
   innName = "",
   catalogOptions,
+  noteCustom = false,
+  combination = null,
+  dismissLocked = false,
+  onOpenScheme,
   onClose,
   onToggleCart,
   onChangeField,
@@ -354,6 +324,9 @@ export default function DrugInfoModal({
   onApplyOriginal,
 }: DrugInfoModalProps) {
   const titleId = useId();
+  const guideSectionRef = useRef<HTMLElement>(null);
+  const guideBodyRef = useRef<HTMLDivElement>(null);
+  const [guideOverflow, setGuideOverflow] = useState(false);
   const krTriggerRef = useRef<HTMLButtonElement>(null);
   const krWasOpen = useRef(false);
   const [krOpen, setKrOpen] = useState(false);
@@ -363,21 +336,60 @@ export default function DrugInfoModal({
   const hasOriginalRecommendation = Boolean(sourceScheme || sourceCourse);
   const doseOptions = visibleOptions(catalogOptions?.doses);
   const formOptions = visibleOptions(catalogOptions?.forms);
-  const heading = medicationHeading(title, tradeName, innName);
+  const heading = combination
+    ? { primary: combination.primary, secondary: combination.secondary }
+    : medicationHeading(title, tradeName, innName);
   const recommendation = recommendationLevel.trim();
   const krText = infoComment.trim();
-  const intakeLabel = formatIntake(intake);
-  const patientSummary = buildAssignmentPreview({
-    title: heading.primary,
-    selection: heading.secondary,
+  const chips = schemeChips({ dose, form, intake });
+  const customAssignment = hasCustomAssignment({
     dose,
     form,
-    intake: intakeLabel,
-    scheme,
-    course,
+    schemeText: scheme,
+    courseText: course,
+    intake,
   });
-  const hasPatientNote = comment.trim().length > 0;
+  const schemeValue = tableScheduleValue(scheme, sourceScheme, customAssignment);
+  const courseValue = tableScheduleValue(course, sourceCourse, customAssignment);
+  const patient = buildPatientComment({
+    title,
+    tradeName,
+    innName,
+    dose,
+    form,
+    schemeText: scheme,
+    courseText: course,
+    intake,
+    originalScheme,
+    originalCourse,
+    note: comment,
+    noteCustom,
+    combination,
+  });
   krOpenRef.current = krOpen && Boolean(krText);
+
+  useLayoutEffect(() => {
+    const section = guideSectionRef.current;
+    const body = guideBodyRef.current;
+    if (!section || !body) return;
+
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const needsScroll = guideNeedsScroll(section, body);
+        setGuideOverflow((current) => (current === needsScroll ? current : needsScroll));
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(section);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [description]);
 
   useEffect(() => {
     if (!krText) setKrOpen(false);
@@ -397,7 +409,7 @@ export default function DrugInfoModal({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented || krOpenRef.current) return;
+      if (event.key !== "Escape" || event.defaultPrevented || krOpenRef.current || dismissLocked) return;
 
       event.preventDefault();
       onClose();
@@ -405,23 +417,34 @@ export default function DrugInfoModal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [dismissLocked, onClose]);
 
   const toggleIntake = (id: (typeof INTAKE_OPTIONS)[number]["id"]) => {
     onIntakeChange({ ...intake, [id]: !intake[id] });
+  };
+
+  const removeChip = (id: SchemeChipId) => {
+    const next = removeSchemeChip(
+      { dose, form, schemeText: scheme, courseText: course, intake },
+      id,
+    );
+
+    if (next.dose !== dose) onChangeField("dose", next.dose);
+    if (next.form !== form) onChangeField("form", next.form);
+    if (next.intake !== intake) onIntakeChange(next.intake);
   };
 
   const closeKrComment = useCallback(() => setKrOpen(false), []);
 
   return (
     <div className={styles.layer}>
-      <div className={styles.backdrop} onClick={krOpen ? undefined : onClose} />
+      <div className={styles.backdrop} onClick={krOpen || dismissLocked ? undefined : onClose} />
       <div
         className={styles.dialog}
         role="dialog"
-        aria-modal={krOpen ? undefined : true}
+        aria-modal={krOpen || dismissLocked ? undefined : true}
         aria-labelledby={titleId}
-        inert={krOpen ? true : undefined}
+        inert={krOpen || dismissLocked ? true : undefined}
         onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.head}>
@@ -460,181 +483,257 @@ export default function DrugInfoModal({
           </div>
         </div>
 
-        <div className={styles.layout}>
-          <div className={styles.assignTop}>
-            <div className={styles.fields}>
-              <CatalogComboField
-                label="Доза"
-                value={dose}
-                options={doseOptions}
-                onChange={(value) => onChangeField("dose", value)}
-              />
-              <CatalogComboField
-                label="Форма"
-                value={form}
-                options={formOptions}
-                onChange={(value) => onChangeField("form", value)}
-              />
-
-              <div className={`${styles.field} ${styles.fieldWide}`}>
-                <span className={styles.fieldLabel}>Приём</span>
-                <div className={styles.checks}>
-                  {INTAKE_OPTIONS.map((option) => (
-                    <label key={option.id} className={styles.check}>
-                      <input
-                        type="checkbox"
-                        checked={intake[option.id]}
-                        onChange={() => toggleIntake(option.id)}
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className={styles.rels}>
-                  {RELATION_OPTIONS.map((option) => (
-                    <button
-                      key={option.id || "any"}
-                      type="button"
-                      className={`${styles.rel} ${
-                        intake.relation === option.id ? styles.relActive : ""
-                      }`}
-                      aria-pressed={intake.relation === option.id}
-                      onClick={() =>
-                        onIntakeChange({ ...intake, relation: option.id })
-                      }
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <label className={`${styles.field} ${styles.fieldWide}`}>
-                <span className={styles.fieldLabel}>Схема</span>
-                <input
-                  type="text"
-                  className={styles.control}
-                  value={scheme}
-                  placeholder="Схема"
-                  aria-label="Схема"
-                  autoComplete="off"
-                  onChange={(event) => onChangeField("scheme", event.target.value)}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className={styles.guideSlot}>
-            <div className={`${styles.block} ${styles.guide}`}>
-              <div className={styles.cardHead}>
-                <h4>Справка</h4>
-                {krText ? (
-                  <button
-                    ref={krTriggerRef}
-                    type="button"
-                    className={styles.cardAction}
-                    onClick={() => setKrOpen(true)}
+        <div className={styles.body}>
+          {combination ? (
+            <section className={styles.composition} aria-label="Состав схемы">
+              <h4>Состав схемы</h4>
+              <div
+                className={styles.slots}
+                data-count={combination.rows.length}
+                style={
+                  {
+                    "--components-count": Math.max(combination.rows.length, 1),
+                  } as CSSProperties
+                }
+              >
+                {combination.rows.map((row) => (
+                  <div
+                    key={`${row.index}-${row.name}`}
+                    className={`${styles.slot} ${row.chosen ? styles.slotChosen : ""}`}
                   >
-                    Полный комментарий из КР
-                  </button>
-                ) : null}
+                    <span className={styles.slotIndex}>{row.index}</span>
+                    <div className={styles.slotText}>
+                      <strong>{row.name}</strong>
+                      <small>{row.selectedLabel}</small>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className={styles.guideBody}>
-                <p>{description.trim() || "Описание отсутствует"}</p>
-              </div>
-            </div>
-          </div>
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnPrimary} ${styles.compositionButton}`}
+                onClick={onOpenScheme}
+              >
+                Открыть мастер схемы
+              </button>
+            </section>
+          ) : null}
 
-          <div className={styles.assignRest}>
-            <div className={styles.fields}>
-              <div className={`${styles.field} ${styles.fieldWide}`}>
-                <span className={styles.fieldLabel}>Курс</span>
-                <div className={styles.rels}>
-                  {COURSE_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      className={`${styles.rel} ${
-                        course.trim() === preset ? styles.relActive : ""
-                      }`}
-                      aria-pressed={course.trim() === preset}
-                      onClick={() => onChangeField("course", preset)}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  className={styles.control}
-                  value={course}
-                  placeholder="Свой курс"
-                  aria-label="Курс"
-                  autoComplete="off"
-                  onChange={(event) => onChangeField("course", event.target.value)}
+          <div className={styles.layout}>
+            <div className={styles.assign}>
+              <div className={styles.doseRow}>
+                <CatalogComboField
+                  label="Доза"
+                  value={dose}
+                  options={doseOptions}
+                  onChange={(value) => onChangeField("dose", value)}
+                />
+                <CatalogComboField
+                  label="Форма"
+                  value={form}
+                  options={formOptions}
+                  onChange={(value) => onChangeField("form", value)}
                 />
               </div>
 
-              <label className={`${styles.field} ${styles.fieldWide}`}>
-                <span className={styles.fieldLabel}>Комментарий</span>
-                <textarea
-                  className={styles.textarea}
-                  rows={3}
-                  value={comment}
-                  placeholder="Комментарий к назначению..."
-                  aria-label="Комментарий"
-                  onChange={(event) => onCommentChange(event.target.value)}
-                />
-              </label>
-            </div>
-
-            <div className={styles.preview}>
-              <span className={styles.previewLabel}>Комментарий для пациента</span>
-              {patientSummary || hasPatientNote ? (
-                <div className={styles.previewText}>
-                  {patientSummary ? <p>{patientSummary}</p> : null}
-                  {hasPatientNote ? <p className={styles.previewNote}>{comment}</p> : null}
+              <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Приём</span>
+                  <div className={styles.checks}>
+                    {INTAKE_OPTIONS.map((option) => (
+                      <label key={option.id} className={styles.check}>
+                        <input
+                          type="checkbox"
+                          checked={intake[option.id]}
+                          onChange={() => toggleIntake(option.id)}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className={styles.rels}>
+                    {RELATION_OPTIONS.map((option) => (
+                      <button
+                        key={option.id || "any"}
+                        type="button"
+                        className={`${styles.rel} ${
+                          intake.relation === option.id ? styles.relActive : ""
+                        }`}
+                        aria-pressed={intake.relation === option.id}
+                        onClick={() =>
+                          onIntakeChange({ ...intake, relation: option.id })
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <strong className={styles.previewText}>Заполните назначение</strong>
-              )}
-            </div>
 
-            <div className={styles.actions}>
-              <button type="button" className={styles.btn} onClick={onReset}>
-                Сбросить
-              </button>
-              <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onClose}>
-                Готово
-              </button>
-            </div>
-          </div>
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel} id={`${titleId}-scheme`}>
+                    Схема
+                  </span>
+                  <div className={styles.schemeBox} role="group" aria-labelledby={`${titleId}-scheme`}>
+                    {chips.map((chip) => (
+                      <span key={chip.id} className={styles.chip}>
+                        <span className={styles.chipLabel}>{chip.label}</span>
+                        <button
+                          type="button"
+                          className={styles.chipRemove}
+                          aria-label={`Убрать ${chip.label}`}
+                          onClick={() => removeChip(chip.id)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      className={styles.schemeInput}
+                      value={schemeValue}
+                      placeholder={schemeInputPlaceholder(chips.length)}
+                      aria-label="Схема"
+                      autoComplete="off"
+                      onChange={(event) => onChangeField("scheme", event.target.value)}
+                    />
+                  </div>
+                </div>
 
-          <div className={styles.notes}>
-            <div className={styles.block}>
-              <div className={styles.cardHead}>
-                <h4>Как обычно дают</h4>
-                <button
-                  type="button"
-                  className={styles.cardAction}
-                  disabled={!hasOriginalRecommendation}
-                  onClick={onApplyOriginal}
-                >
-                  Подставить в назначение
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Курс</span>
+                  <div className={styles.rels}>
+                    {COURSE_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        className={`${styles.rel} ${
+                          courseValue.trim() === preset ? styles.relActive : ""
+                        }`}
+                        aria-pressed={courseValue.trim() === preset}
+                        onClick={() => onChangeField("course", preset)}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    className={styles.control}
+                    value={courseValue}
+                    placeholder="Свой курс"
+                    aria-label="Курс"
+                    autoComplete="off"
+                    onChange={(event) => onChangeField("course", event.target.value)}
+                  />
+                </div>
+
+                <label className={styles.field}>
+                  <span className={styles.fieldLabel}>Комментарий</span>
+                  <textarea
+                    className={styles.textarea}
+                    rows={3}
+                    value={comment}
+                    placeholder="Комментарий к назначению..."
+                    aria-label="Комментарий"
+                    onChange={(event) => onCommentChange(event.target.value)}
+                  />
+                </label>
+
+              <div className={styles.previewSlot}>
+                <div className={styles.preview}>
+                  <span className={styles.previewLabel}>Комментарий для пациента</span>
+                  {patient.summary || patient.note ? (
+                    <div className={styles.previewText}>
+                      {patient.summary ? <p>{patient.summary}</p> : null}
+                      {patient.note ? <p className={styles.previewNote}>{patient.note}</p> : null}
+                    </div>
+                  ) : (
+                    <strong className={styles.previewText}>Заполните назначение</strong>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.actions}>
+                <button type="button" className={styles.btn} onClick={onReset}>
+                  Сбросить
+                </button>
+                <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onClose}>
+                  Готово
                 </button>
               </div>
-              {hasOriginalRecommendation ? (
-                <>
-                  {sourceScheme ? <p>{sourceScheme}</p> : null}
-                  {sourceCourse ? <p className={styles.muted}>Курс: {sourceCourse}</p> : null}
-                </>
-              ) : (
-                <p>{MISSING_USUAL_TEXT}</p>
-              )}
             </div>
-            <div className={styles.block}>
-              <h4>Осторожно</h4>
-              <p>{CAUTION_TEXT}</p>
+
+            <div className={styles.side}>
+              <section
+                ref={guideSectionRef}
+                className={`${styles.sideSection} ${styles.guideSection}`}
+                data-reference-section="guide"
+                aria-label="Справка"
+              >
+                <div className={styles.sideHead} data-reference-heading>
+                  <h4>Справка</h4>
+                  {krText ? (
+                    <button
+                      ref={krTriggerRef}
+                      type="button"
+                      className={styles.cardAction}
+                      onClick={() => setKrOpen(true)}
+                    >
+                      Полный комментарий из КР
+                    </button>
+                  ) : null}
+                </div>
+                <div className={`${styles.block} ${styles.guideFrame}`} data-reference-frame>
+                  <div
+                    ref={guideBodyRef}
+                    className={styles.guideBody}
+                    data-overflow={guideOverflow ? "true" : undefined}
+                  >
+                    <p>{description.trim() || "Описание отсутствует"}</p>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                className={`${styles.sideSection} ${styles.usualSection}`}
+                data-reference-section="usual"
+                aria-label="Как обычно дают"
+              >
+                <div className={styles.sideHead} data-reference-heading>
+                  <h4>Как обычно дают</h4>
+                  <button
+                    type="button"
+                    className={styles.cardAction}
+                    disabled={!hasOriginalRecommendation}
+                    onClick={onApplyOriginal}
+                  >
+                    Подставить в назначение
+                  </button>
+                </div>
+                <div className={styles.block} data-reference-frame>
+                  {hasOriginalRecommendation ? (
+                    <>
+                      {sourceScheme ? <p>{sourceScheme}</p> : null}
+                      {sourceCourse ? <p className={styles.muted}>Курс: {sourceCourse}</p> : null}
+                    </>
+                  ) : (
+                    <p>{MISSING_USUAL_TEXT}</p>
+                  )}
+                </div>
+              </section>
+
+              <section
+                className={`${styles.sideSection} ${styles.cautionSection}`}
+                data-reference-section="caution"
+                aria-label="Осторожно"
+              >
+                <div className={styles.sideHead} data-reference-heading>
+                  <h4>Осторожно</h4>
+                </div>
+                <div className={styles.block} data-reference-frame>
+                  <p>{CAUTION_TEXT}</p>
+                </div>
+              </section>
             </div>
           </div>
         </div>

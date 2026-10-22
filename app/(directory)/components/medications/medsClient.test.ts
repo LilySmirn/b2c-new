@@ -14,7 +14,7 @@ import {
   readMedsCatalog,
   resolveMeds,
 } from "./medsClient";
-import { EMPTY_MEDS_SELECTION, type MedsCatalogDrug, type MedsRowSelection } from "./medsCatalogTypes";
+import { EMPTY_MEDS_SELECTION, type MedsCatalogDrug, type MedsCatalogItemRecord, type MedsRowSelection } from "./medsCatalogTypes";
 
 const sourceNames = sourceCatalog.drugs.map((drug) => drug.name);
 const catalog = readMedsCatalog(sourceNames);
@@ -203,9 +203,9 @@ describe("meds catalog mock", () => {
   it("убирает повторы и пустые значения у остальных строк мока", () => {
     assert.deepEqual(listMedsTrades(drug("Ребамипид"), ""), ["Ребагит", "Ребамипид"]);
     assert.deepEqual(listMedsDoses(drug("Ребамипид"), EMPTY_MEDS_SELECTION), ["100 мг"]);
-    assert.deepEqual(listMedsTrades(drug("Метронидазол"), ""), ["Трихопол", "Метронидазол"]);
+    assert.deepEqual(listMedsTrades(drug("Метронидазол"), ""), ["Метронидазол", "Трихопол"]);
     assert.deepEqual(listMedsDoses(drug("Метронидазол"), selection({ trade: "Трихопол" })), ["250 мг"]);
-    assert.deepEqual(listMedsTrades(drug("Левофлоксацин"), ""), ["Таваник", "Левофлоксацин"]);
+    assert.deepEqual(listMedsTrades(drug("Левофлоксацин"), ""), ["Левофлоксацин", "Таваник"]);
     assert.deepEqual(listMedsInns(drug("Блокаторы H2-гистаминовых рецепторов")), ["ФАМОТИДИН"]);
     assert.deepEqual(listMedsTrades(drug("Блокаторы H2-гистаминовых рецепторов"), "ФАМОТИДИН"), [
       "Квамател",
@@ -312,5 +312,56 @@ describe("meds catalog mock", () => {
     assert.equal(second, resolved.drugs[2]);
     assert.equal(second?.type, "drug");
     assert.notEqual(second, resolved.drugs[0]);
+  });
+
+  it("сортирует МНН и торговые названия по русскому алфавиту и не меняет каталог", () => {
+    const record = (trade: string): MedsCatalogItemRecord => ({
+      standard_MNN: "МНН",
+      SMNN_code: trade,
+      standard_form: "",
+      standard_dose: "",
+      name_trade: trade,
+      code_ATC: "",
+      name_unit: "",
+    });
+    const group: MedsCatalogDrug = {
+      name: "Смешанная группа",
+      type: "group",
+      data: [
+        { name: "ЯНТАРНАЯ КИСЛОТА", items: [record("Янтовин")] },
+        { name: "аскорбиновая кислота", items: [record("Асковит")] },
+        { name: "БОРНАЯ КИСЛОТА", items: [record("Борная"), record("Борная мазь")] },
+      ],
+    };
+    const names = group.data.map((entry) => entry.name);
+    const boronTrades = group.data[2]?.items.map((item) => item.name_trade);
+
+    assert.deepEqual(listMedsInns(group), [
+      "аскорбиновая кислота",
+      "БОРНАЯ КИСЛОТА",
+      "ЯНТАРНАЯ КИСЛОТА",
+    ]);
+    assert.deepEqual(listMedsTrades(group, "БОРНАЯ КИСЛОТА"), ["Борная", "Борная мазь"]);
+    assert.deepEqual(group.data.map((entry) => entry.name), names);
+    assert.deepEqual(group.data[2]?.items.map((item) => item.name_trade), boronTrades);
+
+    const medicine: MedsCatalogDrug = {
+      name: "Препарат",
+      type: "drug",
+      data: [
+        {
+          name: "МНН",
+          items: [record("Янтовин"), record("амоксициллин"), record("Борная")],
+        },
+      ],
+    };
+    const trades = medicine.data[0]?.items.map((item) => item.name_trade);
+
+    assert.deepEqual(listMedsTrades(medicine, ""), ["амоксициллин", "Борная", "Янтовин"]);
+    assert.deepEqual(medicine.data[0]?.items.map((item) => item.name_trade), trades);
+    assert.notDeepEqual(
+      [...(trades ?? [])].sort(),
+      ["амоксициллин", "Борная", "Янтовин"],
+    );
   });
 });

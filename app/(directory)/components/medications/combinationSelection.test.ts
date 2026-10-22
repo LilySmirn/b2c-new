@@ -23,9 +23,11 @@ import {
   goNextCombination,
   goToCombinationStep,
   isDraftComplete,
+  innsOf,
   restartCombinationWizard,
   schemeBadgeText,
   showCombinationInnList,
+  sortedTradeChoices,
   tradeItemsOf,
   cloneCombinationDraft,
   type CombinationWizardState,
@@ -37,6 +39,7 @@ import {
   type CombinationStorage,
 } from "./combinationSelectionStorage";
 import { EMPTY_MEDS_SELECTION, type MedsCatalogComponent, type MedsCatalogEntry } from "./medsCatalogTypes";
+import { sortedRuLabels } from "./ruSort";
 
 const catalog = readMedsCatalog([
   "Стандартная тройная терапия",
@@ -405,5 +408,50 @@ describe("выбор многокомпонентной схемы", () => {
     });
     assert.equal(combinationSteps(four).length, 4);
     assert.match(combinationSelectionSummary(four, fourDone.draft), / \+ Трихопол$/);
+  });
+
+  it("сортирует варианты мастера по русскому алфавиту и не меняет порядок компонентов", () => {
+    const order = components.map((item) => item.name);
+    const trades = tradeItemsOf(components[1], "");
+    const tradeOrder = trades.map(
+      (item) => `${item.name_trade}|${item.standard_dose}|${item.standard_form}|${item.SMNN_code}`,
+    );
+    const sorted = sortedTradeChoices(trades);
+
+    assert.deepEqual(
+      sorted.map((choice) => `${choice.item.name_trade}|${choice.item.standard_dose}`),
+      ["Амоксициллин|500 мг", "Флемоксин Солютаб|500 мг", "Флемоксин Солютаб|1000 мг"],
+    );
+    assert.equal(sorted.filter((choice) => choice.item.name_trade === "Флемоксин Солютаб").length, 2);
+    assert.equal(sorted[0]?.sourceIndex, trades.findIndex((item) => item.name_trade === "Амоксициллин"));
+    assert.equal(trades[sorted[0]?.sourceIndex ?? -1], sorted[0]?.item);
+
+    const pantoprazole = tradeItemsOf(components[0], "ПАНТОПРАЗОЛ");
+    const pantoprazoleSorted = sortedTradeChoices(pantoprazole);
+    assert.deepEqual(
+      pantoprazoleSorted.map((choice) => `${choice.item.name_trade}|${choice.item.standard_dose}|${choice.item.standard_form}`),
+      ["Контролок|20 мг|ТАБЛЕТКИ", "Контролок|40 мг|ТАБЛЕТКИ", "Нольпаза|40 мг|ТАБЛЕТКИ"],
+    );
+    assert.notEqual(pantoprazoleSorted[0]?.item, pantoprazoleSorted[1]?.item);
+    assert.equal(pantoprazoleSorted[0]?.item.standard_dose, "20 мг");
+    assert.equal(pantoprazoleSorted[1]?.item.standard_dose, "40 мг");
+
+    const unsorted: MedsCatalogComponent = {
+      name: "Группа",
+      type: "group",
+      data: [
+        { name: "ЯНТАРНАЯ", items: [] },
+        { name: "АСКОРБИНОВАЯ", items: [] },
+        { name: "БОРНАЯ", items: [] },
+      ],
+    };
+
+    assert.deepEqual(innsOf(unsorted), ["ЯНТАРНАЯ", "АСКОРБИНОВАЯ", "БОРНАЯ"]);
+    assert.deepEqual(sortedRuLabels(innsOf(unsorted)), ["АСКОРБИНОВАЯ", "БОРНАЯ", "ЯНТАРНАЯ"]);
+    assert.deepEqual(components.map((item) => item.name), order);
+    assert.deepEqual(
+      trades.map((item) => `${item.name_trade}|${item.standard_dose}|${item.standard_form}|${item.SMNN_code}`),
+      tradeOrder,
+    );
   });
 });

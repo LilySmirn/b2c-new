@@ -11,6 +11,7 @@
  */
 
 import rawCatalog from "../../../../design/cart/meds-mock-cart-v5.json";
+import { sortedRuLabels } from "./ruSort";
 import {
   EMPTY_MEDS_CATALOG,
   EMPTY_MEDS_SELECTION,
@@ -308,7 +309,7 @@ export const matchMedsDrugForItem = (
 export const listMedsInns = (drug: MedsCatalogDrug | null) => {
   if (!drug || drug.type !== "group") return [];
 
-  return uniqueNames(drug.data.map((group) => group.name));
+  return sortedRuLabels(uniqueNames(drug.data.map((group) => group.name)));
 };
 
 export const listMedsTrades = (drug: MedsCatalogDrug | null, inn: string) => {
@@ -317,10 +318,10 @@ export const listMedsTrades = (drug: MedsCatalogDrug | null, inn: string) => {
   if (drug.type === "group") {
     if (!inn.trim()) return [];
 
-    return fieldValues(groupByInn(drug, inn)?.items ?? [], "name_trade");
+    return sortedRuLabels(fieldValues(groupByInn(drug, inn)?.items ?? [], "name_trade"));
   }
 
-  return fieldValues(itemsOf(drug), "name_trade");
+  return sortedRuLabels(fieldValues(itemsOf(drug), "name_trade"));
 };
 
 export const listMedsDoses = (

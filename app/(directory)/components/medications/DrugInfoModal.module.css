@@ -25,6 +25,7 @@
   max-width: 100%;
   max-height: min(92vh, calc(100% - 8px));
   overflow: auto;
+  overflow-wrap: anywhere;
   overscroll-behavior: contain;
   border: 1px solid #d7e4f2;
   border-radius: 14px;
@@ -41,6 +42,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  min-width: 0;
+  max-width: 100%;
   padding: 16px 18px 14px;
   border-bottom: 1px solid #e8eef5;
   background: linear-gradient(180deg, #f7fbff 0%, #fff 100%);
@@ -58,6 +61,7 @@
   font-weight: 800;
   line-height: 1.2;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .subtitle {
@@ -91,9 +95,14 @@
 
 .headActions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   flex: 0 0 auto;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .cart {
@@ -101,6 +110,7 @@
   align-items: center;
   gap: 6px;
   min-height: 32px;
+  max-width: 100%;
   padding: 0 10px;
   border: 1px solid #d7e4f2;
   border-radius: 8px;
@@ -109,6 +119,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -160,64 +171,116 @@
   color: #0f172a;
 }
 
+.body {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  grid-template-areas:
-    "assignTop guide"
-    "assignRest notes";
-  min-width: 0;
-  min-height: 0;
+  /* Доза/Форма, Приём, Схема, Курс, Комментарий, превью, кнопки */
+  grid-template-rows: repeat(7, auto);
+  row-gap: 12px;
   align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.assignTop,
-.assignRest,
-.guideSlot,
-.notes {
+.assign,
+.side {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / -1;
+  align-items: start;
   min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
-.assignTop,
-.assignRest {
-  background: #fff;
+.assign {
+  grid-column: 1;
   border-right: 1px solid #e8eef5;
+  background: #fff;
 }
 
-.assignTop {
-  grid-area: assignTop;
-  padding: 16px 18px 0;
-}
-
-.assignRest {
-  grid-area: assignRest;
-  padding: 12px 18px 18px;
-}
-
-.guideSlot,
-.notes {
+.side {
+  grid-column: 2;
   background: #f8fafc;
 }
 
-.guideSlot {
-  grid-area: guide;
-  position: relative;
-  min-height: 0;
+.assign > *,
+.side > * {
+  min-width: 0;
+  max-width: 100%;
+  padding-right: 18px;
+  padding-left: 18px;
+  box-sizing: border-box;
 }
 
-.notes {
-  grid-area: notes;
+.assign > :first-child,
+.side > :first-child {
+  padding-top: 16px;
+}
+
+.assign > :last-child {
+  padding-bottom: 18px;
+}
+
+.sideSection {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 18px 18px;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.fields {
+.guideSection {
+  grid-row: 1 / 4;
+  align-self: stretch;
+  /* Не участвует в расчёте высоты строк: их задают поля слева до «Схемы». */
+  height: 0;
+  min-height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.usualSection {
+  grid-row: 4;
+  align-self: start;
+}
+
+.cautionSection {
+  grid-row: 5;
+  align-self: start;
+}
+
+.sideHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.sideHead h4 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.doseRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .field {
@@ -225,10 +288,6 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-}
-
-.fieldWide {
-  grid-column: 1 / -1;
 }
 
 .fieldLabel {
@@ -250,6 +309,7 @@
 .control,
 .textarea {
   width: 100%;
+  min-width: 0;
   min-height: 34px;
   padding: 7px 10px;
   border: 1px solid #d8dee7;
@@ -269,6 +329,7 @@
 
 .control:focus,
 .textarea:focus,
+.schemeBox:focus-within,
 .comboToggle:focus-visible,
 .rel:focus-visible,
 .btn:focus-visible,
@@ -341,11 +402,178 @@
   color: #0085ff;
 }
 
+.composition {
+  margin: 16px 18px 0;
+  padding: 12px;
+  border: 1px solid #e5eaf1;
+  border-radius: 10px;
+  background: #fff;
+  min-width: 0;
+  max-width: calc(100% - 36px);
+  container-type: inline-size;
+  box-sizing: border-box;
+}
+
+.composition h4 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.slots {
+  --components-count: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--components-count), minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+
+.slot {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #e5eaf1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.slotChosen {
+  border-color: #9fd0a8;
+  background: #f3faf5;
+}
+
+.slotIndex {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #e8eef5;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.slotChosen .slotIndex {
+  background: #178e43;
+  color: #fff;
+}
+
+.slotText {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.slotText strong,
+.slotText small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.slotText strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.slotText small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.compositionButton {
+  width: 100%;
+}
+
+.schemeBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 4px 6px;
+  border: 1px solid #d8dee7;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.schemeInput {
+  flex: 1 1 8em;
+  width: 0;
+  min-width: min(6em, 100%);
+  max-width: 100%;
+  min-height: 24px;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+}
+
+.schemeInput:focus {
+  outline: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 24px;
+  padding: 0 2px 0 8px;
+  border: 1px solid #c9dff6;
+  border-radius: 999px;
+  background: #edf7ff;
+  color: #0b5fad;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.chipLabel {
+  overflow-wrap: anywhere;
+}
+
+.chipRemove {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #0b5fad;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chipRemove:hover,
+.chipRemove:focus-visible {
+  background: #d7ebff;
+}
+
 .checks,
 .rels {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .check {
@@ -393,8 +621,13 @@
   color: #0b5fad;
 }
 
+.previewSlot {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .preview {
-  margin-top: 14px;
+  margin-top: 0;
   padding: 10px 12px;
   border: 1px dashed #b9d8f2;
   border-radius: 10px;
@@ -436,7 +669,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 0;
 }
 
 .btn {
@@ -484,24 +717,10 @@
   font-weight: 700;
 }
 
-.cardHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 10px;
-  margin: 0 0 8px;
-}
-
-.cardHead h4 {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-}
-
 .cardAction {
   flex: 0 1 auto;
   max-width: 100%;
+  min-width: 0;
   min-height: 30px;
   margin: 0;
   padding: 4px 10px;
@@ -514,7 +733,8 @@
   font-weight: 600;
   line-height: 1.25;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -528,32 +748,31 @@
   cursor: not-allowed;
 }
 
-.guide {
-  position: absolute;
-  top: 16px;
-  right: 18px;
-  bottom: 0;
-  left: 18px;
+.guideFrame {
+  flex: 0 1 auto;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  margin: 0;
   overflow: hidden;
-  box-sizing: border-box;
-}
-
-.guide .cardHead {
-  flex: 0 0 auto;
 }
 
 .guideBody {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
+  min-width: 0;
+  height: auto;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: #b8c4d6 transparent;
+}
+
+/* Полоса не резервирует ширину, пока текст помещается до края «Схемы». */
+.guideBody:not([data-overflow="true"]) {
+  overflow-y: hidden;
 }
 
 .guideBody::-webkit-scrollbar,
@@ -665,39 +884,84 @@
   font-size: 13px !important;
 }
 
+@container (max-width: 640px) {
+  .slots[data-count="3"],
+  .slots[data-count="4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@supports not (grid-template-rows: subgrid) {
+  .layout {
+    grid-template-rows: none;
+  }
+
+  .assign,
+  .side {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    grid-row: auto;
+    padding: 16px 18px 18px;
+  }
+
+  .assign > *,
+  .side > * {
+    padding: 0;
+  }
+
+  .guideSection,
+  .usualSection,
+  .cautionSection {
+    grid-row: auto;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .guideBody {
+    max-height: min(320px, 46vh);
+  }
+}
+
 @media (max-width: 860px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "assignTop"
-      "assignRest"
-      "guide"
-      "notes";
+    display: flex;
+    flex-direction: column;
+    row-gap: 0;
   }
 
-  .assignTop,
-  .assignRest {
+  .assign,
+  .side {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .assign {
     border-right: 0;
-  }
-
-  .assignRest {
     border-bottom: 1px solid #e8eef5;
   }
 
-  .guideSlot {
-    padding: 16px 18px 0;
+  .guideSection,
+  .usualSection,
+  .cautionSection {
+    grid-row: auto;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    align-self: auto;
   }
 
-  .guide {
-    position: relative;
-    top: auto;
-    right: auto;
-    bottom: auto;
-    left: auto;
-    max-height: min(360px, 50vh);
+  .guideBody {
+    max-height: min(320px, 46vh);
   }
 
-  .fields {
+  .doseRow {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -725,25 +989,25 @@
     max-height: calc(100vh - 20px);
   }
 
-  .assignTop,
-  .assignRest,
-  .notes,
   .head {
     padding-right: 14px;
     padding-left: 14px;
   }
 
-  .guideSlot {
+  .assign > *,
+  .side > * {
     padding-right: 14px;
     padding-left: 14px;
   }
 
-  .guide {
-    right: auto;
-    left: auto;
+  .composition {
+    margin-right: 14px;
+    margin-left: 14px;
+    max-width: calc(100% - 28px);
   }
 
-  .cardAction {
-    white-space: normal;
+  .slots[data-count="3"],
+  .slots[data-count="4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

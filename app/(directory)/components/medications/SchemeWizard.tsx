@@ -24,11 +24,13 @@ import {
   restartCombinationWizard,
   sameCatalogItem,
   showCombinationInnList,
+  sortedTradeChoices,
   tradeItemsOf,
   type CombinationDraft,
   type CombinationWizardState,
 } from "./combinationSelection";
 import type { MedsCatalogComponent } from "./medsCatalogTypes";
+import { sortedRuLabels } from "./ruSort";
 import styles from "./SchemeWizard.module.css";
 
 type SchemeWizardProps = {
@@ -181,7 +183,7 @@ export default function SchemeWizard({
               ) : null}
               {component.type === "group" && stage === "inn" ? (
                 <div className={styles.list}>
-                  {innsOf(component).map((inn) => (
+                  {sortedRuLabels(innsOf(component)).map((inn) => (
                     <button
                       key={inn}
                       type="button"
@@ -200,19 +202,19 @@ export default function SchemeWizard({
               {component.type !== "other" && stage === "items" ? (
                 tradeCards().length > 0 ? (
                   <div className={styles.list}>
-                    {tradeCards().map((item, index) => {
+                    {sortedTradeChoices(tradeCards()).map(({ item, sourceIndex }) => {
                       const card = catalogItemCard(item, component.name);
                       const selected = Boolean(pick?.item && sameCatalogItem(pick.item, item));
 
                       return (
                         <button
-                          key={`${item.name_trade}-${item.standard_dose}-${item.standard_form}-${item.SMNN_code}-${index}`}
+                          key={`${item.name_trade}-${item.standard_dose}-${item.standard_form}-${item.SMNN_code}-${sourceIndex}`}
                           type="button"
                           className={`${styles.card} ${selected ? styles.cardSelected : ""}`}
                           aria-pressed={selected}
                           onClick={() =>
                             setState((current) =>
-                              chooseCombinationTrade(current, components, index),
+                              chooseCombinationTrade(current, components, sourceIndex),
                             )
                           }
                         >

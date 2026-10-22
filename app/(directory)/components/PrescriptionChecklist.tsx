@@ -1,6 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  assignmentFromDraft,
+  clearedAssignmentDraft,
+  combinationAssignmentView,
+  displayedAssignmentComment,
+  hasCustomAssignment,
+  standardRecommendationComment,
+  tableScheduleValue,
+  type AssignmentCommentSource,
+  type AssignmentFieldState,
+} from "./medications/assignmentScheme";
 import DrugInfoModal, {
   EMPTY_MEDICATION_INTAKE,
   type MedicationIntake,
@@ -226,24 +237,11 @@ type MedicationDraft = Partial<Record<MedicationField, string>> & {
   recordId?: string;
 };
 
-const medicationFallback = (item: ChecklistItem, field: MedicationField) => {
-  if (field === "scheme") return item.treatmentPlan ?? "";
-  if (field === "course") return item.treatmentDuration ?? "";
-
-  return "";
-};
-
 const readMedicationField = (
   drafts: Record<string, MedicationDraft>,
   item: ChecklistItem,
   field: MedicationField,
-) => {
-  const draft = drafts[item.id];
-
-  if (draft && field in draft) return draft[field] ?? "";
-
-  return medicationFallback(item, field);
-};
+) => drafts[item.id]?.[field] ?? "";
 
 type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
@@ -327,6 +325,9 @@ export default function PrescriptionChecklist({
   const [medicationIntake, setMedicationIntake] = useState<
     Record<string, MedicationIntake>
   >({});
+  const [commentSources, setCommentSources] = useState<Record<string, AssignmentCommentSource>>({});
+  const commentSourcesRef = useRef(commentSources);
+  commentSourcesRef.current = commentSources;
   const [combinationByItemId, setCombinationByItemId] = useState<
     Record<string, CombinationDraft>
   >({});
@@ -381,6 +382,8 @@ export default function PrescriptionChecklist({
     setActiveCategoryId(getFirstAvailableCategoryId(mergedSections));
     setMedicationDrafts({});
     setMedicationIntake({});
+    commentSourcesRef.current = {};
+    setCommentSources({});
   }, [initialSections]);
 
   useEffect(() => {
@@ -421,6 +424,50 @@ export default function PrescriptionChecklist({
     });
   };
 
+  const writeCommentSource = (id: string, source: AssignmentCommentSource) => {
+    const next = { ...commentSourcesRef.current, [id]: source };
+    commentSourcesRef.current = next;
+    setCommentSources(next);
+  };
+
+  const clearCommentSources = (ids: readonly string[]) => {
+    const next = { ...commentSourcesRef.current };
+    let changed = false;
+
+    ids.forEach((id) => {
+      if (!(id in next)) return;
+      delete next[id];
+      changed = true;
+    });
+
+    if (!changed) return;
+
+    commentSourcesRef.current = next;
+    setCommentSources(next);
+  };
+
+  const commentSourceOf = (item: ChecklistItem): AssignmentCommentSource => {
+    const ids = [item.id, ...getItemIds(item)];
+    if (ids.some((id) => commentSources[id] === "user")) return "user";
+    if (ids.some((id) => commentSources[id] === "none")) return "none";
+
+    return "clinical-recommendation";
+  };
+
+  const commentSourceForId = (id: string): AssignmentCommentSource => {
+    const item = sections
+      .flatMap((section) => section.items)
+      .find((entry) => entry.id === id || itemMatchesId(entry, id));
+
+    if (!item) return commentSourcesRef.current[id] ?? "clinical-recommendation";
+
+    const ids = [item.id, ...getItemIds(item)];
+    if (ids.some((key) => commentSourcesRef.current[key] === "user")) return "user";
+    if (ids.some((key) => commentSourcesRef.current[key] === "none")) return "none";
+
+    return "clinical-recommendation";
+  };
+
   const saveComment = () => {
     if (!commentTarget) return;
 
@@ -440,6 +487,7 @@ export default function PrescriptionChecklist({
         ),
       })),
     );
+    writeCommentSource(commentTarget.id, "user");
     setCommentTarget(null);
   };
 
@@ -496,6 +544,16 @@ export default function PrescriptionChecklist({
         }),
       })),
     );
+    setCommentSources((current) => {
+      const next = { ...current };
+
+      appliedTemplateItems.forEach((item) => {
+        if (item.comment.trim()) next[item.id] = "user";
+      });
+
+      commentSourcesRef.current = next;
+      return next;
+    });
   }, [appliedTemplateItems]);
 
   useEffect(() => {
@@ -565,6 +623,20 @@ export default function PrescriptionChecklist({
         },
       };
     });
+
+    const draft = medicationDrafts[item.id] ?? {};
+    const next = applyMedsSelection(
+      drug,
+      {
+        inn: draft.inn ?? "",
+        trade: draft.trade ?? "",
+        dose: draft.dose ?? "",
+        form: draft.form ?? "",
+        recordId: draft.recordId ?? "",
+      },
+      patch,
+    );
+    dropAutoCommentIfCustom(item.id, assignmentFromDraft({ ...draft, ...next }, medicationIntake[item.id]));
   };
 
   const updateMedicationField = (
@@ -588,6 +660,13 @@ export default function PrescriptionChecklist({
         [field]: value,
       },
     }));
+    dropAutoCommentIfCustom(
+      id,
+      assignmentFromDraft(
+        { ...medicationDrafts[id], [field]: value },
+        medicationIntake[id],
+      ),
+    );
   };
 
   const updateMedicationComment = (id: string, value: string) => {
@@ -606,22 +685,48 @@ export default function PrescriptionChecklist({
       ...current,
       [id]: intake,
     }));
+    dropAutoCommentIfCustom(id, assignmentFromDraft(medicationDrafts[id], intake));
+  };
+
+  const dropAutoCommentIfCustom = (id: string, fields: AssignmentFieldState) => {
+    if (!hasCustomAssignment(fields)) return;
+    if (commentSourceForId(id) !== "clinical-recommendation") return;
+
+    writeCommentSource(id, "none");
+    updateMedicationComment(id, "");
+  };
+
+  const scheduleFor = (item: ChecklistItem) => {
+    const fields = assignmentFromDraft(medicationDrafts[item.id], medicationIntake[item.id]);
+    const custom = hasCustomAssignment(fields);
+
+    return {
+      fields,
+      tableScheme: tableScheduleValue(fields.schemeText, item.treatmentPlan ?? "", custom),
+      tableCourse: tableScheduleValue(fields.courseText, item.treatmentDuration ?? "", custom),
+    };
   };
 
   const resetMedicationAssignment = (item: ChecklistItem) => {
-    setMedicationDrafts((current) => ({
-      ...current,
-      [item.id]: {
-        ...current[item.id],
-        inn: "",
-        trade: "",
-        recordId: "",
-        dose: "",
-        form: "",
-        scheme: item.treatmentPlan ?? "",
-        course: item.treatmentDuration ?? "",
-      },
-    }));
+    setMedicationDrafts((current) => {
+      const draft = current[item.id] ?? {};
+      const selection = applyMedsSelection(
+        drugForItem(item),
+        {
+          inn: draft.inn ?? "",
+          trade: draft.trade ?? "",
+          dose: draft.dose ?? "",
+          form: draft.form ?? "",
+          recordId: draft.recordId ?? "",
+        },
+        { dose: "", form: "" },
+      );
+
+      return {
+        ...current,
+        [item.id]: clearedAssignmentDraft(selection),
+      };
+    });
     setMedicationIntake((current) => {
       if (!current[item.id]) return current;
 
@@ -629,6 +734,11 @@ export default function PrescriptionChecklist({
       delete next[item.id];
       return next;
     });
+    clearCommentSources([item.id, ...getItemIds(item)]);
+    updateMedicationComment(
+      item.id,
+      standardRecommendationComment(item.treatmentPlan ?? "", item.treatmentDuration ?? ""),
+    );
   };
 
   const confirmCombination = (itemId: string, draft: CombinationDraft) => {
@@ -645,14 +755,25 @@ export default function PrescriptionChecklist({
     const course = item.treatmentDuration ?? "";
     if (!scheme.trim() && !course.trim()) return;
 
-    setMedicationDrafts((current) => ({
-      ...current,
-      [item.id]: {
-        ...current[item.id],
-        ...(scheme.trim() ? { scheme } : {}),
-        ...(course.trim() ? { course } : {}),
-      },
-    }));
+    setMedicationDrafts((current) => {
+      const draft = current[item.id] ?? {};
+
+      return {
+        ...current,
+        [item.id]: clearedAssignmentDraft({
+          inn: draft.inn ?? "",
+          trade: draft.trade ?? "",
+          recordId: draft.recordId ?? "",
+        }),
+      };
+    });
+    setMedicationIntake((current) => {
+      if (!current[item.id]) return current;
+
+      const next = { ...current };
+      delete next[item.id];
+      return next;
+    });
   };
 
   const visibleSections = sortSectionsForDisplay(
@@ -683,9 +804,21 @@ export default function PrescriptionChecklist({
       getMergedItems(liveInfoItem)[0] ??
       liveInfoItem)
     : null;
+  const liveEntry = liveInfoItem ? drugForItem(liveInfoItem) : null;
   const liveMedsView = liveInfoItem
-    ? buildMedsRowView(drugForItem(liveInfoItem), readMedsSelection(liveInfoItem))
+    ? buildMedsRowView(liveEntry, readMedsSelection(liveInfoItem))
     : null;
+  const liveComponents =
+    liveEntry?.type === "combination" ? liveEntry.combination_data : null;
+  const liveCombination =
+    liveInfoItem && liveComponents
+      ? sanitizeCombinationDraft(liveComponents, combinationByItemId[liveInfoItem.id])
+      : null;
+  const liveCombinationView =
+    liveInfoItem && liveComponents
+      ? combinationAssignmentView(liveInfoItem.title, liveComponents, liveCombination)
+      : null;
+  const liveSchedule = liveInfoItem ? scheduleFor(liveInfoItem) : null;
 
   const closeMedicationInfo = () => {
     if (liveInfoItem) {
@@ -816,6 +949,7 @@ export default function PrescriptionChecklist({
                 const confirmedScheme = components
                   ? sanitizeCombinationDraft(components, combinationByItemId[item.id])
                   : null;
+                const schedule = scheduleFor(item);
 
                 return activeCategoryId === "medications" && medsView ? (
                   <DrugRow
@@ -823,8 +957,8 @@ export default function PrescriptionChecklist({
                     item={item}
                     dose={readMedicationField(medicationDrafts, item, "dose")}
                     form={readMedicationField(medicationDrafts, item, "form")}
-                    scheme={readMedicationField(medicationDrafts, item, "scheme")}
-                    course={readMedicationField(medicationDrafts, item, "course")}
+                    scheme={schedule.tableScheme}
+                    course={schedule.tableCourse}
                     doseOptions={medsView.doseOptions}
                     formOptions={medsView.formOptions}
                     nameMenu={medsView.nameMenu}
@@ -962,9 +1096,15 @@ export default function PrescriptionChecklist({
           checked={liveInfoItem.checked}
           dose={readMedicationField(medicationDrafts, liveInfoItem, "dose")}
           form={readMedicationField(medicationDrafts, liveInfoItem, "form")}
-          scheme={readMedicationField(medicationDrafts, liveInfoItem, "scheme")}
-          course={readMedicationField(medicationDrafts, liveInfoItem, "course")}
-          comment={liveInfoItem.comment}
+          scheme={liveSchedule?.fields.schemeText ?? ""}
+          course={liveSchedule?.fields.courseText ?? ""}
+          comment={displayedAssignmentComment(
+            {
+              text: liveInfoItem.comment,
+              source: commentSourceOf(liveInfoItem),
+            },
+            hasCustomAssignment(liveSchedule?.fields ?? assignmentFromDraft(undefined)),
+          )}
           intake={medicationIntake[liveInfoItem.id] ?? EMPTY_MEDICATION_INTAKE}
           description={medicationDescriptionSource?.info || "Описание отсутствует"}
           infoComment={medicationDescriptionSource?.infoComment ?? ""}
@@ -976,12 +1116,29 @@ export default function PrescriptionChecklist({
             doses: liveMedsView?.doseOptions ?? [],
             forms: liveMedsView?.formOptions ?? [],
           }}
+          noteCustom={commentSourceOf(liveInfoItem) === "user"}
+          combination={liveCombinationView}
+          dismissLocked={schemeSession?.itemId === liveInfoItem.id}
+          onOpenScheme={
+            liveComponents
+              ? () =>
+                  setSchemeSession({
+                    itemId: liveInfoItem.id,
+                    title: liveInfoItem.title,
+                    components: liveComponents,
+                    confirmed: liveCombination,
+                  })
+              : undefined
+          }
           onClose={closeMedicationInfo}
           onToggleCart={() => toggleChecked(liveInfoItem.id)}
           onChangeField={(field, value) =>
             updateMedicationField(liveInfoItem.id, field, value)
           }
-          onCommentChange={(value) => updateMedicationComment(liveInfoItem.id, value)}
+          onCommentChange={(value) => {
+            updateMedicationComment(liveInfoItem.id, value);
+            writeCommentSource(liveInfoItem.id, "user");
+          }}
           onIntakeChange={(intake) => updateMedicationIntake(liveInfoItem.id, intake)}
           onReset={() => resetMedicationAssignment(liveInfoItem)}
           onApplyOriginal={() => applyOriginalRecommendation(liveInfoItem)}
