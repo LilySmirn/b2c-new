@@ -23,6 +23,7 @@ import { readSearchState, writeSearchState } from "@/app/lib/searchStateStorage"
 import { normalizeMkbSearchInput } from "@/app/lib/normalizeMkbSearchInput";
 import { collectMedicationQuery } from "../components/medications/medicationQuery";
 import { medsCatalogSession } from "../components/medications/medsCatalogSession";
+import { cartStorage } from "@/app/(directory)/shared/cart";
 
 type MkbSearchResult = {
   code: string;
@@ -151,8 +152,6 @@ const getAvailableFilters = (
   );
 };
 
-const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
-
 type StoredSearchState = {
   query?: string;
   visitType?: VisitType;
@@ -178,21 +177,7 @@ const persistSelectedRecommendation = (
   card: RecommendationStandard,
 ) => {
   const recommendationKey = getCartRecommendationKey(diagnosisTitle, card);
-  const serializedCartRecommendation = JSON.stringify({
-    diagnosisTitle,
-    recommendationKey,
-    recommendation: card,
-  });
-
-  window.sessionStorage.setItem(
-    CART_RECOMMENDATION_STORAGE_KEY,
-    serializedCartRecommendation,
-  );
-  window.localStorage.setItem(
-    CART_RECOMMENDATION_STORAGE_KEY,
-    serializedCartRecommendation,
-  );
-
+  cartStorage.writeRecommendation(diagnosisTitle, card, recommendationKey);
   return recommendationKey;
 };
 

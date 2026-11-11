@@ -1,0 +1,3788 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Препараты · EasyMed</title>
+    <link rel="stylesheet" href="styles.css?v=10" />
+    <style>
+      html, body { margin: 0; padding: 0; min-height: 100%; background: #f3f5f7; }
+    </style>
+  </head>
+  <body>
+<section class="preparaty" data-screen="preparaty" aria-label="Назначения EasyMed">
+  <script type="application/json" id="preparaty-catalog">
+    {
+      "diagnosis": "K26: Язвенная болезнь",
+      "tabs": [
+        { "id": "diag-req", "label": "Диагностика обязательная", "active": false, "enabled": true },
+        { "id": "diag-opt", "label": "Диагностика по показаниям", "active": false, "enabled": true },
+        { "id": "treatment", "label": "Лечение", "active": false, "enabled": true },
+        { "id": "drugs", "label": "Препараты", "active": true, "enabled": true },
+        { "id": "scales", "label": "Шкалы и опросники", "active": false, "enabled": true },
+        { "id": "lifestyle", "label": "Образ жизни", "active": false, "enabled": false },
+        { "id": "vaccine", "label": "Вакцинация", "active": false, "enabled": false },
+        { "id": "appendix", "label": "Приложение А3", "active": false, "enabled": false }
+      ],
+      "items": [
+        {
+          "id": "contrast",
+          "kind": "plain",
+          "name": "Водорастворимый контрастный препарат (V08A Рентгеноконтрастные средства, содержащие йод)",
+          "qc": "",
+          "level": "C4",
+          "hint": "Контрастное средство для визуализации. Не связано с эрадикацией H. pylori.",
+          "scheme": "",
+          "schemeShort": "",
+          "course": "",
+          "courseShort": ""
+        },
+        {
+          "id": "ppi",
+          "kind": "alternatives",
+          "name": "Ингибиторы протонного насоса",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "ИПН — основа кислотосупрессии при ЯБ. Выберите конкретное МНН, затем торговое наименование из базы.",
+          "scheme": "Внутрь 1–2 раза в сутки за 30–60 минут до еды. Дозу уточняют по выбранному препарату.",
+          "schemeShort": "",
+          "course": "Обычно 4–6 недель при неосложнённой ЯБ; в схемах эрадикации — 14 дней.",
+          "courseShort": "4-6 недель",
+          "alternatives": [
+            { "inn": "ОМЕПРАЗОЛ", "label": "Омепразол" },
+            { "inn": "ЭЗОМЕПРАЗОЛ", "label": "Эзомепразол" },
+            { "inn": "ПАНТОПРАЗОЛ", "label": "Пантопразол" },
+            { "inn": "ЛАНСОПРАЗОЛ", "label": "Лансопразол" },
+            { "inn": "РАБЕПРАЗОЛ", "label": "Рабепразол" }
+          ]
+        },
+        {
+          "id": "h2",
+          "kind": "plain",
+          "name": "Блокаторы H2-гистаминовых рецепторов",
+          "qc": "КК",
+          "level": "С5",
+          "hint": "Альтернатива ИПН при непереносимости. Торговые позиции в этой демо-выборке не подключены.",
+          "scheme": "Внутрь по инструкции к выбранному препарату.",
+          "schemeShort": "",
+          "course": "4–6 недель.",
+          "courseShort": "4-6 недель"
+        },
+        {
+          "id": "rebamipide",
+          "kind": "trade",
+          "name": "Ребамипид",
+          "inn": "РЕБАМИПИД",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "Гастропротектор. Может дополнять терапию ЯБ. Проверяйте взаимодействия с тетрациклинами.",
+          "scheme": "Внутрь по инструкции к выбранному препарату.",
+          "schemeShort": "",
+          "course": "По схеме лечащего врача.",
+          "courseShort": ""
+        },
+        {
+          "id": "clarithromycin",
+          "kind": "trade",
+          "name": "Кларитромицин",
+          "inn": "КЛАРИТРОМИЦИН",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "Макролид в схемах эрадикации. Клик по названию открывает торговые наименования из базы.",
+          "scheme": "Внутрь 500 мг 2 раза в сутки.",
+          "schemeShort": "500 мг 2 раза в сутки",
+          "course": "14 дней в составе схемы эрадикации.",
+          "courseShort": "14 дней"
+        },
+        {
+          "id": "amoxicillin",
+          "kind": "trade",
+          "name": "Амоксициллин",
+          "inn": "АМОКСИЦИЛЛИН",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "Пенициллин в схемах эрадикации. Выберите торговое наименование.",
+          "scheme": "Внутрь 1000 мг 2 раза в сутки.",
+          "schemeShort": "1000 мг 2 раза в сутки",
+          "course": "14 дней.",
+          "courseShort": "14 дней"
+        },
+        {
+          "id": "bismuth",
+          "kind": "trade",
+          "name": "Висмута трикалия дицитрат",
+          "inn": "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "Препарат висмута в квадротерапии. Клик по названию — торговые имена (Де-Нол и др.).",
+          "scheme": "Внутрь 120 мг 4 раза в сутки или 240 мг 2 раза в сутки.",
+          "schemeShort": "120 мг 4 раза / 240 мг 2 раза",
+          "course": "10 или 14 дней.",
+          "courseShort": "10 или 14 дней"
+        },
+        {
+          "id": "tetracycline",
+          "kind": "trade",
+          "name": "Тетрациклин",
+          "inn": "ТЕТРАЦИКЛИН",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "В схемах эрадикации второй линии. Ограничения по возрасту смотрите в приложении А3.",
+          "scheme": "Внутрь 500 мг 4 раза в сутки.",
+          "schemeShort": "500 мг 4 раза в сутки",
+          "course": "10 или 14 дней.",
+          "courseShort": "10 или 14 дней"
+        },
+        {
+          "id": "metronidazole",
+          "kind": "trade",
+          "name": "Метронидазол",
+          "inn": "МЕТРОНИДАЗОЛ",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "Нитроимидазол в схемах эрадикации. Учитывайте взаимодействие с алкоголем.",
+          "scheme": "Внутрь 500 мг 3 раза в сутки.",
+          "schemeShort": "500 мг 3 раза в сутки",
+          "course": "10 или 14 дней.",
+          "courseShort": "10 или 14 дней"
+        },
+        {
+          "id": "triple",
+          "kind": "scheme",
+          "name": "Стандартная тройная терапия",
+          "qc": "КК",
+          "level": "В1",
+          "hint": "Это схема из трёх отдельных препаратов, а не один комбинированный. По очереди выберите ИПН, амоксициллин и кларитромицин — для каждого своё торговое наименование.",
+          "scheme": "ИПН + амоксициллин + кларитромицин. Дозы — по выбранным компонентам и приложению А3.",
+          "schemeShort": "ИПН + амоксициллин + кларитромицин",
+          "course": "14 дней.",
+          "courseShort": "14 дней",
+          "components": [
+            {
+              "id": "triple-ppi",
+              "label": "ИПН",
+              "kind": "alternatives",
+              "alternatives": [
+                { "inn": "ОМЕПРАЗОЛ", "label": "Омепразол" },
+                { "inn": "ЭЗОМЕПРАЗОЛ", "label": "Эзомепразол" },
+                { "inn": "ПАНТОПРАЗОЛ", "label": "Пантопразол" },
+                { "inn": "РАБЕПРАЗОЛ", "label": "Рабепразол" }
+              ]
+            },
+            {
+              "id": "triple-amox",
+              "label": "Амоксициллин",
+              "kind": "trade",
+              "inn": "АМОКСИЦИЛЛИН"
+            },
+            {
+              "id": "triple-clar",
+              "label": "Кларитромицин",
+              "kind": "trade",
+              "inn": "КЛАРИТРОМИЦИН"
+            }
+          ]
+        },
+        {
+          "id": "hp-combo",
+          "kind": "combo",
+          "name": "Набор для эрадикации H. pylori",
+          "qc": "КК",
+          "level": "А1",
+          "composition": ["ИПН", "Амоксициллин", "Кларитромицин / Тинидазол"],
+          "hint": "Готовый набор: несколько действующих веществ в одной упаковке. Это не схема из отдельных препаратов — выберите один комбинированный продукт.",
+          "scheme": "По инструкции к выбранному набору.",
+          "schemeShort": "по инструкции к набору",
+          "course": "7–14 дней.",
+          "courseShort": "7–14 дней",
+          "alternatives": [
+            {
+              "inn": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ",
+              "label": "Пилобакт АМ",
+              "composition": ["Омепразол", "Амоксициллин", "Кларитромицин"]
+            },
+            {
+              "inn": "КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ+ТИНИДАЗОЛ",
+              "label": "Пилобакт",
+              "composition": ["Омепразол", "Кларитромицин", "Тинидазол"]
+            },
+            {
+              "inn": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ЛАНСОПРАЗОЛ",
+              "label": "Ланцид Кит / Хелитрикс",
+              "composition": ["Лансопразол", "Амоксициллин", "Кларитромицин"]
+            }
+          ]
+        },
+        {
+          "id": "pcab",
+          "kind": "plain",
+          "name": "Калий-конкурентный ингибитор протонной помпы",
+          "qc": "КК",
+          "level": "А1",
+          "hint": "Класс P-CAB. В демо-выборке торговые имена не подключены.",
+          "scheme": "",
+          "schemeShort": "",
+          "course": "",
+          "courseShort": ""
+        },
+        {
+          "id": "levofloxacin",
+          "kind": "plain",
+          "name": "Левофлоксацин",
+          "qc": "",
+          "level": "C5",
+          "hint": "Фторхинолон в резервных схемах. Торговые имена можно добавить из полной базы позже.",
+          "scheme": "Внутрь 500 мг 2 раза в сутки.",
+          "schemeShort": "500 мг 2 раза в сутки внутрь",
+          "course": "14 дней.",
+          "courseShort": "14 дней"
+        },
+        {
+          "id": "probiotic",
+          "kind": "plain",
+          "name": "Штаммоспецифические пробиотики",
+          "qc": "КК",
+          "level": "В2",
+          "hint": "Дополнение к эрадикации для снижения побочных эффектов антибиотиков.",
+          "scheme": "",
+          "schemeShort": "",
+          "course": "",
+          "courseShort": ""
+        }
+      ]
+    }
+  </script>
+    <script type="application/json" id="preparaty-shell-tabs">
+{
+  "diag-req": {
+    "id": "diag-req",
+    "label": "Диагностика обязательная",
+    "enabled": true,
+    "selectAllLabel": "Выбрать всю обязательную диагностику",
+    "groups": [
+      {
+        "title": "Лабораторные исследования",
+        "rows": [
+          { "id": "diag-req-oak", "qc": "", "level": "С4", "name": "Общий (клинический) анализ крови", "hint": "Базовый анализ при ЯБ для оценки анемии и воспаления." },
+          { "id": "diag-req-fobt", "qc": "", "level": "В2", "name": "Исследование кала на скрытую кровь", "hint": "Поиск скрытого кровотечения." },
+          { "id": "diag-req-ubt", "qc": "КК", "level": "В2", "name": "13С-уреазный дыхательный тест на Helicobacter Pylori", "hint": "Неинвазивная диагностика H. pylori." },
+          { "id": "diag-req-ag", "qc": "КК", "level": "В2", "name": "определение антигена H. pylori в кале", "hint": "Альтернатива дыхательному тесту." }
+        ]
+      },
+      {
+        "title": "Инструментальные исследования",
+        "rows": [
+          { "id": "diag-req-egds", "qc": "КК", "level": "С5", "name": "Эзофагогастродуоденоскопия", "hint": "Основной метод визуализации язвенного дефекта." }
+        ]
+      },
+      {
+        "title": "Лучевая диагностика",
+        "rows": [
+          { "id": "diag-req-xray", "qc": "", "level": "B2", "name": "Обзорная рентгенография органов брюшной полости", "hint": "При подозрении на перфорацию / острую патологию." },
+          { "id": "diag-req-ct", "qc": "", "level": "B2", "name": "Компьютерная томография органов брюшной полости", "hint": "Уточняющая визуализация по показаниям." }
+        ]
+      },
+      {
+        "title": "Ультразвуковые исследования",
+        "rows": [
+          { "id": "diag-req-us", "qc": "", "level": "С5", "name": "Ультразвуковое исследование органов брюшной полости (комплексное)", "hint": "Оценка органов брюшной полости." }
+        ]
+      }
+    ]
+  },
+  "diag-opt": {
+    "id": "diag-opt",
+    "label": "Диагностика по показаниям",
+    "enabled": true,
+    "groups": [
+      {
+        "title": "Лабораторные исследования",
+        "rows": [
+          { "id": "diag-opt-gastrin", "qc": "КК", "level": "С5", "name": "Исследование уровня гастрина сыворотки крови", "hint": "По показаниям при подозрении на гипергастринемию." },
+          { "id": "diag-opt-morph", "qc": "", "level": "В1", "name": "Морфологическое исследование препарата тканей почки", "hint": "По специальным показаниям." },
+          { "id": "diag-opt-rut", "qc": "КК", "level": "В2", "name": "быстрый уреазный тест", "hint": "Инвазивная экспресс-диагностика H. pylori при ЭГДС." }
+        ]
+      },
+      {
+        "title": "Лучевая диагностика",
+        "rows": [
+          { "id": "diag-opt-stomach-xray", "qc": "", "level": "В2", "name": "Рентгенография желудка и двенадцатиперстной кишки", "hint": "По показаниям." },
+          { "id": "diag-opt-overview", "qc": "", "level": "С4", "name": "Обзорная рентгенография органов брюшной полости", "hint": "По показаниям." },
+          { "id": "diag-opt-ct", "qc": "", "level": "С4", "name": "Компьютерная томография органов брюшной полости", "hint": "По показаниям." }
+        ]
+      },
+      {
+        "title": "Инструментальные исследования",
+        "rows": [
+          { "id": "diag-opt-egds", "qc": "КК", "level": "С5", "name": "Эзофагогастродуоденоскопия", "hint": "Повторная / уточняющая ЭГДС по показаниям." },
+          { "id": "diag-opt-biopsy", "qc": "", "level": "В1", "name": "множественная щипцовая биопсия из краёв язвенного дефекта", "hint": "Для исключения малигнизации." }
+        ]
+      },
+      {
+        "title": "Промежуточные действия",
+        "rows": [
+          { "id": "diag-opt-disp", "qc": "", "level": "С5", "name": "Диспансерное наблюдение за лицом с психическим расстройством", "hint": "Позиция из КР по соответствующим показаниям." }
+        ]
+      }
+    ]
+  },
+  "treatment": {
+    "id": "treatment",
+    "label": "Лечение",
+    "enabled": true,
+    "groups": [
+      {
+        "title": "Лечебные мероприятия",
+        "rows": [
+          { "id": "treat-evac", "qc": "", "level": "С5", "name": "эвакуация содержимого через зонд желудочный", "hint": "При остром состоянии по показаниям." },
+          { "id": "treat-intub", "qc": "", "level": "В3", "name": "Интубация трахеи", "hint": "При угрозе аспирации / реанимации." },
+          { "id": "treat-wash", "qc": "", "level": "B3", "name": "отмыть/эвакуировать содержимое через толстый желудочный зонд", "hint": "Подготовка / санация по показаниям." },
+          { "id": "treat-san", "qc": "", "level": "", "name": "санаторно-курортное лечение", "hint": "На этапе реабилитации." },
+          { "id": "treat-hosp", "qc": "", "level": "", "name": "госпитализация", "hint": "При осложнениях и тяжёлом течении." },
+          { "id": "treat-diet", "qc": "", "level": "С5", "name": "диетотерапия", "hint": "Диетические рекомендации." },
+          { "id": "treat-erad", "qc": "КК", "level": "А1", "name": "эрадикационная терапия", "hint": "При H. pylori — детали во вкладке Препараты и приложении А3." },
+          { "id": "treat-icu", "qc": "", "level": "С5", "name": "интенсивная терапия", "hint": "При кровотечении / шоке." },
+          { "id": "treat-dilat", "qc": "", "level": "С5", "name": "Эндоскопическое бужирование и баллонная дилатация при опухолевом стенозе общего желчного протока под эндоскопическим контролем", "hint": "Специализированное вмешательство по показаниям." }
+        ]
+      }
+    ]
+  },
+  "scales": {
+    "id": "scales",
+    "label": "Шкалы и опросники",
+    "enabled": true,
+    "groups": [
+      {
+        "title": "Шкалы и опросники",
+        "rows": [
+          { "id": "scale-shock", "qc": "", "level": "С4", "name": "Шоковый индекс", "hint": "Оценка тяжести кровопотери." },
+          { "id": "scale-rebleed", "qc": "", "level": "С4", "name": "оценка риска рецидива кровотечения по совокупности клинических и эндоскопических данных", "hint": "Прогноз рецидива кровотечения." },
+          { "id": "scale-forrest", "qc": "", "level": "B3", "name": "Стратификация источника язвенного кровотечения по классификации J.F. Forrest", "hint": "Эндоскопическая классификация Forrest." }
+        ]
+      }
+    ]
+  },
+  "lifestyle": {
+    "id": "lifestyle",
+    "label": "Образ жизни",
+    "enabled": false,
+    "groups": []
+  },
+  "vaccine": {
+    "id": "vaccine",
+    "label": "Вакцинация",
+    "enabled": false,
+    "groups": []
+  },
+  "appendix": {
+    "id": "appendix",
+    "label": "Приложение А3",
+    "enabled": false,
+    "groups": [],
+    "note": "В исходной КР вкладка может быть недоступна для выбранного фильтра. Таблицы схем смотрите в полной версии EasyMed."
+  }
+}
+  </script>
+
+  <div class="preparaty__app">
+    <header class="preparaty__header">
+      <div class="preparaty__header-inner">
+        <a class="preparaty__logo-link" href="https://klinrec.ru/" target="_blank" rel="noreferrer">
+          <img src="assets/logo-white.png" width="101" height="43" alt="Клинические рекомендации Минздрава — логотип" />
+        </a>
+        <div class="preparaty__header-messages">
+          <p class="preparaty__diagnosis" data-role="diagnosis">K26: Язвенная болезнь</p>
+        </div>
+        <div class="preparaty__header-actions">
+          <button type="button" class="preparaty__header-action preparaty__header-action--collapse" data-action="collapse" data-role="collapse-btn">
+            Свернуть
+          </button>
+          <a
+            class="preparaty__header-action preparaty__header-action--source"
+            href="https://cr.minzdrav.gov.ru/view-cr/277_2"
+            target="_blank"
+            rel="noreferrer"
+            title="Открыть документ в рубрикаторе Минздрава"
+          >
+            <span class="preparaty__header-icon" aria-hidden="true">
+              <img src="assets/eagle-white.png" width="22" height="22" alt="" />
+            </span>
+            <span>Рубрикатор</span>
+          </a>
+          <a class="preparaty__header-action preparaty__header-action--back" href="https://klinrec.ru/mkb" target="_blank" rel="noreferrer">
+            <img class="preparaty__header-search" src="assets/search.svg" width="18" height="18" alt="" aria-hidden="true" />
+            Вернуться к поиску
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="preparaty__body">
+      <div class="preparaty__main">
+        <div class="preparaty__tabs" role="tablist" aria-label="Раздел назначений" data-role="tabs"></div>
+
+        <div class="preparaty__panel" role="tabpanel" data-role="panel">
+          <div class="preparaty__toolbar" data-role="toolbar" hidden></div>
+          <div class="preparaty__list" data-role="list"></div>
+        </div>
+        <button type="button" class="preparaty__check-btn" data-action="check-interactions">
+          <span>Проверка взаимодействий</span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <div class="preparaty__ix" data-role="interactions" hidden></div>
+      </div>
+
+      <aside class="preparaty__cart" aria-label="Корзина назначений" data-role="cart">
+        <div class="preparaty__cart-head">
+          <div class="preparaty__cart-tabs" role="tablist" aria-label="Разделы корзины" data-role="cart-tabs">
+            <button type="button" class="preparaty__cart-tab is-active" role="tab" aria-selected="true" data-action="cart-view" data-view="cart">
+              Корзина&nbsp;(<span data-role="cart-count">0</span>)
+            </button>
+            <button type="button" class="preparaty__cart-tab" role="tab" aria-selected="false" data-action="cart-view" data-view="ai">
+              EasyMed&nbsp;AI
+            </button>
+            <button type="button" class="preparaty__cart-tab" role="tab" aria-selected="false" data-action="cart-view" data-view="ix">
+              Взаимо&shy;действия
+            </button>
+          </div>
+        </div>
+        <div class="preparaty__cart-body" data-role="cart-body">
+          <div class="preparaty__cart-tools">
+            <button type="button" class="preparaty__tool" data-action="cart-template">Выбрать шаблон</button>
+            <button type="button" class="preparaty__tool" data-action="cart-save-template">Сохранить как шаблон</button>
+          </div>
+          <section class="preparaty__cart-list" data-role="cart-list" aria-label="Список назначений"></section>
+          <button type="button" class="preparaty__cart-add" data-action="cart-add">
+            <span class="preparaty__cart-plus" aria-hidden="true">+</span>
+            <span>Добавить услугу/медикамент</span>
+          </button>
+        </div>
+        <div class="preparaty__ai-chat preparaty__ai-chat--cart" data-role="cart-ai-chat" hidden>
+          <div class="preparaty__ai-thread" data-role="ai-thread" aria-live="polite"></div>
+          <form class="preparaty__ai-compose" data-role="ai-compose" action="#" autocomplete="off">
+            <textarea
+              class="preparaty__ai-input"
+              data-role="ai-input"
+              rows="1"
+              maxlength="1000"
+              placeholder="Задайте вопрос по клиническим рекомендациям…"
+              aria-label="Сообщение для EasyMed AI"
+            ></textarea>
+            <button type="submit" class="preparaty__ai-send" data-action="ai-send" title="Отправить" aria-label="Отправить">
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2.2 8.1 L13.4 2.6c.5-.25.95.2.7.7L8.6 13.7c-.25.5-.9.4-1-.15L6.4 9.1 2.35 7.9c-.55-.2-.45-.85-.15-.8z"/></svg>
+            </button>
+          </form>
+        </div>
+        <div class="preparaty__mini-ix preparaty__mini-ix--cart" data-role="cart-ix" hidden>
+          <div class="preparaty__mini-ix-search-wrap">
+            <div class="preparaty__mkb-search-row preparaty__mini-ix-search-row">
+              <input
+                class="preparaty__mkb-search-input"
+                type="search"
+                data-role="mini-ix-query"
+                name="cart-ix-query"
+                placeholder="Дополнительный препарат (необязательно)…"
+                maxlength="80"
+                autocomplete="off"
+                aria-label="Дополнительный препарат для проверки с выбранными"
+                aria-autocomplete="list"
+                aria-controls="preparaty-cart-ix-hints"
+              />
+            </div>
+            <div class="preparaty__mini-ix-hints" id="preparaty-cart-ix-hints" data-role="mini-ix-hints" hidden role="listbox" aria-label="Подсказки препаратов"></div>
+          </div>
+          <button type="button" class="preparaty__mini-ix-check" data-action="mini-ix-check">Проверить взаимодействия</button>
+          <div class="preparaty__mini-ix-results" data-role="mini-ix-results" aria-live="polite"></div>
+        </div>
+        <div class="preparaty__cart-rec-wrap">
+          <textarea id="preparaty-rec" class="preparaty__cart-note" data-role="recommendation" rows="3" placeholder="Напишите общую рекомендацию для пациента..." aria-label="Общая рекомендация для пациента"></textarea>
+        </div>
+        <div class="preparaty__cart-actions">
+          <button type="button" class="preparaty__cart-btn" data-action="cart-write">
+            <svg class="preparaty__cart-btn-icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M4 2h9l3 3v13H4V2zm8 1.5V6h2.5L12 3.5zM6 9h8v1.5H6V9zm0 3h8v1.5H6V12zm0 3h5V16.5H6V15z"/></svg>
+            <span class="preparaty__cart-btn-label"><span>Запись</span><span>в карту</span></span>
+          </button>
+          <button type="button" class="preparaty__cart-btn" data-action="cart-copy">
+            <svg class="preparaty__cart-btn-icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M7 2h9v12h-1.5V3.5H7V2zm-3 3h9v13H4V5zm1.5 1.5v10h6v-10h-6z"/></svg>
+            <span class="preparaty__cart-btn-label"><span>Скопировать</span><span>выбранное</span></span>
+          </button>
+        </div>
+        <p class="preparaty__cart-status" data-role="cart-status" aria-live="polite"></p>
+      </aside>
+    </div>
+
+    <aside class="preparaty__mini-panel" data-role="mini-panel" hidden aria-label="Миникорзинка">
+      <div class="preparaty__mini-panel-head" data-role="mini-panel-drag">
+        <div class="preparaty__mini-panel-brand">
+          <span class="preparaty__mini-panel-logo" aria-hidden="true">
+            <img src="assets/logo-white.png" width="101" height="43" alt="" />
+          </span>
+          <h2 class="preparaty__mini-panel-title" data-role="mini-panel-title">K26: Язвенная болезнь</h2>
+        </div>
+        <div class="preparaty__win-controls" role="group" aria-label="Управление окном">
+          <button type="button" class="preparaty__win-btn preparaty__win-btn--min" data-action="minimize" title="Свернуть" aria-label="Свернуть до логотипа">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M1 5.25h8v1.1H1z"/></svg>
+          </button>
+          <button type="button" class="preparaty__win-btn preparaty__win-btn--max" data-action="expand" title="Развернуть" aria-label="Развернуть">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.2" d="M2.2 2.2h5.6v5.6H2.2z"/></svg>
+          </button>
+          <button type="button" class="preparaty__win-btn preparaty__win-btn--close" data-action="close" title="Закрыть" aria-label="Закрыть">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M2.1 1.3 L8.7 7.9 L7.9 8.7 L1.3 2.1z"/><path fill="currentColor" d="M7.9 1.3 L8.7 2.1 L2.1 8.7 L1.3 7.9z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="preparaty__mini-panel-body">
+        <div class="preparaty__mini-nav" role="tablist" aria-label="Разделы миникорзинки" data-role="mini-nav">
+          <button type="button" class="preparaty__mini-nav-btn is-active" role="tab" aria-selected="true" data-action="mini-nav" data-nav="clinical-recs">Клинические рекомендации</button>
+          <button type="button" class="preparaty__mini-nav-btn" role="tab" aria-selected="false" data-action="mini-nav" data-nav="easymed-ai">EasyMed AI</button>
+          <button type="button" class="preparaty__mini-nav-btn" role="tab" aria-selected="false" data-action="mini-nav" data-nav="interactions">Лекарственные взаимодействия</button>
+        </div>
+        <div class="preparaty__mini-recs" data-role="mini-recs">
+          <form class="preparaty__mkb-search preparaty__mkb-search--mini" data-role="mkb-search" action="#" autocomplete="off">
+            <div class="preparaty__mkb-search-row">
+              <input
+                class="preparaty__mkb-search-input"
+                type="search"
+                name="mkb-mini"
+                data-role="mkb-query"
+                placeholder="Код МКБ, например K26"
+                maxlength="32"
+                aria-label="Код МКБ для открытия справочника"
+              />
+              <button type="submit" class="preparaty__mkb-search-btn" data-action="search-mkb" title="Открыть справочник" aria-label="Найти и открыть справочник">
+                <img src="assets/search-mkb.svg" width="16" height="16" alt="" aria-hidden="true" />
+              </button>
+            </div>
+            <div class="preparaty__mkb-search-filters" data-role="mkb-filters" aria-hidden="true">
+              <div class="preparaty__mini-nav preparaty__mkb-filter-nav" role="tablist" aria-label="Тип обращения">
+                <button type="button" class="preparaty__mini-nav-btn is-active" role="tab" aria-selected="true" data-action="mkb-visit" data-visit="primary">Первичный</button>
+                <button type="button" class="preparaty__mini-nav-btn" role="tab" aria-selected="false" data-action="mkb-visit" data-visit="repeat">Повторный</button>
+                <button type="button" class="preparaty__mini-nav-btn" role="tab" aria-selected="false" data-action="mkb-visit" data-visit="inpatient">Стационар</button>
+              </div>
+              <div class="preparaty__mini-nav preparaty__mkb-filter-nav preparaty__mkb-filter-nav--age" role="tablist" aria-label="Возраст пациента">
+                <button type="button" class="preparaty__mini-nav-btn is-active" role="tab" aria-selected="true" data-action="mkb-age" data-age="adult">Взрослый</button>
+                <button type="button" class="preparaty__mini-nav-btn" role="tab" aria-selected="false" data-action="mkb-age" data-age="child">Ребенок</button>
+              </div>
+            </div>
+          </form>
+          <div class="preparaty__mini-tabs-shell" data-role="mini-tabs" aria-label="Раздел назначений"></div>
+          <div class="preparaty__mini-panel-list" data-role="mini-list"></div>
+        </div>
+        <div class="preparaty__ai-chat" data-role="ai-chat" hidden>
+          <div class="preparaty__ai-thread" data-role="ai-thread" aria-live="polite"></div>
+          <form class="preparaty__ai-compose" data-role="ai-compose" action="#" autocomplete="off">
+            <textarea
+              class="preparaty__ai-input"
+              data-role="ai-input"
+              rows="1"
+              maxlength="1000"
+              placeholder="Задайте вопрос по клиническим рекомендациям…"
+              aria-label="Сообщение для EasyMed AI"
+            ></textarea>
+            <button type="submit" class="preparaty__ai-send" data-action="ai-send" title="Отправить" aria-label="Отправить">
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2.2 8.1 L13.4 2.6c.5-.25.95.2.7.7L8.6 13.7c-.25.5-.9.4-1-.15L6.4 9.1 2.35 7.9c-.55-.2-.45-.85-.15-.8z"/></svg>
+            </button>
+          </form>
+        </div>
+        <div class="preparaty__mini-ix" data-role="mini-ix" hidden>
+          <div class="preparaty__mini-ix-search-wrap">
+            <div class="preparaty__mkb-search-row preparaty__mini-ix-search-row">
+              <input
+                class="preparaty__mkb-search-input"
+                type="search"
+                data-role="mini-ix-query"
+                name="mini-ix-query"
+                placeholder="Дополнительный препарат (необязательно)…"
+                maxlength="80"
+                autocomplete="off"
+                aria-label="Дополнительный препарат для проверки с выбранными"
+                aria-autocomplete="list"
+                aria-controls="preparaty-mini-ix-hints"
+              />
+            </div>
+            <div class="preparaty__mini-ix-hints" id="preparaty-mini-ix-hints" data-role="mini-ix-hints" hidden role="listbox" aria-label="Подсказки препаратов"></div>
+          </div>
+          <button type="button" class="preparaty__mini-ix-check" data-action="mini-ix-check">Проверить взаимодействия</button>
+          <div class="preparaty__mini-ix-results" data-role="mini-ix-results" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="preparaty__mini-panel-foot">
+        <button type="button" class="preparaty__mini-panel-add" data-action="cart-add">
+          <span aria-hidden="true">+</span>
+          <span>Добавить услугу/медикамент</span>
+        </button>
+        <textarea class="preparaty__cart-note preparaty__mini-rec" data-role="recommendation" rows="1" placeholder="Напишите общую рекомендацию для пациента..." aria-label="Общая рекомендация для пациента"></textarea>
+        <div class="preparaty__mini-panel-actions">
+          <button type="button" class="preparaty__cart-btn" data-action="cart-write">
+            <svg class="preparaty__cart-btn-icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M4 2h9l3 3v13H4V2zm8 1.5V6h2.5L12 3.5zM6 9h8v1.5H6V9zm0 3h8v1.5H6V12zm0 3h5V16.5H6V15z"/></svg>
+            <span class="preparaty__cart-btn-label"><span>Запись</span><span>в карту</span></span>
+          </button>
+          <button type="button" class="preparaty__cart-btn" data-action="cart-copy">
+            <svg class="preparaty__cart-btn-icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M7 2h9v12h-1.5V3.5H7V2zm-3 3h9v13H4V5zm1.5 1.5v10h6v-10h-6z"/></svg>
+            <span class="preparaty__cart-btn-label"><span>Скопировать</span><span>выбранное</span></span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <button type="button" class="preparaty__dock" data-role="dock" data-action="restore-mini" hidden title="Открыть миникорзинку" aria-label="Открыть миникорзинку EasyMed">
+      <img src="assets/logo-white.png" width="101" height="43" alt="" />
+    </button>
+
+    <div class="preparaty__popover" data-role="popover" hidden></div>
+    <div class="preparaty__info-layer" data-role="info-modal" hidden></div>
+    <div class="preparaty__scheme-layer" data-role="scheme-modal" hidden></div>
+    <div class="preparaty__scheme-layer preparaty__scheme-layer--combo" data-role="combo-modal" hidden></div>
+    <div class="preparaty__note-layer" data-role="note-modal" hidden></div>
+    <div class="preparaty__cart-modal-layer" data-role="cart-modal" hidden></div>
+  </div>
+</section>
+    <script type="application/json" id="preparaty-trades">
+{
+  "КЛАРИТРОМИЦИН": {
+    "inn": "КЛАРИТРОМИЦИН",
+    "popular": [
+      "Клацид",
+      "Кларитромицин",
+      "Фромилид"
+    ],
+    "trades": [
+      {
+        "trade": "Клацид",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00441-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Фромилид",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Бактикап",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00441-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00210-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Клабакс",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларбакт",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин Протекх",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин Реневал",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин Экозитрин",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин-OBL",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин-Акрихин",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин-ВЕРТЕКС",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00441-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитромицин-Тева",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кларитросин",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Класине",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Сейдон-сановель",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Экозитрин",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00150-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01FA09",
+            "smnn": "21.20.10.191-000016-1-00265-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ПАНТОПРАЗОЛ": {
+    "inn": "ПАНТОПРАЗОЛ",
+    "popular": [
+      "Нольпаза",
+      "Контролок",
+      "Пантопразол"
+    ],
+    "trades": [
+      {
+        "trade": "Нольпаза",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Контролок",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантопразол",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Кросацид",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантаз",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ПАНТОПРАЗОЛ АВЕКСИМА",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантопразол Канон",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантопразол Реневал",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантопразол-Акрихин",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантопразол-ВЕРТЕКС",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пантопразол-Эдвансд",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Панум",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пептазол",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пиженум",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пиженум-сановель",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Пулореф",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Санпраз",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00098-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Улсепан",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC02",
+            "smnn": "21.20.10.112-000005-1-00041-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "МЕТРОНИДАЗОЛ": {
+    "inn": "МЕТРОНИДАЗОЛ",
+    "popular": [
+      "Метронидазол",
+      "Трихопол",
+      "Флагил"
+    ],
+    "trades": [
+      {
+        "trade": "Метронидазол",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01",
+            "smnn": "21.20.10.191-000057-1-00232-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Трихопол",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Флагил",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01",
+            "smnn": "21.20.10.191-000057-1-00087-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Метрогил",
+        "variants": [
+          {
+            "dose": "400 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01",
+            "smnn": "21.20.10.191-000057-1-00020-0000000000000"
+          },
+          {
+            "dose": "200 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01",
+            "smnn": "21.20.10.191-000057-1-00386-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "МЕТРОНИДАЗОЛ ВЕЛФАРМ",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Метронидазол Медисорб",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Метронидазол МС",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Метронидазол Реневал",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Метронидазол-ЛекТ",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Метронидазол-УБФ",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "МЕТРОФАСТ",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Трихоброл",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01XD01;P01AB01",
+            "smnn": "21.20.10.191-000057-1-00216-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ОМЕПРАЗОЛ": {
+    "inn": "ОМЕПРАЗОЛ",
+    "popular": [
+      "Омез",
+      "ЛОСЕК МАПС",
+      "Гастрозол",
+      "ОМЕПРАЗОЛ"
+    ],
+    "trades": [
+      {
+        "trade": "Омез",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00095-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ЛОСЕК МАПС",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00089-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00104-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Гастрозол",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ОМЕПРАЗОЛ",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00095-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ГАСТРОДЕКТ",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Гастромез",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ОМДЖЕНИКС",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ОмеВел",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол Велфарм",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол Д-р Реддис",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00095-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол Реневал",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол ШТАДА",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол-OBL",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол-Акрихин",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омепразол-Тева",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00095-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омизак",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омитокс",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Омитокс Гастро",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ортанол",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00095-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ПРОЗОЛМАКС",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Промез",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ромесек",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Уликус",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Улкозол",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ультоп",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00095-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00038-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC01",
+            "smnn": "21.20.10.112-000001-1-00122-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "РАБЕПРАЗОЛ": {
+    "inn": "РАБЕПРАЗОЛ",
+    "popular": [
+      "Париет",
+      "Рабелок",
+      "Зульбекс"
+    ],
+    "trades": [
+      {
+        "trade": "Париет",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабелок",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Зульбекс",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Берета",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабепразол",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "РАБЕПРАЗОЛ ВЕЛФАРМ",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00077-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00079-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабепразол-ВЕРТЕКС",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00079-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00077-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабепразол-КРКА",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабепразол-СЗ",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00077-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00079-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабепразол-Тева",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рабиет",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00077-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00079-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Разо",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Рамнипразол",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ульблок",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00079-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00077-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ульцернил",
+        "variants": [
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Хайрабезол",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00049-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC04",
+            "smnn": "21.20.10.112-000009-1-00059-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ТЕТРАЦИКЛИН": {
+    "inn": "ТЕТРАЦИКЛИН",
+    "popular": [
+      "Тетрациклин"
+    ],
+    "trades": [
+      {
+        "trade": "Тетрациклин",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA07",
+            "smnn": "21.20.10.191-000052-1-00256-0000000000000"
+          },
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA07",
+            "smnn": "21.20.10.191-000052-1-00431-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Тетрациклин Реневал",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA07",
+            "smnn": "21.20.10.191-000052-1-00431-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Тетрациклин-ЛекТ",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA07",
+            "smnn": "21.20.10.191-000052-1-00431-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "АМОКСИЦИЛЛИН": {
+    "inn": "АМОКСИЦИЛЛИН",
+    "popular": [
+      "Флемоксин Солютаб",
+      "Амоксициллин",
+      "Оспамокс",
+      "Амосин"
+    ],
+    "trades": [
+      {
+        "trade": "Флемоксин Солютаб",
+        "variants": [
+          {
+            "dose": "125 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00521-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00517-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00515-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00520-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00167-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00344-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00375-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00517-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00263-0000000000000"
+          },
+          {
+            "dose": "125 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00521-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00520-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00515-0000000000000"
+          },
+          {
+            "dose": "750 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00516-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00444-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин Диспертаб",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00515-0000000000000"
+          },
+          {
+            "dose": "125 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00521-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00517-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00520-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин ДС",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00344-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00263-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин Сандоз",
+        "variants": [
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00444-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00346-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин ЭКСПРЕСС",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00515-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00520-0000000000000"
+          },
+          {
+            "dose": "125 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00521-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00517-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин-АКОС",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00375-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00167-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин-АЛВИЛС",
+        "variants": [
+          {
+            "dose": "125 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00521-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00515-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00517-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00520-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Оспамокс",
+        "variants": [
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00346-0000000000000"
+          },
+          {
+            "dose": "1000 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00444-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амосин",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00375-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00167-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Амоксициллин Экобол",
+        "variants": [
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00375-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01CA04",
+            "smnn": "21.20.10.191-000003-1-00167-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ЛАНСОПРАЗОЛ": {
+    "inn": "ЛАНСОПРАЗОЛ",
+    "popular": [
+      "Ланцид",
+      "Ланзап"
+    ],
+    "trades": [
+      {
+        "trade": "Ланцид",
+        "variants": [
+          {
+            "dose": "15 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00044-0000000000000"
+          },
+          {
+            "dose": "30 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00028-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ланзап",
+        "variants": [
+          {
+            "dose": "30 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00028-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ланзабел",
+        "variants": [
+          {
+            "dose": "30 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00028-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Лоэнзар-сановель",
+        "variants": [
+          {
+            "dose": "15 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00044-0000000000000"
+          },
+          {
+            "dose": "30 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00028-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эпикур",
+        "variants": [
+          {
+            "dose": "30 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC03",
+            "smnn": "21.20.10.112-000022-1-00028-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ": {
+    "inn": "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ",
+    "popular": [
+      "Де-Нол",
+      "Новобисмол",
+      "Улькавис",
+      "Эскейп"
+    ],
+    "trades": [
+      {
+        "trade": "Де-Нол",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Новобисмол",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Улькавис",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эскейп",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Бивинол",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Бисмопепсин",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Бисмутен",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "БРАЙТВИС",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Виканол Лайф",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Висмута трикалия дицитрат",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Висмута трикалия дицитрат Реневал",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Висмута трикалия дицитрат-ВЕРТЕКС",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ВИТРИДИНОЛ",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Дезвимол",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ЛЕКНОЛ",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Таниртак",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Хели-стоп",
+        "variants": [
+          {
+            "dose": "120 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BX05",
+            "smnn": "21.20.10.112-000016-1-00058-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ЭЗОМЕПРАЗОЛ": {
+    "inn": "ЭЗОМЕПРАЗОЛ",
+    "popular": [
+      "Нексиум",
+      "Эманера",
+      "Некспра"
+    ],
+    "trades": [
+      {
+        "trade": "Нексиум",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00030-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00028-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эманера",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00103-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00102-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Некспра",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00103-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00102-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Карбиэль",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00028-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00030-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эзомепразол",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00030-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00103-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00028-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00102-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эзомепразол Канон",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00102-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00028-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00103-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00030-0000000000000"
+          },
+          {
+            "dose": "10 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00104-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эзомепразол-Виал",
+        "variants": [
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00028-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00030-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Эсом",
+        "variants": [
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00030-0000000000000"
+          },
+          {
+            "dose": "40 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BC05",
+            "smnn": "21.20.10.112-000006-1-00028-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "РЕБАМИПИД": {
+    "inn": "РЕБАМИПИД",
+    "popular": [
+      "Ребагит",
+      "Ребамипид",
+      "РЕБАМИПИД АВЕКСИМА",
+      "Ребамипид Канон"
+    ],
+    "trades": [
+      {
+        "trade": "Ребагит",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ребамипид",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "РЕБАМИПИД АВЕКСИМА",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ребамипид Канон",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ребамипид Реневал",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ребамипид-СЗ",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Гастифор",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Гастростат",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ, ПОКРЫТЫЕ ОБОЛОЧКОЙ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BB;A02BX14",
+            "smnn": "21.20.10.112-000011-1-00043-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "ДОКСИЦИКЛИН": {
+    "inn": "ДОКСИЦИКЛИН",
+    "popular": [
+      "Доксициклин-Ферейн"
+    ],
+    "trades": [
+      {
+        "trade": "Доксициклин-Ферейн",
+        "variants": [
+          {
+            "dose": "50 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00148-0000000000000"
+          },
+          {
+            "dose": "100 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00438-0000000000000"
+          },
+          {
+            "dose": "200 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00443-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Доксициклин",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00438-0000000000000"
+          },
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00477-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "ДОКСИЦИКЛИН ВЕЛФАРМ",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "КАПСУЛЫ",
+            "unit": "шт. (капсула)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00438-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Юнидокс Солютаб",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00477-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Доксициклин Солюшн Таблетс",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00477-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Доксициклин Экспресс",
+        "variants": [
+          {
+            "dose": "100 мг",
+            "form": "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ",
+            "unit": "шт. (таблетка)",
+            "atc": "J01AA02",
+            "smnn": "21.20.10.191-000022-1-00477-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ": {
+    "inn": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ",
+    "composition": [
+      "Омепразол",
+      "Амоксициллин",
+      "Кларитромицин"
+    ],
+    "popular": [
+      "Пилобакт АМ"
+    ],
+    "trades": [
+      {
+        "trade": "Пилобакт АМ",
+        "variants": [
+          {
+            "dose": "",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР (КЛАРИТРОМИЦИН-ТАБЛЕТКИ, ПОКРЫТЫЕ ПЛЕНОЧНОЙ ОБОЛОЧКОЙ, 500 МГ, АМОКСИЦИЛЛИН-КАПСУЛЫ, 500 МГ, ОМЕПРАЗОЛ-КАПСУЛЫ КИШЕЧНОРАСТВОРИМЫЕ, 20 МГ)",
+            "unit": "шт. (набор)",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000068-1-00001-0000000000000"
+          },
+          {
+            "dose": "500 мг+500 мг+20 мг",
+            "form": "НАБОР ТАБЛЕТОК И КАПСУЛ",
+            "unit": "шт. (набор)",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000068-1-00002-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000052-1-00006-0000000000000"
+          },
+          {
+            "dose": "500 мг+500 мг+20 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт.",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000052-1-00004-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000052-1-00002-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000052-1-00003-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD05",
+            "smnn": "21.20.10.112-000052-1-00001-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ+ТИНИДАЗОЛ": {
+    "inn": "КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ+ТИНИДАЗОЛ",
+    "composition": [
+      "Омепразол",
+      "Кларитромицин",
+      "Тинидазол"
+    ],
+    "popular": [
+      "Пилобакт"
+    ],
+    "trades": [
+      {
+        "trade": "Пилобакт",
+        "variants": [
+          {
+            "dose": "250 мг+20 мг+500 мг",
+            "form": "НАБОР ТАБЛЕТОК И КАПСУЛ",
+            "unit": "шт. (набор)",
+            "atc": "A02BD",
+            "smnn": "21.20.10.112-000070-1-00008-0000000000000"
+          },
+          {
+            "dose": "250 мг",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD",
+            "smnn": "21.20.10.112-000060-1-00004-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD",
+            "smnn": "21.20.10.112-000060-1-00001-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BD",
+            "smnn": "21.20.10.112-000060-1-00007-0000000000000"
+          },
+          {
+            "dose": "500 мг",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD",
+            "smnn": "21.20.10.112-000060-1-00002-0000000000000"
+          },
+          {
+            "dose": "20 мг",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD",
+            "smnn": "21.20.10.112-000060-1-00003-0000000000000"
+          }
+        ]
+      }
+    ]
+  },
+  "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ЛАНСОПРАЗОЛ": {
+    "inn": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ЛАНСОПРАЗОЛ",
+    "composition": [
+      "Лансопразол",
+      "Амоксициллин",
+      "Кларитромицин"
+    ],
+    "popular": [
+      "Ланцид Кит",
+      "Хелитрикс"
+    ],
+    "trades": [
+      {
+        "trade": "Хелитрикс",
+        "variants": [
+          {
+            "dose": "500 мг+500 мг+30 мг",
+            "form": "НАБОР ТАБЛЕТОК И КАПСУЛ",
+            "unit": "шт. (набор)",
+            "atc": "A02BD07",
+            "smnn": "21.20.10.112-000072-1-00005-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BD07",
+            "smnn": "21.20.10.112-000061-1-00077-0000000000000"
+          }
+        ]
+      },
+      {
+        "trade": "Ланцид Кит",
+        "variants": [
+          {
+            "dose": "500 мг+500 мг+30 мг",
+            "form": "НАБОР ТАБЛЕТОК И КАПСУЛ",
+            "unit": "шт. (набор)",
+            "atc": "A02BD07",
+            "smnn": "21.20.10.112-000072-1-00005-0000000000000"
+          },
+          {
+            "dose": "588 мг+500 мг+30 мг",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BD07",
+            "smnn": "21.20.10.112-000061-1-00076-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТКИ",
+            "unit": "шт. (таблетка)",
+            "atc": "A02BD07",
+            "smnn": "21.20.10.112-000061-1-00077-0000000000000"
+          },
+          {
+            "dose": "",
+            "form": "ТАБЛЕТОК И КАПСУЛ НАБОР",
+            "unit": "шт.",
+            "atc": "A02BD07",
+            "smnn": "21.20.10.112-000061-1-00001-0000000000000"
+          }
+        ]
+      }
+    ]
+  }
+}
+    </script>
+    <script type="application/json" id="preparaty-interactions">
+{
+  "ЛАНСОПРАЗОЛ": [
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Риск нежелательных реакций варфарина увеличивается во время применения ЛАНСОН‑АФ."
+    }
+  ],
+  "АМОКСИЦИЛЛИН": [
+    {
+      "target": "ТЕТРАЦИКЛИНЫ",
+      "type": 2,
+      "level": 3,
+      "comment": "Следует избегать одновременного применения амоксициллина и тетрациклинов из-за возможности развития антагонистического влияния."
+    },
+    {
+      "target": "НЕПРЯМЫЕ АНТИКОАГУЛЯНТЫ",
+      "type": 2,
+      "level": 2,
+      "comment": "Амоксициллин повышает эффективность непрямых антикоагулянтов (подавляя кишечную микрофлору, снижает синтез витамина К и протромбиновый индекс). В литературе описаны случаи увеличения международного нормализованного отношения (МНО) при совместном применении аценокумарола или варфарина с амоксициллином. При необходимости одновременного применения препарата с непрямыми антикоагулянтами протромбиновое время или МНО должны тщательно контролироваться во время лечения или при отмене препарата; может по"
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 2,
+      "comment": "В литературе описаны случаи увеличения международного нормализованного отношения (МНО) при совместном применении аценокумарола или варфарина с амоксициллином; при необходимости одновременного применения препарата с непрямыми антикоагулянтами протромбиновое время или МНО должны тщательно контролироваться во время лечения или при отмене препарата; может потребоваться коррекция дозы непрямых антикоагулянтов."
+    },
+    {
+      "target": "РАБЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    }
+  ],
+  "ОМЕПРАЗОЛ": [
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "КЛАРИТРОМИЦИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "ПАНТОПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Другие ингибиторы протонной помпы (например, омепразол): не принимайте Пантопразол Реневал одновременно с этими препаратами без консультации с врачом."
+    },
+    {
+      "target": "РАБЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Пациенты не должны принимать одновременно с рабепразолом омепразол (ингибитор протонной помпы)."
+    }
+  ],
+  "ПАНТОПРАЗОЛ": [
+    {
+      "target": "ИНГИБИТОРЫ ПРОТОННОЙ ПОМПЫ",
+      "type": 2,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "ОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Другие ингибиторы протонной помпы (например, омепразол): не принимайте Пантопразол Реневал одновременно с этими препаратами без консультации с врачом."
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 2,
+      "comment": "Сообщите Вашему врачу, если Вы принимаете варфарин; Вам могут понадобиться дополнительные анализы."
+    }
+  ],
+  "КЛАРИТРОМИЦИН": [
+    {
+      "target": "ОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Одновременный прием с препаратами, которые метаболизируются изоферментом CYP3A, например, омепразол."
+    },
+    {
+      "target": "НЕПРЯМЫЕ АНТИКОАГУЛЯНТЫ",
+      "type": 2,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Одновременный прием с препаратами, которые метаболизируются изоферментом CYP3A, например, непрямые антикоагулянты (например, варфарин)."
+    },
+    {
+      "target": "ПЕРОРАЛЬНЫЕ АНТИКОАГУЛЯНТЫ ПРЯМОГО ДЕЙСТВИЯ",
+      "type": 2,
+      "level": 3,
+      "comment": "Одновременный прием кларитромицина с пероральными антикоагулянтами прямого действия, такими как дабигатран, ривароксабан, апиксабан, особенно у пациентов с высоким риском развития кровотечений."
+    },
+    {
+      "target": "ДОМПЕРИДОН+ОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Не принимайте препарат Омез ДСР, если Вы принимаете кларитромицин."
+    },
+    {
+      "target": "РАБЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "ЭЗОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Совместное пероральное применение эзомепразола и ингибитора изофермента CYP3А4, кларитромицина (500 мг 2 раза в сутки) приводит к двукратному увеличению значения AUC для эзомепразола. Как правило, в таких случаях не требуется коррекции дозы эзомепразола."
+    }
+  ],
+  "ТЕТРАЦИКЛИН": [
+    {
+      "target": "РЕБАМИПИД",
+      "type": 1,
+      "level": 1,
+      "comment": "Всасывание тетрациклина снижается при совместном применении с препаратами, содержащими алюминий/магний (в т.ч. при гастропротекторах с подобным эффектом). Сочетание не рекомендуется.",
+      "alternative": {
+        "name": "Доксициклин",
+        "badge": "Меньше риск взаимодействия",
+        "text": "Близок по спектру; риск взаимодействия с ребамипидом ниже. Решение о замене принимает врач."
+      }
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 2,
+      "comment": "Прием тетрациклина может приводить к снижению протромбинового индекса, что может грозить кровотечениями и требует снижения дозы непрямых антикоагулянтов (например, варфарина)."
+    },
+    {
+      "target": "БАКТЕРИЦИДНЫЕ АНТИБИОТИКИ, НАРУШАЮЩИЕ СИНТЕЗ КЛЕТОЧНОЙ СТЕНКИ",
+      "type": 2,
+      "level": 3,
+      "comment": "Препарат Тетрациклин снижает эффективность бактерицидных антибиотиков, нарушающих синтез клеточной стенки (пенициллины, цефалоспорины)."
+    }
+  ],
+  "ВИСМУТА ТРИКАЛИЯ ДИЦИТРАТ": [
+    {
+      "target": "ТЕТРАЦИКЛИНЫ",
+      "type": 2,
+      "level": 2,
+      "comment": "В течение получаса до и после приема препарата не рекомендуется применение внутрь других лекарственных средств; препараты висмута уменьшают всасывание тетрациклинов."
+    }
+  ],
+  "ЭЗОМЕПРАЗОЛ": [
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 2,
+      "comment": "Варфарин (для разжижения крови). В начале и при завершении приема препарата Эсом® следует находиться под наблюдением врача."
+    },
+    {
+      "target": "РАБЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Пациенты не должны принимать одновременно с рабепразолом эзомепразол."
+    },
+    {
+      "target": "КЛАРИТРОМИЦИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Совместное пероральное применение эзомепразола и ингибитора изофермента CYP3А4, кларитромицина (500 мг 2 раза в сутки) приводит к двукратному увеличению значения AUC для эзомепразола. Как правило, в таких случаях не требуется коррекции дозы эзомепразола."
+    }
+  ],
+  "РАБЕПРАЗОЛ": [
+    {
+      "target": "ИНГИБИТОРЫ ПРОТОННОЙ ПОМПЫ",
+      "type": 2,
+      "level": 3,
+      "comment": "Не принимайте одновременно с препаратом Рабепразол другие средства, снижающие кислотность, например, блокаторы Н2-рецепторов или ингибиторы протонной помпы."
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "АМОКСИЦИЛЛИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "КЛАРИТРОМИЦИН",
+      "type": 1,
+      "level": 3,
+      "comment": "Совмещать с осторожностью."
+    },
+    {
+      "target": "ОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Пациенты не должны принимать одновременно с рабепразолом омепразол (ингибитор протонной помпы)."
+    },
+    {
+      "target": "ЭЗОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 3,
+      "comment": "Пациенты не должны принимать одновременно с рабепразолом эзомепразол."
+    }
+  ],
+  "ЛЕВОФЛОКСАЦИН": [
+    {
+      "target": "НЕПРЯМЫЕ АНТИКОАГУЛЯНТЫ",
+      "type": 2,
+      "level": 2,
+      "comment": "У пациентов, получавших лечение левофлоксацином в комбинации с непрямыми антикоагулянтами (например, варфарином), наблюдалось повышение протромбинового времени/международного нормализованного отношения и/или развитие кровотечения, в том числе и тяжёлого; поэтому при одновременном применении непрямых антикоагулянтов и левофлоксацина необходим регулярный контроль показателей свертывания крови."
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 2,
+      "comment": "У пациентов, получавших лечение левофлоксацином в комбинации с непрямыми антикоагулянтами (например, варфарином), наблюдалось повышение протромбинового времени/международного нормализованного отношения и/или развитие кровотечения, в том числе и тяжелого; при одновременном применении необходим регулярный контроль показателей свертывания крови."
+    },
+    {
+      "target": "ДОМПЕРИДОН+ОМЕПРАЗОЛ",
+      "type": 1,
+      "level": 1,
+      "comment": "Комбинации противопоказаны: лекарственные препараты, удлиняющие интервал QT, в том числе определенные антибиотики (левофлоксацин)."
+    }
+  ],
+  "МЕТРОНИДАЗОЛ": [
+    {
+      "target": "НЕПРЯМЫЕ АНТИКОАГУЛЯНТЫ",
+      "type": 2,
+      "level": 2,
+      "comment": "При одновременном приеме непрямых антикоагулянтов (варфарин) возможно усиление антикоагулянтного эффекта и повышение риска развития кровотечения, связанного со снижением печеночного метаболизма непрямых антикоагулянтов, что может приводить к удлинению протромбинового времени. В случае одновременного применения метронидазола и непрямых антикоагулянтов требуется более частый контроль протромбинового времени и при необходимости коррекция доз антикоагулянтов."
+    },
+    {
+      "target": "ВАРФАРИН",
+      "type": 1,
+      "level": 2,
+      "comment": "При одновременном приеме с варфарином возможно усиление антикоагулянтного эффекта и повышение риска развития кровотечения (удлинение протромбинового времени); требуется более частый контроль протромбинового времени и при необходимости коррекция доз антикоагулянтов."
+    }
+  ],
+  "РЕБАМИПИД": [
+    {
+      "target": "ТЕТРАЦИКЛИН",
+      "type": 1,
+      "level": 1,
+      "comment": "Ребамипид / средства с катионами металлов могут снижать всасывание тетрациклина. Сочетание не рекомендуется.",
+      "alternative": {
+        "name": "Доксициклин",
+        "badge": "Меньше риск взаимодействия",
+        "text": "Близок по спектру; риск взаимодействия с ребамипидом ниже. Решение о замене принимает врач."
+      }
+    }
+  ],
+  "ДОКСИЦИКЛИН": [
+    {
+      "target": "НЕПРЯМЫЕ АНТИКОАГУЛЯНТЫ",
+      "type": 2,
+      "level": 2,
+      "comment": "Снижает протромбиновый индекс, что требует коррекции дозы непрямых антикоагулянтов."
+    },
+    {
+      "target": "БАКТЕРИЦИДНЫЕ АНТИБИОТИКИ, НАРУШАЮЩИЕ СИНТЕЗ КЛЕТОЧНОЙ СТЕНКИ",
+      "type": 2,
+      "level": 3,
+      "comment": "При сочетании с бактерицидными антибиотиками, нарушающими синтез клеточной стенки (пенициллины, цефалоспорины), эффективность последних снижается."
+    }
+  ]
+}
+    </script>
+    <script src="logic.js?v=10"></script>
+  </body>
+</html>

@@ -8,9 +8,9 @@ import searchIcon from '@/assets/images/search.svg';
 import styles from './DirectoryPageHeader.module.css';
 import SubscriptionExpirationWarning from '@/app/(directory)/components/SubscriptionExpirationWarning';
 import { logout } from '@/app/lib/logout';
-import { medsCatalogSession } from './medications/medsCatalogSession';
 import { getSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { clearDirectoryCartState } from '@/app/(directory)/shared/cart';
 
 type DirectoryPageHeaderProps = {
   variant: 'search' | 'cart';
@@ -18,11 +18,6 @@ type DirectoryPageHeaderProps = {
   recommendationId?: string;
   recommendationSource?: string;
 };
-
-const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
-const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
-const CART_CUSTOM_ITEMS_STORAGE_KEY = "directoryCartCustomItems";
-const CART_GENERAL_COMMENT_STORAGE_KEY = "directoryCartGeneralComments";
 
 const getRecommendationExternalUrl = (source: string, id?: string) => {
   const normalizedSource = source.trim().toLowerCase();
@@ -79,19 +74,6 @@ const clearAuthCookies = () => {
   });
 };
 
-const clearCartState = () => {
-  [
-    CART_RECOMMENDATION_STORAGE_KEY,
-    CART_SELECTIONS_STORAGE_KEY,
-    CART_CUSTOM_ITEMS_STORAGE_KEY,
-    CART_GENERAL_COMMENT_STORAGE_KEY,
-  ].forEach((storageKey) => {
-    window.sessionStorage.removeItem(storageKey);
-    window.localStorage.removeItem(storageKey);
-  });
-  medsCatalogSession.clear();
-};
-
 export default function DirectoryPageHeader({
   variant,
   diagnosisTitle,
@@ -110,13 +92,13 @@ export default function DirectoryPageHeader({
   }, [variant]);
 
   const handleBackToSearch = () => {
-    clearCartState();
+    clearDirectoryCartState();
   };
 
   const handleLogout = async (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     clearAuthCookies();
-    clearCartState();
+    clearDirectoryCartState();
     await logout();
   };
   

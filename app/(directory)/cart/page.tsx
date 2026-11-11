@@ -17,113 +17,21 @@ import {
 } from "@/app/modules/clinicalRecommendationOpening/client";
 import { collectMedicationQuery } from "../components/medications/medicationQuery";
 import { medsCatalogSession } from "../components/medications/medsCatalogSession";
-
-type StoredCartRecommendation = {
-  diagnosisTitle?: string;
-  recommendationKey?: string;
-  recommendation?: {
-    id?: string;
-    title?: string;
-    mkbCodes?: string[];
-    source?: string;
-    prescriptions?: ChecklistSection[];
-  };
-};
-
-type StoredCartSelections = Record<string, SelectedPrescription[]>;
+import {
+  cartStorage,
+  getCartSync,
+  getRecommendationStorageKey,
+  getStoredCartRecommendation,
+  normalizeStoredSelectionItems,
+  subscribeCartSync,
+  writeStoredSelections,
+  type StoredCartRecommendation,
+} from "@/app/(directory)/shared/cart";
 
 type AppendixA3Table = {
   name: string | null;
   html: string;
   comment: string | null;
-};
-
-const CART_RECOMMENDATION_STORAGE_KEY = "directoryCartRecommendation";
-const CART_SELECTIONS_STORAGE_KEY = "directoryCartSelections";
-
-const getStoredCartRecommendation = () =>
-  window.sessionStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY) ??
-  window.localStorage.getItem(CART_RECOMMENDATION_STORAGE_KEY);
-
-const getRecommendationStorageKey = (data: StoredCartRecommendation) => {
-  if (data.recommendationKey) return data.recommendationKey;
-
-  const recommendation = data.recommendation;
-
-  return [
-    data.diagnosisTitle,
-    recommendation?.id,
-    recommendation?.title,
-    recommendation?.mkbCodes?.join(","),
-  ]
-    .filter(Boolean)
-    .join("|");
-};
-
-const readStoredSelections = (): StoredCartSelections => {
-  const storedValue =
-    window.sessionStorage.getItem(CART_SELECTIONS_STORAGE_KEY) ??
-    window.localStorage.getItem(CART_SELECTIONS_STORAGE_KEY);
-  if (!storedValue) return {};
-
-  try {
-    const parsed = JSON.parse(storedValue);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as StoredCartSelections)
-      : {};
-  } catch {
-    return {};
-  }
-};
-
-const normalizeStoredSelectionItems = (
-  storedSelection: unknown,
-): SelectedPrescription[] => {
-  if (!Array.isArray(storedSelection)) return [];
-
-  return storedSelection
-    .map((item) => {
-      if (typeof item === "string") {
-        return { id: item, comment: "" } as SelectedPrescription;
-      }
-
-      if (item && typeof item === "object" && "id" in item) {
-        return {
-          ...(item as SelectedPrescription),
-          id: String((item as { id: unknown }).id),
-          comment:
-            typeof (item as { comment?: unknown }).comment === "string"
-              ? (item as { comment: string }).comment
-              : "",
-        };
-      }
-
-      return null;
-    })
-    .filter((item): item is SelectedPrescription => Boolean(item?.id));
-};
-
-const writeStoredSelections = (
-  recommendationKey: string,
-  selectedItems: SelectedPrescription[],
-) => {
-  if (!recommendationKey) return;
-
-  const storedSelections = readStoredSelections();
-
-  if (selectedItems.length > 0) {
-    storedSelections[recommendationKey] = selectedItems;
-  } else {
-    delete storedSelections[recommendationKey];
-  }
-
-  const serializedSelections = JSON.stringify(storedSelections);
-
-  window.sessionStorage.setItem(
-    CART_SELECTIONS_STORAGE_KEY,
-    serializedSelections,
-  );
-  window.localStorage.setItem(CART_SELECTIONS_STORAGE_KEY, serializedSelections);
 };
 
 const applyStoredSelections = (
@@ -153,6 +61,22 @@ const getDiagnosisCodeFromTitle = (title: string) => {
   return trimmedTitle.split(":")[0]?.trim() ?? trimmedTitle;
 };
 
+const sameSelectionIds = (
+  left: SelectedPrescription[],
+  right: SelectedPrescription[],
+) => {
+  if (left.length !== right.length) return false;
+
+  return left.every((item, index) => {
+    const other = right[index];
+    return (
+      item.id === other.id &&
+      item.comment === other.comment &&
+      item.title === other.title
+    );
+  });
+};
+
 export default function CartPreviewPage() {
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
@@ -171,6 +95,111 @@ export default function CartPreviewPage() {
   const [appendixA3Error, setAppendixA3Error] = useState("");
   const [isCartReady, setIsCartReady] = useState(false);
   const isRestoringStoredSelectionsRef = useRef(false);
+  const syncApplyingRef = useRef(false);
+  const baseSectionsRef = useRef<ChecklistSection[]>([]);
+  const recommendationKeyRef = useRef("");
+  const selectedItemsRef = useRef<SelectedPrescription[]>([]);
+  const [checklistSyncEpoch, setChecklistSyncEpoch] = useState(0);
+
+  recommendationKeyRef.current = recommendationKey;
+  selectedItemsRef.current = selectedItems;
+
+  const loadAppendixA3 = useCallback((crMId: string | undefined) => {
+    if (!crMId?.trim()) {
+      setAppendixA3Tables([]);
+      setAppendixA3Error("Для выбранной рекомендации не найден идентификатор приложения А3.");
+      setIsAppendixA3Loading(false);
+      return;
+    }
+
+    setIsAppendixA3Loading(true);
+    setAppendixA3Error("");
+    fetchEncryptedJson<{ tables?: AppendixA3Table[] }>(
+      `/api/cr-tables?cr_m_id=${encodeURIComponent(crMId)}`,
+    )
+      .then(({ response, data }) => {
+        if (!response.ok || !data) {
+          throw new Error("Failed to load Appendix A3 tables");
+        }
+
+        return data;
+      })
+      .then((data) => {
+        setAppendixA3Tables(Array.isArray(data.tables) ? data.tables : []);
+      })
+      .catch(() => {
+        setAppendixA3Tables([]);
+        setAppendixA3Error("Не удалось загрузить таблицы приложения А3. Попробуйте позже.");
+      })
+      .finally(() => setIsAppendixA3Loading(false));
+  }, []);
+
+  const hydrateFromStorage = useCallback(() => {
+    const storedValue = getStoredCartRecommendation();
+    if (!storedValue) {
+      return false;
+    }
+
+    try {
+      const parsed = JSON.parse(storedValue) as StoredCartRecommendation;
+      const currentRecommendationKey = getRecommendationStorageKey(parsed);
+      const storedSelectedItems = normalizeStoredSelectionItems(
+        cartStorage.readSelectionsForKey(currentRecommendationKey),
+      );
+
+      const currentDiagnosisTitle =
+        typeof parsed.diagnosisTitle === "string" ? parsed.diagnosisTitle : "";
+      const prescriptions = Array.isArray(parsed.recommendation?.prescriptions)
+        ? (parsed.recommendation.prescriptions as ChecklistSection[])
+        : [];
+
+      setDiagnosisTitle(currentDiagnosisTitle);
+      setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
+      setRecommendationId(
+        typeof parsed.recommendation?.id === "string" ? parsed.recommendation.id : "",
+      );
+      setRecommendationSource(
+        typeof parsed.recommendation?.source === "string"
+          ? parsed.recommendation.source
+          : "",
+      );
+      setRecommendationTitle(
+        typeof parsed.recommendation?.title === "string"
+          ? parsed.recommendation.title
+          : "",
+      );
+      isRestoringStoredSelectionsRef.current = true;
+      setRecommendationKey(currentRecommendationKey);
+      recommendationKeyRef.current = currentRecommendationKey;
+      baseSectionsRef.current = prescriptions;
+
+      if (currentRecommendationKey && prescriptions.length > 0) {
+        const query = collectMedicationQuery(prescriptions);
+        medsCatalogSession.ensure(currentRecommendationKey, query.names, query.ids);
+      }
+
+      loadAppendixA3(
+        typeof parsed.recommendation?.id === "string"
+          ? parsed.recommendation.id.trim()
+          : undefined,
+      );
+
+      setSelectedItems(storedSelectedItems);
+      selectedItemsRef.current = storedSelectedItems;
+      setChecklistSections(
+        applyStoredSelections(prescriptions, storedSelectedItems),
+      );
+      setAppliedTemplateItems(null);
+      setIsCartReady(true);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [loadAppendixA3]);
+
+  useEffect(() => {
+    getCartSync().start();
+  }, []);
 
   useEffect(() => {
     let visit: CartVisit | undefined;
@@ -205,70 +234,7 @@ export default function CartPreviewPage() {
   }, []);
 
   useEffect(() => {
-    const storedValue = getStoredCartRecommendation();
-    if (!storedValue) {
-      router.replace("/mkb");
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(storedValue) as StoredCartRecommendation;
-      const currentRecommendationKey = getRecommendationStorageKey(parsed);
-      const storedSelectedItems = normalizeStoredSelectionItems(
-        readStoredSelections()[currentRecommendationKey],
-      );
-
-      const currentDiagnosisTitle = parsed.diagnosisTitle ?? "";
-
-      setDiagnosisTitle(currentDiagnosisTitle);
-      setDiagnosisCode(getDiagnosisCodeFromTitle(currentDiagnosisTitle));
-      setRecommendationId(parsed.recommendation?.id ?? "");
-      setRecommendationSource(parsed.recommendation?.source ?? "");
-      setRecommendationTitle(parsed.recommendation?.title ?? "");
-      isRestoringStoredSelectionsRef.current = true;
-      setRecommendationKey(currentRecommendationKey);
-
-      const prescriptions = parsed.recommendation?.prescriptions;
-      if (currentRecommendationKey && Array.isArray(prescriptions)) {
-        const query = collectMedicationQuery(prescriptions);
-        medsCatalogSession.ensure(currentRecommendationKey, query.names, query.ids);
-      }
-
-      const crMId = parsed.recommendation?.id?.trim();
-      if (crMId) {
-        setIsAppendixA3Loading(true);
-        setAppendixA3Error("");
-        fetchEncryptedJson<{ tables?: AppendixA3Table[] }>(
-          `/api/cr-tables?cr_m_id=${encodeURIComponent(crMId)}`,
-        )
-          .then(({ response, data }) => {
-            if (!response.ok || !data) {
-              throw new Error("Failed to load Appendix A3 tables");
-            }
-
-            return data;
-          })
-          .then((data) => {
-            setAppendixA3Tables(Array.isArray(data.tables) ? data.tables : []);
-          })
-          .catch(() => {
-            setAppendixA3Tables([]);
-            setAppendixA3Error("Не удалось загрузить таблицы приложения А3. Попробуйте позже.");
-          })
-          .finally(() => setIsAppendixA3Loading(false));
-      } else {
-        setAppendixA3Tables([]);
-        setAppendixA3Error("Для выбранной рекомендации не найден идентификатор приложения А3.");
-      }
-
-      setChecklistSections(
-        applyStoredSelections(
-          parsed.recommendation?.prescriptions ?? [],
-          storedSelectedItems,
-        ),
-      );
-      setIsCartReady(true);
-    } catch {
+    if (!hydrateFromStorage()) {
       router.replace("/mkb");
       setDiagnosisTitle("");
       setDiagnosisCode("");
@@ -282,9 +248,70 @@ export default function CartPreviewPage() {
       setAppendixA3Error("");
       setIsCartReady(false);
     }
-  }, [router]);
+  }, [hydrateFromStorage, router]);
+
+  useEffect(() => {
+    return subscribeCartSync((message) => {
+      // Собственный publish уже отражён в React-state этой вкладки.
+      if (message.origin === "local") return;
+
+      if (message.scopes.includes("cleared")) {
+        router.replace("/mkb");
+        return;
+      }
+
+      if (message.scopes.includes("recommendation")) {
+        if (!hydrateFromStorage()) {
+          router.replace("/mkb");
+        } else {
+          setChecklistSyncEpoch((value) => value + 1);
+        }
+        return;
+      }
+
+      if (!message.scopes.includes("selections")) return;
+
+      const storedRecommendation = cartStorage.readRecommendation();
+      const key = storedRecommendation
+        ? getRecommendationStorageKey(storedRecommendation)
+        : recommendationKeyRef.current;
+      if (!key) return;
+
+      if (
+        Array.isArray(storedRecommendation?.recommendation?.prescriptions)
+      ) {
+        baseSectionsRef.current = storedRecommendation.recommendation
+          .prescriptions as ChecklistSection[];
+      }
+
+      const nextItems = cartStorage.readSelectionsForKey(key);
+      if (sameSelectionIds(selectedItemsRef.current, nextItems)) return;
+
+      syncApplyingRef.current = true;
+      isRestoringStoredSelectionsRef.current = true;
+      setSelectedItems(nextItems);
+      selectedItemsRef.current = nextItems;
+      setRecommendationKey(key);
+      recommendationKeyRef.current = key;
+      setChecklistSections(
+        applyStoredSelections(baseSectionsRef.current, nextItems),
+      );
+      setAppliedTemplateItems(null);
+      // Remount checklist, чтобы сбросить устаревший внутренний sections
+      // до того, как onSelectionChange успеет затереть remote-состояние.
+      setChecklistSyncEpoch((value) => value + 1);
+      queueMicrotask(() => {
+        syncApplyingRef.current = false;
+      });
+    });
+  }, [hydrateFromStorage, router]);
 
   const handleSelectionChange = useCallback((items: SelectedPrescription[]) => {
+    if (syncApplyingRef.current) {
+      selectedItemsRef.current = items;
+      return;
+    }
+
     if (isRestoringStoredSelectionsRef.current && items.length === 0) {
       isRestoringStoredSelectionsRef.current = false;
       return;
@@ -292,12 +319,14 @@ export default function CartPreviewPage() {
 
     isRestoringStoredSelectionsRef.current = false;
     setSelectedItems(items);
+    selectedItemsRef.current = items;
     writeStoredSelections(recommendationKey, items);
   }, [recommendationKey]);
 
   const handleDeleteItem = (id: string) => {
     setSelectedItems((prev) => {
       const nextItems = prev.filter((item) => item.id !== id);
+      selectedItemsRef.current = nextItems;
       writeStoredSelections(recommendationKey, nextItems);
       return nextItems;
     });
@@ -306,6 +335,7 @@ export default function CartPreviewPage() {
 
   const handleDeleteAll = () => {
     setSelectedItems([]);
+    selectedItemsRef.current = [];
     writeStoredSelections(recommendationKey, []);
     setClearSelectionSignal((prev) => prev + 1);
     setAppliedTemplateItems(null);
@@ -313,6 +343,7 @@ export default function CartPreviewPage() {
 
   const handleApplyTemplate = (template: CartTemplate) => {
     setSelectedItems(template.items);
+    selectedItemsRef.current = template.items;
     setAppliedTemplateItems(template.items);
     writeStoredSelections(recommendationKey, template.items);
   };
@@ -332,6 +363,7 @@ export default function CartPreviewPage() {
       <main className={styles.page}>
       <section className={styles.layout}>
         <PrescriptionChecklist
+          key={checklistSyncEpoch}
           onSelectionChange={handleSelectionChange}
           uncheckItemId={uncheckItemId}
           onUncheckHandled={() => setUncheckItemId(null)}

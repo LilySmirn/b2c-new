@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ActionPanel from "./ActionPanel";
 import CustomCartItemModal from "./CustomCartItemModal";
 import CartTemplateToggle from "./CartTemplateToggle";
@@ -14,15 +14,17 @@ import SaveTemplateModal from "./SaveTemplateModal";
 import SelectTemplateModal from "./SelectTemplateModal";
 import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
 import { createBrowserId } from "./createBrowserId";
+import {
+  cartStorage,
+  getCartSync,
+  subscribeCartSync,
+  type StoredCustomCartItem,
+} from "@/app/(directory)/shared/cart";
 import styles from "./SideCart.module.css";
 import trashIcon from "@/assets/images/delete-icon.svg";
 import deleteIcon from "@/assets/images/delete.svg";
 
-export type CustomCartItem = {
-  id: string;
-  name: string;
-  comment: string;
-};
+export type CustomCartItem = StoredCustomCartItem;
 
 type SideCartProps = {
   selectedItems?: SelectedPrescription[];
@@ -34,74 +36,17 @@ type SideCartProps = {
   storageKey?: string;
 };
 
-const CUSTOM_ITEMS_STORAGE_KEY = "directoryCartCustomItems";
-const GENERAL_COMMENT_STORAGE_KEY = "directoryCartGeneralComments";
+const sameCustomItems = (left: CustomCartItem[], right: CustomCartItem[]) => {
+  if (left.length !== right.length) return false;
 
-type StoredCustomCartItems = Record<string, CustomCartItem[]>;
-type StoredGeneralComments = Record<string, string>;
-
-const readStoredCustomItems = (): StoredCustomCartItems => {
-  const storedValue =
-    window.sessionStorage.getItem(CUSTOM_ITEMS_STORAGE_KEY) ??
-    window.localStorage.getItem(CUSTOM_ITEMS_STORAGE_KEY);
-
-  if (!storedValue) return {};
-
-  try {
-    const parsed = JSON.parse(storedValue);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as StoredCustomCartItems)
-      : {};
-  } catch {
-    return {};
-  }
-};
-
-const getStoredCustomItems = (storageKey: string) => {
-  const storedItems = readStoredCustomItems()[storageKey];
-
-  return Array.isArray(storedItems) ? storedItems : [];
-};
-
-const readStoredGeneralComments = (): StoredGeneralComments => {
-  const storedValue =
-    window.sessionStorage.getItem(GENERAL_COMMENT_STORAGE_KEY) ??
-    window.localStorage.getItem(GENERAL_COMMENT_STORAGE_KEY);
-
-  if (!storedValue) return {};
-
-  try {
-    const parsed = JSON.parse(storedValue);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as StoredGeneralComments)
-      : {};
-  } catch {
-    return {};
-  }
-};
-
-const getStoredGeneralComment = (storageKey: string) => {
-  const storedComment = readStoredGeneralComments()[storageKey];
-
-  return typeof storedComment === "string" ? storedComment : "";
-};
-
-const writeStoredGeneralComment = (storageKey: string, comment: string) => {
-  if (!storageKey) return;
-
-  const storedComments = readStoredGeneralComments();
-  const normalizedComment = comment.trim();
-
-  if (normalizedComment) {
-    storedComments[storageKey] = comment;
-  } else {
-    delete storedComments[storageKey];
-  }
-
-  const serializedComments = JSON.stringify(storedComments);
-
-  window.sessionStorage.setItem(GENERAL_COMMENT_STORAGE_KEY, serializedComments);
-  window.localStorage.setItem(GENERAL_COMMENT_STORAGE_KEY, serializedComments);
+  return left.every((item, index) => {
+    const other = right[index];
+    return (
+      item.id === other.id &&
+      item.name === other.name &&
+      item.comment === other.comment
+    );
+  });
 };
 
 const getCartCategoryTitle = (item: SelectedPrescription) => {
@@ -136,29 +81,6 @@ const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[])
       return acc;
     }, {});
 
-const writeStoredCustomItems = (
-  storageKey: string,
-  customItems: CustomCartItem[],
-) => {
-  if (!storageKey) return;
-
-  const storedCustomItems = readStoredCustomItems();
-
-  if (customItems.length > 0) {
-    storedCustomItems[storageKey] = customItems;
-  } else {
-    delete storedCustomItems[storageKey];
-  }
-
-  const serializedCustomItems = JSON.stringify(storedCustomItems);
-
-  window.sessionStorage.setItem(
-    CUSTOM_ITEMS_STORAGE_KEY,
-    serializedCustomItems,
-  );
-  window.localStorage.setItem(CUSTOM_ITEMS_STORAGE_KEY, serializedCustomItems);
-};
-
 export default function SideCart({
   selectedItems = [],
   onDeleteItem,
@@ -177,9 +99,18 @@ export default function SideCart({
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const [saveTemplateError, setSaveTemplateError] = useState("");
+  const customItemsRef = useRef<CustomCartItem[]>([]);
+  const generalCommentRef = useRef("");
   const cartItemsCount = selectedItems.length + customItems.length;
   const hasSelectedItems = cartItemsCount > 0;
   const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
+
+  customItemsRef.current = customItems;
+  generalCommentRef.current = generalComment;
+
+  useEffect(() => {
+    getCartSync().start();
+  }, []);
 
   useEffect(() => {
     if (!storageKey) {
@@ -190,8 +121,12 @@ export default function SideCart({
       return;
     }
 
-    setCustomItems(getStoredCustomItems(storageKey));
-    setGeneralComment(getStoredGeneralComment(storageKey));
+    const nextCustomItems = cartStorage.readCustomItems(storageKey);
+    const nextComment = cartStorage.readGeneralComment(storageKey);
+    setCustomItems(nextCustomItems);
+    setGeneralComment(nextComment);
+    customItemsRef.current = nextCustomItems;
+    generalCommentRef.current = nextComment;
     setLoadedCustomItemsStorageKey(storageKey);
     setLoadedGeneralCommentStorageKey(storageKey);
   }, [storageKey]);
@@ -199,14 +134,46 @@ export default function SideCart({
   useEffect(() => {
     if (!storageKey || loadedCustomItemsStorageKey !== storageKey) return;
 
-    writeStoredCustomItems(storageKey, customItems);
+    cartStorage.writeCustomItems(storageKey, customItems);
   }, [customItems, loadedCustomItemsStorageKey, storageKey]);
 
   useEffect(() => {
     if (!storageKey || loadedGeneralCommentStorageKey !== storageKey) return;
 
-    writeStoredGeneralComment(storageKey, generalComment);
+    cartStorage.writeGeneralComment(storageKey, generalComment);
   }, [generalComment, loadedGeneralCommentStorageKey, storageKey]);
+
+  useEffect(() => {
+    return subscribeCartSync((message) => {
+      if (!storageKey) return;
+      // Локальный publish уже совпадает с React-state этой вкладки.
+      if (message.origin === "local") return;
+
+      if (message.scopes.includes("cleared")) {
+        setCustomItems([]);
+        setGeneralComment("");
+        customItemsRef.current = [];
+        generalCommentRef.current = "";
+        return;
+      }
+
+      if (message.scopes.includes("customItems")) {
+        const nextCustomItems = cartStorage.readCustomItems(storageKey);
+        if (!sameCustomItems(customItemsRef.current, nextCustomItems)) {
+          setCustomItems(nextCustomItems);
+          customItemsRef.current = nextCustomItems;
+        }
+      }
+
+      if (message.scopes.includes("generalComments")) {
+        const nextComment = cartStorage.readGeneralComment(storageKey);
+        if (generalCommentRef.current !== nextComment) {
+          setGeneralComment(nextComment);
+          generalCommentRef.current = nextComment;
+        }
+      }
+    });
+  }, [storageKey]);
 
   useEffect(() => {
     if (hasSelectedItems) {
