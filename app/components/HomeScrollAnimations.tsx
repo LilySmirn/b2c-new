@@ -67,6 +67,14 @@ const revealGroups: RevealGroup[] = [
     ],
   },
   {
+    trigger: ".other-solutions-section",
+    targets: [
+      { selector: ".other-solutions-header > *", direction: "left" },
+      { selector: ".other-solutions-card", direction: "scale" },
+      { selector: ".other-solutions-credit" },
+    ],
+  },
+  {
     trigger: ".faq-section",
     targets: [
       { selector: ".faq-container > .title" },

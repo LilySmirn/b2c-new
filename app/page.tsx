@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
+import OtherSolutions from "./components/OtherSolutions";
 import VideoShowcase from "./components/VideoShowcase";
 import ReviewsCarousel from "./components/ReviewsCarousel";
 import Head from 'next/head';
@@ -398,6 +399,8 @@ export default async function Home() {
         </section>
 
         <CorporateAccess />
+
+        <OtherSolutions />
 
         <section id="faq" className="faq-section">
           <div className="faq-container">
