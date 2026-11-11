@@ -60,6 +60,7 @@ export default function HeaderMenuClient() {
                         <li><a href="#capabilities" onClick={handleSmoothScroll}>Возможности</a></li>
                         <li><a href="#pricing" onClick={handleSmoothScroll}>Тарифы</a></li>
                         <li><a href="#reviews" onClick={handleSmoothScroll}>Отзывы</a></li>
+                        <li><a href="#other-solutions" onClick={handleSmoothScroll}>О компании</a></li>
                         <li><a href="#faq" onClick={handleSmoothScroll}>FAQ</a></li>
                     </ul>
                 </nav>

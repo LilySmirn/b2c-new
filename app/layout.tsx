@@ -65,6 +65,7 @@ ym(113585722, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
                                 <li><Link href="/#capabilities">Возможности</Link></li>
                                 <li><Link href="/#pricing">Тарифы</Link></li>
                                 <li><Link href="/#reviews">Отзывы</Link></li>
+                                <li><Link href="/#other-solutions">О компании</Link></li>
                                 <li><Link href="/#faq">FAQ</Link></li>
                             </ul>
                         </nav>
@@ -88,6 +89,7 @@ ym(113585722, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
                                         <li><Link href="/#pricing">Тарифы</Link></li>
                                         <li><Link href="/#video">Видео-инструкция</Link></li>
                                         <li><Link href="/#reviews">Отзывы</Link></li>
+                                        <li><Link href="/#other-solutions">О компании</Link></li>
                                         <li><Link href="/#faq">FAQ</Link></li>
                                     </ul>
                                 </nav>

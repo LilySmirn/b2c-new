@@ -902,6 +902,7 @@ h2 {
   text-align: left;
   font-family: Arial, sans-serif;
   color: #001b4c;
+  scroll-margin-top: 82px;
 }
 
 .other-solutions-section::before,
