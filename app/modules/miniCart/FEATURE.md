@@ -21,12 +21,19 @@ NEXT_PUBLIC_MINI_CART=1
 
 Открытие PiP только из user gesture (`requestCompactFromGesture`).
 
-## PiP
+## PiP и стили
 
-- `pip/documentPip.ts` — requestWindow, стили, mount
-- `hooks/useDocumentPip.ts` — жизненный цикл
-- UI остаётся в React-дереве opener; в PiP уходит через `createPortal`
-- Модалки/поповеры — `MiniCartPortal` в `ownerDocument` PiP
+- `pip/documentPip.ts` — requestWindow, копирование stylesheet/style, mount `#em-mini-cart-pip-root.emMiniCart`
+- UI остаётся в React-дереве opener; панель и оверлеи уходят через `createPortal`
+- Модалки/поповеры — `MiniCartPortal` → `portalRoot` (PiP root / host `.emMiniCart`)
+
+**Важно:** портальные оверлеи рендерятся **вне** `.preparaty`. Поэтому:
+
+- CSS-токены и сбросы `button/input` объявлены на `.emMiniCart` (не только на `.preparaty`);
+- z-index оверлеев (1300) задан без требования `.preparaty.is-collapsed`;
+- классы разметки должны совпадать с прототипом (`preparaty__option`, `preparaty__card-head`, `preparaty__note-*`).
+
+Стили генерируются `scripts/extract-mini-cart-css.mjs` из `mini-korzinka/styles.css` + foundation/portal patches в скрипте. Повторный запуск скрипта сохраняет эти патчи.
 
 ## Preview
 
@@ -34,23 +41,13 @@ NEXT_PUBLIC_MINI_CART=1
 
 ## Данные и редактирование
 
-На `/cart` при `MINI_CART_PREVIEW_ENABLED`:
+Два независимых потока (как в полной корзине):
 
-**Чтение:** view-model из секций, `useMedsCatalog`, appendix A3, `ChecklistAssignmentSnapshot`, custom/recommendation из `cartStorage`.
+1. Черновик — `medicationDrafts` / combinations (без auto-check).
+2. Выбор — `sections.checked` → SideCart.
 
-**Запись (D1):** `assignmentOps` → `PrescriptionChecklistHandle` (тот же `medicationDrafts` / sections):
-
-- toggle чекбоксов;
-- комментарии;
-- trade-pick + dose/form/scheme/course для обычных препаратов (`kind: trade` / `plain`);
-- select-all обязательной диагностики.
-
-Поиск МКБ в реальном компактном UI скрыт (`hideMkbSearch`). Смена МКБ — только через полноразмерный справочник.
-
-**Пока недоступно из мини-корзинки (D2/D3):** группы (`alternatives`), схемы/комбинации, custom items, редактирование общей рекомендации, запись в карту / копирование / шаблоны / AI / interactions.
-
-Demo-preview — локальный UI-state без `assignmentOps`.
+Подробности D1/D2 — в истории интеграции. D3 пока не начат.
 
 ## Следующий этап
 
-D2 — группы и схемы/комбинации; D3 — custom items и общая рекомендация.
+D3 — custom items и общая рекомендация.

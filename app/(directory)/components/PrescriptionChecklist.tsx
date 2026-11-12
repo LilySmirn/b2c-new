@@ -109,6 +109,8 @@ export type PrescriptionChecklistHandle = {
     value: string,
   ) => void;
   selectAllRequiredDiagnostics: () => void;
+  /** D2: сохранить подтверждённую схему/комбинацию (как SchemeWizard → confirmCombination). */
+  applyCombination: (itemId: string, draft: CombinationDraft) => void;
 };
 
 type PrescriptionChecklistProps = {
@@ -622,14 +624,6 @@ const PrescriptionChecklist = forwardRef<
     commitMedsSelection(item, pick);
   };
 
-  useImperativeHandle(ref, () => ({
-    toggleItem: toggleChecked,
-    setItemComment,
-    applyMedsPick: applyMedsPickById,
-    setMedicationField: updateMedicationField,
-    selectAllRequiredDiagnostics: toggleRequiredDiagnostics,
-  }));
-
   const updateMedicationIntake = (id: string, intake: MedicationIntake) => {
     setMedicationIntake((current) => ({
       ...current,
@@ -699,6 +693,20 @@ const PrescriptionChecklist = forwardRef<
     persistBrowserCombinationSelection(medsRecommendationKey, itemId, draft);
     setSchemeSession(null);
   };
+
+  const applyCombinationById = (itemId: string, draft: CombinationDraft) => {
+    if (!findItemById(itemId)) return;
+    confirmCombination(itemId, draft);
+  };
+
+  useImperativeHandle(ref, () => ({
+    toggleItem: toggleChecked,
+    setItemComment,
+    applyMedsPick: applyMedsPickById,
+    setMedicationField: updateMedicationField,
+    selectAllRequiredDiagnostics: toggleRequiredDiagnostics,
+    applyCombination: applyCombinationById,
+  }));
 
   const applyOriginalRecommendation = (item: ChecklistItem) => {
     const scheme = item.treatmentPlan ?? "";

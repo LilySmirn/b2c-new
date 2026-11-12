@@ -105,7 +105,11 @@ export function preparePipDocument(pipWin: DocumentPipWindow): HTMLElement {
     mount.className = "emMiniCart emMiniCart--pip";
     mount.style.width = "100%";
     mount.style.height = "100%";
+    mount.style.position = "relative";
     pipDoc.body.appendChild(mount);
+  } else {
+    mount.classList.add("emMiniCart", "emMiniCart--pip");
+    mount.style.position = "relative";
   }
 
   return mount;

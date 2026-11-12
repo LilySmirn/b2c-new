@@ -47,15 +47,22 @@ export default function MiniCartTradePopover({
         left: "50%",
         transform: "translate(-50%, -50%)",
         zIndex: 1300,
+        width: Math.min(340, view.innerWidth - 16),
+        maxHeight: Math.min(320, view.innerHeight - 16),
       });
       return;
     }
 
     const anchorRect = anchorEl.getBoundingClientRect();
-    const popRect = pop.getBoundingClientRect();
     const gap = 6;
     const vw = view.innerWidth;
     const vh = view.innerHeight;
+    const width = Math.min(340, vw - 16);
+    const maxHeight = Math.min(320, vh - 16);
+
+    pop.style.width = `${width}px`;
+    pop.style.maxHeight = `${maxHeight}px`;
+    const popRect = pop.getBoundingClientRect();
 
     let top = anchorRect.bottom + gap;
     let left = anchorRect.left;
@@ -63,8 +70,8 @@ export default function MiniCartTradePopover({
     if (top + popRect.height > vh - 8) {
       top = Math.max(8, anchorRect.top - popRect.height - gap);
     }
-    if (left + popRect.width > vw - 8) {
-      left = Math.max(8, vw - popRect.width - 8);
+    if (left + width > vw - 8) {
+      left = Math.max(8, vw - width - 8);
     }
     if (left < 8) left = 8;
 
@@ -74,7 +81,8 @@ export default function MiniCartTradePopover({
       left,
       transform: "none",
       zIndex: 1300,
-      width: Math.min(340, vw - 16),
+      width,
+      maxHeight,
     });
   }, [anchorEl, ownerDocument, item.id, isPip]);
 
@@ -113,77 +121,83 @@ export default function MiniCartTradePopover({
           label: inn,
         }));
 
+  const headLabel =
+    item.kind === "alternatives"
+      ? "Альтернативы · торговое наименование"
+      : "Торговые наименования";
+
   return (
     <MiniCartPortal>
       <div
         ref={popoverRef}
         className="preparaty__popover"
-        role="listbox"
         aria-label="Торговые наименования"
         style={style}
       >
         <div className="preparaty__popover-head">
-          <strong>Выбор препарата</strong>
+          <strong>{headLabel}</strong>
           <button type="button" aria-label="Закрыть" onClick={onClose}>
             ×
           </button>
         </div>
-        <div className="preparaty__popover-body">
+        <div role="listbox" aria-label="Торговые наименования">
           {inns.length === 0 ? (
-            <p className="preparaty__empty">Нет вариантов в демо-данных.</p>
+            <div className="preparaty__popover-body">
+              <p className="preparaty__empty">Нет вариантов в демо-данных.</p>
+            </div>
           ) : (
-            inns.map((row) => {
+            inns.flatMap((row) => {
               const book = trades[row.inn];
               const tradeRows = book?.trades ?? [];
-              return (
-                <div key={row.inn} className="preparaty__popover-group">
-                  <div className="preparaty__popover-group-title">
+              if (tradeRows.length === 0) {
+                return [
+                  <button
+                    key={row.inn}
+                    type="button"
+                    className={`preparaty__option${
+                      row.inn === item.selectedInn ? " is-current" : ""
+                    }`}
+                    onClick={() =>
+                      onPick({
+                        inn: row.inn,
+                        trade: row.label || row.inn,
+                      })
+                    }
+                  >
                     {row.label || row.inn}
-                  </div>
-                  {tradeRows.length === 0 ? (
-                    <button
-                      type="button"
-                      className="preparaty__popover-option"
-                      onClick={() =>
-                        onPick({
-                          inn: row.inn,
-                          trade: row.label || row.inn,
-                        })
-                      }
-                    >
-                      {row.label || row.inn}
-                    </button>
-                  ) : (
-                    tradeRows.map((trade) => {
-                      const variant = trade.variants?.[0];
-                      return (
-                        <button
-                          key={`${row.inn}-${trade.trade}`}
-                          type="button"
-                          className="preparaty__popover-option"
-                          onClick={() =>
-                            onPick({
-                              inn: row.inn,
-                              trade: trade.trade,
-                              dose: variant?.dose,
-                              form: variant?.form,
-                            })
-                          }
-                        >
-                          {trade.trade}
-                          {variant?.dose || variant?.form ? (
-                            <span>
-                              {[variant?.dose, variant?.form]
-                                .filter(Boolean)
-                                .join(" · ")}
-                            </span>
-                          ) : null}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              );
+                    <small>{row.inn}</small>
+                  </button>,
+                ];
+              }
+
+              return tradeRows.map((trade) => {
+                const variant = trade.variants?.[0];
+                const meta = [variant?.dose, variant?.form]
+                  .filter(Boolean)
+                  .join(" · ");
+                return (
+                  <button
+                    key={`${row.inn}-${trade.trade}`}
+                    type="button"
+                    className={`preparaty__option${
+                      trade.trade === item.selectedTrade ? " is-current" : ""
+                    }`}
+                    onClick={() =>
+                      onPick({
+                        inn: row.inn,
+                        trade: trade.trade,
+                        dose: variant?.dose,
+                        form: variant?.form,
+                      })
+                    }
+                  >
+                    {trade.trade}
+                    <small>
+                      {[row.label || row.inn, meta].filter(Boolean).join(" · ")}
+                    </small>
+                  </button>
+                );
+              });
             })
           )}
         </div>

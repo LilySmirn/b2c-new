@@ -20,8 +20,13 @@ export default function MiniCartAddModal({ onClose, onSave }: MiniCartAddModalPr
         aria-label="Добавить услугу или медикамент"
       >
         <div className="preparaty__cart-modal-head">
-          <h2>Добавить услугу/медикамент</h2>
-          <button type="button" aria-label="Закрыть" onClick={onClose}>
+          <h3>Добавить услугу/медикамент</h3>
+          <button
+            type="button"
+            className="preparaty__cart-modal-close"
+            aria-label="Закрыть"
+            onClick={onClose}
+          >
             ×
           </button>
         </div>

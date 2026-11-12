@@ -129,7 +129,9 @@ function DrugRow({
       }`}
     >
       <div className="preparaty__first">
-        <label className="preparaty__check">
+        <label
+          className={`preparaty__check${item.selected ? " is-checked" : ""}`}
+        >
           <input
             type="checkbox"
             checked={Boolean(item.selected)}
@@ -137,7 +139,7 @@ function DrugRow({
             aria-label={`Выбрать ${item.name || name}`}
             onChange={() => onToggle(item.id)}
           />
-          <span />
+          <span aria-hidden="true" />
         </label>
         <MarkButton kind="qc" text={item.qc} onClick={() => onOpenInfo(item.id)} />
         <MarkButton kind="level" text={item.level} onClick={() => onOpenInfo(item.id)} />

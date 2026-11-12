@@ -43,8 +43,29 @@ const keywords = [
   "mini-panel-actions",
   "popover",
   "info-layer",
+  "info-dialog",
+  "info-backdrop",
+  "info-close",
+  "info-muted",
+  "info-list",
   "scheme-layer",
+  "scheme-dialog",
+  "scheme-head",
+  "scheme-work",
+  "scheme-foot",
+  "scheme-btn",
+  "scheme-slot",
+  "scheme-progress",
+  "scheme-review",
+  "scheme-empty",
   "note-layer",
+  "note-dialog",
+  "note-head",
+  "note-body",
+  "note-foot",
+  "note-label",
+  "note-text",
+  "note-backdrop",
   "cart-modal",
   "preparaty__mark",
   "extra-badge",
@@ -57,7 +78,19 @@ const keywords = [
   "preparaty__combo",
   "preparaty__scheme",
   "preparaty__option",
+  "preparaty__card-",
+  "card-head",
+  "card-badge",
+  "card-layout",
+  "card-block",
+  "card-field",
+  "card-status",
+  "card-cart",
+  "card-assign",
+  "card-preview",
+  "card-slot",
   "is-selected",
+  "is-checked",
   "is-block",
   "is-warn",
   "is-open",
@@ -169,9 +202,18 @@ function scopeRule(rule) {
 
 const allRules = extractTopLevelRules(css);
 const kept = allRules.filter((rule) => keywords.some((k) => rule.includes(k)));
+
+/**
+ * Tokens + base resets живут на `.emMiniCart`, не только на `.preparaty`.
+ * Модалки/поповеры порталятся в `.emMiniCart` (PiP root / host) вне `.preparaty`.
+ */
 const foundation = `/* Auto-extracted compact mini-cart styles. Scoped under .emMiniCart */
 
-.emMiniCart .preparaty {
+/*
+ * Tokens and element resets belong on \`.emMiniCart\` so portaled overlays
+ * (trade popover, info/note/scheme modals) inherit them outside \`.preparaty\`.
+ */
+.emMiniCart {
   --blue: #0085ff;
   --blue-soft: #edf7ff;
   --blue-line: #b9d8f2;
@@ -193,19 +235,84 @@ const foundation = `/* Auto-extracted compact mini-cart styles. Scoped under .em
   line-height: 1.25;
 }
 
-.emMiniCart .preparaty *,
-.emMiniCart .preparaty *::before,
-.emMiniCart .preparaty *::after {
+.emMiniCart *,
+.emMiniCart *::before,
+.emMiniCart *::after {
   box-sizing: border-box;
 }
 
-.emMiniCart .preparaty button,
-.emMiniCart .preparaty input,
-.emMiniCart .preparaty textarea {
+.emMiniCart button,
+.emMiniCart input,
+.emMiniCart textarea,
+.emMiniCart select {
   font-family: inherit;
+}
+
+.emMiniCart .preparaty {
+  position: relative;
+  box-sizing: border-box;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.25;
 }`;
 
-const popoverOverlay = `
+const portalPatches = `
+/* Portaled overlays: above mini-panel (z-index 1200), without requiring .preparaty ancestor */
+.emMiniCart .preparaty__popover,
+.emMiniCart .preparaty__info-layer,
+.emMiniCart .preparaty__note-layer,
+.emMiniCart .preparaty__scheme-layer,
+.emMiniCart .preparaty__cart-modal-layer {
+  z-index: 1300;
+}
+
+.emMiniCart .preparaty__popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.emMiniCart .preparaty__popover-head button {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.emMiniCart .preparaty__popover-head button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.emMiniCart .preparaty__info-dialog h3 {
+  margin: 14px 0 6px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.emMiniCart .preparaty__info-dialog .preparaty__note-body > p,
+.emMiniCart .preparaty__info-dialog .preparaty__note-body > ul {
+  margin: 0 0 8px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.emMiniCart .preparaty__check input:checked + span,
+.emMiniCart .preparaty__check.is-checked span {
+  border-color: var(--blue, #0085ff);
+  background: var(--blue, #0085ff) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5.2 L4.2 8.3 L11 1.5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 10px no-repeat;
+}
+
 /* Preview: панель без шапки прототипа */
 .emMiniCart.is-preview .preparaty__mini-panel {
   top: 24px;
@@ -232,7 +339,7 @@ const popoverOverlay = `
   box-shadow: none !important;
 }`;
 
-const out = [foundation, "", ...kept.map(scopeRule), popoverOverlay].join(
+const out = [foundation, "", ...kept.map(scopeRule), portalPatches].join(
   "\n\n",
 );
 
@@ -242,5 +349,8 @@ console.log({
   total: allRules.length,
   kept: kept.length,
   bytes: out.length,
-  unscoped: (out.match(/^\.preparaty__/gm) || []).length,
+  hasNoteHead: out.includes("preparaty__note-head"),
+  hasCardHead: out.includes("preparaty__card-head"),
+  hasOption: out.includes("preparaty__option"),
+  tokensOnEmMiniCart: out.includes(".emMiniCart {\n  --blue"),
 });

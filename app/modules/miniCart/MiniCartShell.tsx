@@ -80,6 +80,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       onDisplayModeChange,
       recommendationText,
       assignmentOps,
+      schemeByItemId = {},
       hideMkbSearch = false,
     },
     ref,
@@ -297,6 +298,12 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                 onOpenScheme={(itemId) => {
                   const item = ui.findItem(itemId);
                   if (!item || !ui.canOpenSchemePicker(item)) return;
+                  if (
+                    ui.flags.isDirectoryBacked &&
+                    !(schemeByItemId[itemId]?.components?.length > 0)
+                  ) {
+                    return;
+                  }
                   ui.setSchemeTargetId(itemId);
                 }}
                 onOpenCombo={(itemId) => {
@@ -422,11 +429,22 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
                 {schemeItem && schemeItem.kind === "scheme" ? (
                   <MiniCartSchemeModal
+                    key={schemeItem.id}
                     item={schemeItem}
                     trades={trades}
+                    combinationComponents={
+                      schemeByItemId[schemeItem.id]?.components
+                    }
+                    confirmedDraft={
+                      schemeByItemId[schemeItem.id]?.confirmed ?? null
+                    }
                     onClose={() => ui.setSchemeTargetId(null)}
                     onDone={(picks) => {
                       ui.applySchemePicks(schemeItem.id, picks);
+                      ui.setSchemeTargetId(null);
+                    }}
+                    onConfirmCombination={(draft) => {
+                      ui.applyCombination(schemeItem.id, draft);
                       ui.setSchemeTargetId(null);
                     }}
                   />

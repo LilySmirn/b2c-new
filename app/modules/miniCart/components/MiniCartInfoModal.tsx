@@ -20,6 +20,8 @@ export default function MiniCartInfoModal({
   const scheme = item.scheme ?? "";
   const course = item.course ?? "";
   const componentEntries = Object.entries(item.componentPicks ?? {});
+  const subtitle =
+    [item.qc, item.level].filter(Boolean).join(" · ") || "Назначение";
 
   const field = (
     id: MiniCartMedsField,
@@ -29,94 +31,115 @@ export default function MiniCartInfoModal({
     if (!editable || !onChangeField) {
       if (!value.trim()) return null;
       return (
-        <>
-          <h3>{label}</h3>
+        <div className="preparaty__card-block">
+          <h4>{label}</h4>
           <p>{value}</p>
-        </>
+        </div>
       );
     }
 
     return (
-      <>
-        <h3>{label}</h3>
+      <label className="preparaty__card-field preparaty__card-field--wide">
+        <span>{label}</span>
         <input
-          className="preparaty__note-text"
-          style={{ width: "100%", boxSizing: "border-box", marginBottom: 8 }}
           value={value}
           aria-label={label}
           onChange={(event) => onChangeField(id, event.target.value)}
         />
-      </>
+      </label>
     );
   };
 
   return (
     <MiniCartPortal>
-    <div className="preparaty__info-layer" role="presentation">
-      <div className="preparaty__info-backdrop" aria-hidden="true" onClick={onClose} />
-      <div
-        className="preparaty__info-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Информация о назначении"
-      >
-        <div className="preparaty__info-head">
-          <div>
-            <h2>{displayName(item)}</h2>
-            <p>
-              {[item.qc, item.level].filter(Boolean).join(" · ") || "Назначение"}
-            </p>
+      <div className="preparaty__info-layer" role="presentation">
+        <div
+          className="preparaty__info-backdrop"
+          aria-hidden="true"
+          onClick={onClose}
+        />
+        <div
+          className="preparaty__info-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Информация о назначении"
+        >
+          <div className="preparaty__card-head">
+            <div className="preparaty__card-head-main">
+              <div>
+                <h2>{displayName(item)}</h2>
+                <p>{subtitle}</p>
+              </div>
+              <div className="preparaty__card-badges">
+                {item.qc ? (
+                  <span className="preparaty__card-badge">{item.qc}</span>
+                ) : null}
+                {item.level ? (
+                  <span className="preparaty__card-badge">{item.level}</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="preparaty__card-head-actions">
+              <button
+                type="button"
+                className="preparaty__info-close"
+                aria-label="Закрыть"
+                onClick={onClose}
+              >
+                ×
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            className="preparaty__info-close"
-            aria-label="Закрыть"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
-        <div className="preparaty__info-body">
-          <p>{item.hint || "Дополнительное описание отсутствует."}</p>
-          {item.selectedInn ? (
-            <>
-              <h3>МНН</h3>
-              <p>{item.selectedInn}</p>
-            </>
-          ) : null}
-          {item.selectedTrade && item.kind !== "scheme" ? (
-            <>
-              <h3>Торговое наименование</h3>
-              <p>{item.selectedTrade}</p>
-            </>
-          ) : null}
-          {field("dose", "Доза", dose)}
-          {field("form", "Форма", form)}
-          {field("scheme", "Схема", scheme)}
-          {field("course", "Курс", course)}
-          {componentEntries.length > 0 ? (
-            <>
-              <h3>Компоненты схемы</h3>
-              <ul>
-                {componentEntries.map(([componentId, pick]) => {
-                  const component = item.components?.find((row) => row.id === componentId);
-                  const label = component?.label || componentId;
-                  const details = [pick.trade || pick.inn, pick.dose, pick.form]
-                    .filter(Boolean)
-                    .join(" · ");
-                  return (
-                    <li key={componentId}>
-                      <strong>{label}</strong>
-                      {details ? ` — ${details}` : ""}
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
-          ) : null}
+          <div className="preparaty__note-body">
+            <div className="preparaty__card-block">
+              <h4>Описание</h4>
+              <p>{item.hint || "Дополнительное описание отсутствует."}</p>
+            </div>
+            {item.selectedInn ? (
+              <div className="preparaty__card-block">
+                <h4>МНН</h4>
+                <p>{item.selectedInn}</p>
+              </div>
+            ) : null}
+            {item.selectedTrade && item.kind !== "scheme" ? (
+              <div className="preparaty__card-block">
+                <h4>Торговое наименование</h4>
+                <p>{item.selectedTrade}</p>
+              </div>
+            ) : null}
+            {field("dose", "Доза", dose)}
+            {field("form", "Форма", form)}
+            {field("scheme", "Схема", scheme)}
+            {field("course", "Курс", course)}
+            {componentEntries.length > 0 ? (
+              <div className="preparaty__card-block">
+                <h4>Компоненты схемы</h4>
+                <ul className="preparaty__info-list">
+                  {componentEntries.map(([componentId, pick]) => {
+                    const component = item.components?.find(
+                      (row) => row.id === componentId,
+                    );
+                    const label = component?.label || componentId;
+                    const details = [
+                      pick.trade || pick.inn,
+                      pick.dose,
+                      pick.form,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ");
+                    return (
+                      <li key={componentId}>
+                        <strong>{label}</strong>
+                        {details ? ` — ${details}` : ""}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
-    </div>
     </MiniCartPortal>
   );
 }

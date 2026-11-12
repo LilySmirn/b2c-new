@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
 import {
   miniCartOpFlags,
   type MiniCartAssignmentOps,
@@ -196,6 +197,11 @@ export function useMiniCartUiState({
     );
   };
 
+  const applyCombination = (itemId: string, draft: CombinationDraft) => {
+    if (!flags.isDirectoryBacked || !flags.canScheme) return;
+    assignmentOps?.applyCombination?.(itemId, draft);
+  };
+
   const applyComboPick = (
     itemId: string,
     pick: { inn: string; trade: string },
@@ -260,10 +266,13 @@ export function useMiniCartUiState({
     );
   };
 
-  /** D1: торговое имя только для kind=trade; группы/схемы — D2. */
+  /** D1/D2: trade и группы alternatives; схемы — отдельный мастер. */
   const canOpenTradePicker = (item: MiniCartCatalogItem) => {
     if (flags.isDirectoryBacked) {
-      return flags.canTrade && item.kind === "trade";
+      return (
+        flags.canTrade &&
+        (item.kind === "trade" || item.kind === "alternatives")
+      );
     }
     return (
       item.kind === "alternatives" ||
@@ -273,7 +282,9 @@ export function useMiniCartUiState({
   };
 
   const canOpenSchemePicker = (item: MiniCartCatalogItem) => {
-    if (flags.isDirectoryBacked) return false;
+    if (flags.isDirectoryBacked) {
+      return flags.canScheme && item.kind === "scheme";
+    }
     return item.kind === "scheme";
   };
 
@@ -286,7 +297,10 @@ export function useMiniCartUiState({
     if (flags.isDirectoryBacked) {
       return (
         flags.canEditFields &&
-        (item.kind === "trade" || item.kind === "plain" || item.kind === "extra-drug")
+        (item.kind === "trade" ||
+          item.kind === "plain" ||
+          item.kind === "alternatives" ||
+          item.kind === "extra-drug")
       );
     }
     return true;
@@ -345,6 +359,7 @@ export function useMiniCartUiState({
     applyTrade,
     setMedicationField,
     applySchemePicks,
+    applyCombination,
     applyComboPick,
     addCustomItem,
     selectAllRequired,

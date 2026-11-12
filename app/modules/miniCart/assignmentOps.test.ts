@@ -22,5 +22,18 @@ describe("miniCartOpFlags", () => {
     assert.equal(flags.canTrade, true);
     assert.equal(flags.canEditFields, true);
     assert.equal(flags.canSelectAllRequired, true);
+    assert.equal(flags.canScheme, false);
+  });
+
+  it("enables canScheme when applyCombination is provided", () => {
+    const ops: MiniCartAssignmentOps = {
+      toggleItem: () => undefined,
+      setComment: () => undefined,
+      applyMedsPick: () => undefined,
+      setMedicationField: () => undefined,
+      applyCombination: () => undefined,
+    };
+
+    assert.equal(miniCartOpFlags(ops).canScheme, true);
   });
 });

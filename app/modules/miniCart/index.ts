@@ -12,6 +12,7 @@ export { useDirectoryMiniCartData } from "./hooks/useDirectoryMiniCartData";
 export { miniCartOpFlags } from "./assignmentOps";
 export type {
   MiniCartAssignmentOps,
+  MiniCartCombinationDraft,
   MiniCartMedsField,
   MiniCartMedsPick,
 } from "./assignmentOps";
@@ -20,5 +21,6 @@ export type {
   MiniCartDisplayMode,
   MiniCartNav,
   MiniCartProps,
+  MiniCartSchemeSource,
   MiniCartTab,
 } from "./types";

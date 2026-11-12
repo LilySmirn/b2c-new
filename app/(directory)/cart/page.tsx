@@ -149,6 +149,8 @@ export default function CartPreviewPage() {
         checklistRef.current?.setMedicationField(itemId, field, value),
       selectAllRequiredDiagnostics: () =>
         checklistRef.current?.selectAllRequiredDiagnostics(),
+      applyCombination: (itemId, draft) =>
+        checklistRef.current?.applyCombination(itemId, draft),
     }),
     [],
   );
@@ -471,6 +473,7 @@ export default function CartPreviewPage() {
           shellTabs={miniCartData.shellTabs}
           trades={miniCartData.trades}
           recommendationText={miniCartData.recommendation}
+          schemeByItemId={miniCartData.schemeByItemId}
           assignmentOps={miniCartAssignmentOps}
           hideMkbSearch
           displayMode={miniCartMode}

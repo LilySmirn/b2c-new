@@ -1,3 +1,5 @@
+import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
+import type { MedsCatalogComponent } from "@/app/(directory)/components/medications/medsCatalogTypes";
 import type { MiniCartAssignmentOps } from "./assignmentOps";
 
 export type {
@@ -5,6 +7,12 @@ export type {
   MiniCartMedsField,
   MiniCartMedsPick,
 } from "./assignmentOps";
+
+/** Production-источник мастера схемы для directory-backed режима. */
+export type MiniCartSchemeSource = {
+  components: readonly MedsCatalogComponent[];
+  confirmed: CombinationDraft | null;
+};
 
 export type MiniCartNav = "clinical-recs" | "easymed-ai" | "interactions";
 
@@ -167,6 +175,11 @@ export type MiniCartProps = {
    * Если заданы — локальные мутации назначений отключены; доступны только переданные ops (D1…).
    */
   assignmentOps?: MiniCartAssignmentOps;
+  /**
+   * D2: production-компоненты схем/комбинаций по itemId.
+   * Нужны компактному мастеру для combinationSelection (не demo trades).
+   */
+  schemeByItemId?: Record<string, MiniCartSchemeSource>;
   /** Скрыть поиск МКБ (реальный `/cart`: диагноз только для чтения). */
   hideMkbSearch?: boolean;
 };

@@ -23,6 +23,7 @@ import {
 } from "@/app/(directory)/components/medications/assignmentSnapshot";
 import {
   combinationSelectionSummary,
+  sanitizeCombinationDraft,
   type CombinationDraft,
 } from "@/app/(directory)/components/medications/combinationSelection";
 import { matchMedsDrugForItem } from "@/app/(directory)/components/medications/medsClient";
@@ -41,6 +42,7 @@ import type {
   MiniCartComponent,
   MiniCartComponentPick,
   MiniCartItemKind,
+  MiniCartSchemeSource,
   MiniCartShellTab,
   MiniCartTab,
   MiniCartTradeEntry,
@@ -85,7 +87,25 @@ export type DirectoryMiniCartViewModel = {
   shellTabs: Record<string, MiniCartShellTab>;
   trades: MiniCartTradesBook;
   recommendation: string;
+  /** Production-компоненты схем для компактного мастера (индексы = picks). */
+  schemeByItemId: Record<string, MiniCartSchemeSource>;
 };
+
+/** Стабильный view-id компонента схемы; production хранит picks по индексу. */
+export const miniCartComponentId = (itemId: string, index: number) =>
+  `${itemId}__comp__${index}`;
+
+export const parseMiniCartComponentIndex = (
+  itemId: string,
+  componentId: string,
+): number | null => {
+  const prefix = `${itemId}__comp__`;
+  if (!componentId.startsWith(prefix)) return null;
+  const raw = componentId.slice(prefix.length);
+  if (!/^\d+$/.test(raw)) return null;
+  return Number(raw);
+};
+
 
 const sameInnKey = (value: string) =>
   value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ru-RU");
@@ -118,7 +138,7 @@ const mapCombinationComponent = (
   component: MedsCatalogComponent,
   index: number,
 ): MiniCartComponent => {
-  const id = `${itemId}__comp__${index}`;
+  const id = miniCartComponentId(itemId, index);
   const kind = componentKind(component);
 
   if (component.type === "group") {
@@ -180,7 +200,7 @@ const mapCombinationPicks = (
   components.forEach((_component, index) => {
     const pick = draft.picks[index];
     if (!pick) return;
-    picks[`${itemId}__comp__${index}`] = {
+    picks[miniCartComponentId(itemId, index)] = {
       inn: pick.inn,
       trade: pick.item?.name_trade ?? "",
       dose: pick.item?.standard_dose ?? "",
@@ -543,14 +563,25 @@ export const adaptDirectoryCartToMiniCart = (
   const medicationSections = merged.filter(
     (section) => section.categoryId === "medications",
   );
+  const schemeByItemId: Record<string, MiniCartSchemeSource> = {};
   const drugItems = medicationSections.flatMap((section) =>
-    section.items.map((item) =>
-      mapDrugItem(
+    section.items.map((item) => {
+      const entry = matchMedsDrugForItem(
+        source.catalog,
+        source.catalogQuery,
         item,
-        matchMedsDrugForItem(source.catalog, source.catalogQuery, item),
-        assignment,
-      ),
-    ),
+      );
+      if (entry?.type === "combination") {
+        schemeByItemId[item.id] = {
+          components: entry.combination_data,
+          confirmed: sanitizeCombinationDraft(
+            entry.combination_data,
+            assignment.combinations[item.id],
+          ),
+        };
+      }
+      return mapDrugItem(item, entry, assignment);
+    }),
   );
 
   const shellTabs = buildClassicShellTabs(
@@ -571,5 +602,6 @@ export const adaptDirectoryCartToMiniCart = (
     shellTabs,
     trades: buildTradesBook(source.catalog),
     recommendation: source.generalRecommendation ?? "",
+    schemeByItemId,
   };
 };
