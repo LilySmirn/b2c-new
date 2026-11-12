@@ -1,10 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import PrescriptionChecklist from "../components/PrescriptionChecklist";
-import type { ChecklistSection, SelectedPrescription } from "../components/PrescriptionChecklist";
+import PrescriptionChecklist, {
+  type PrescriptionChecklistHandle,
+} from "../components/PrescriptionChecklist";
+import type {
+  ChecklistSection,
+  SelectedPrescription,
+} from "../components/PrescriptionChecklist";
 import SideCart from "../components/SideCart";
+import type { MiniCartAssignmentOps } from "@/app/modules/miniCart/assignmentOps";
 import styles from "./cart.module.css";
 import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
 import DirectoryPageHeader from "@/app/(directory)/components/DirectoryPageHeader";
@@ -115,6 +121,7 @@ export default function CartPreviewPage() {
   const [assignmentSnapshot, setAssignmentSnapshot] =
     useState<ChecklistAssignmentSnapshot>(EMPTY_ASSIGNMENT_SNAPSHOT);
   const miniCartRef = useRef<MiniCartHostHandle>(null);
+  const checklistRef = useRef<PrescriptionChecklistHandle>(null);
 
   recommendationKeyRef.current = recommendationKey;
   selectedItemsRef.current = selectedItems;
@@ -127,6 +134,22 @@ export default function CartPreviewPage() {
     (snapshot: ChecklistAssignmentSnapshot) => {
       setAssignmentSnapshot(snapshot);
     },
+    [],
+  );
+
+  /** Стабильные обёртки: всегда делегируют в актуальный handle чеклиста. */
+  const miniCartAssignmentOps = useMemo<MiniCartAssignmentOps>(
+    () => ({
+      toggleItem: (itemId) => checklistRef.current?.toggleItem(itemId),
+      setComment: (itemId, comment) =>
+        checklistRef.current?.setItemComment(itemId, comment),
+      applyMedsPick: (itemId, pick) =>
+        checklistRef.current?.applyMedsPick(itemId, pick),
+      setMedicationField: (itemId, field, value) =>
+        checklistRef.current?.setMedicationField(itemId, field, value),
+      selectAllRequiredDiagnostics: () =>
+        checklistRef.current?.selectAllRequiredDiagnostics(),
+    }),
     [],
   );
 
@@ -409,6 +432,7 @@ export default function CartPreviewPage() {
       >
       <section className={styles.layout}>
         <PrescriptionChecklist
+          ref={checklistRef}
           key={checklistSyncEpoch}
           onSelectionChange={handleSelectionChange}
           onAssignmentSnapshotChange={
@@ -447,7 +471,8 @@ export default function CartPreviewPage() {
           shellTabs={miniCartData.shellTabs}
           trades={miniCartData.trades}
           recommendationText={miniCartData.recommendation}
-          assignmentsReadOnly
+          assignmentOps={miniCartAssignmentOps}
+          hideMkbSearch
           displayMode={miniCartMode}
           onDisplayModeChange={setMiniCartMode}
         />

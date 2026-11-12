@@ -9,6 +9,12 @@ export {
 export { supportsDocumentPip } from "./pip/documentPip";
 export { adaptDirectoryCartToMiniCart } from "./adapters/fromDirectoryCart";
 export { useDirectoryMiniCartData } from "./hooks/useDirectoryMiniCartData";
+export { miniCartOpFlags } from "./assignmentOps";
+export type {
+  MiniCartAssignmentOps,
+  MiniCartMedsField,
+  MiniCartMedsPick,
+} from "./assignmentOps";
 export type {
   MiniCartCatalogItem,
   MiniCartDisplayMode,

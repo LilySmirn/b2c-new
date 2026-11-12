@@ -1,0 +1,26 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { miniCartOpFlags, type MiniCartAssignmentOps } from "./assignmentOps";
+
+describe("miniCartOpFlags", () => {
+  it("marks directory-backed mode only when ops are provided", () => {
+    assert.equal(miniCartOpFlags(null).isDirectoryBacked, false);
+    assert.equal(miniCartOpFlags(undefined).isDirectoryBacked, false);
+
+    const ops: MiniCartAssignmentOps = {
+      toggleItem: () => undefined,
+      setComment: () => undefined,
+      applyMedsPick: () => undefined,
+      setMedicationField: () => undefined,
+      selectAllRequiredDiagnostics: () => undefined,
+    };
+
+    const flags = miniCartOpFlags(ops);
+    assert.equal(flags.isDirectoryBacked, true);
+    assert.equal(flags.canToggle, true);
+    assert.equal(flags.canComment, true);
+    assert.equal(flags.canTrade, true);
+    assert.equal(flags.canEditFields, true);
+    assert.equal(flags.canSelectAllRequired, true);
+  });
+});

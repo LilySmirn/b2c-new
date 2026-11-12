@@ -32,24 +32,25 @@ NEXT_PUBLIC_MINI_CART=1
 
 `/dev/mini-cart-preview` — демо K26 + кнопка открытия PiP.
 
-## Данные
+## Данные и редактирование
 
-На `/cart` при `MINI_CART_PREVIEW_ENABLED` мини-корзинка получает view-model из:
+На `/cart` при `MINI_CART_PREVIEW_ENABLED`:
 
-- `checklistSections` / `diagnosisTitle` страницы корзины;
-- `useMedsCatalog(recommendationKey)` → существующий `medsCatalogSession` (без повторного fetch);
-- таблиц приложения А3, уже загруженных страницей;
-- снимка назначений `ChecklistAssignmentSnapshot` из `PrescriptionChecklist` (`medicationDrafts`, intake, combinations, itemStates);
-- custom items / общей рекомендации из `cartStorage` (как у SideCart).
+**Чтение:** view-model из секций, `useMedsCatalog`, appendix A3, `ChecklistAssignmentSnapshot`, custom/recommendation из `cartStorage`.
 
-Адаптер: `adapters/fromDirectoryCart.ts`. Хук: `hooks/useDirectoryMiniCartData.ts`.
+**Запись (D1):** `assignmentOps` → `PrescriptionChecklistHandle` (тот же `medicationDrafts` / sections):
 
-В реальном режиме `/cart` — `assignmentsReadOnly`: отображение без локального сохранения правок.
+- toggle чекбоксов;
+- комментарии;
+- trade-pick + dose/form/scheme/course для обычных препаратов (`kind: trade` / `plain`);
+- select-all обязательной диагностики.
 
-Demo-preview по-прежнему со своим локальным UI-state.
+Поиск МКБ в реальном компактном UI скрыт (`hideMkbSearch`). Смена МКБ — только через полноразмерный справочник.
 
-Пока **не** подключены: двустороннее редактирование, поиск МКБ, запись в карту / копирование, шаблоны, AI, interactions.
+**Пока недоступно из мини-корзинки (D2/D3):** группы (`alternatives`), схемы/комбинации, custom items, редактирование общей рекомендации, запись в карту / копирование / шаблоны / AI / interactions.
+
+Demo-preview — локальный UI-state без `assignmentOps`.
 
 ## Следующий этап
 
-Подэтап C — поиск и смена МКБ; затем двустороннее редактирование назначений.
+D2 — группы и схемы/комбинации; D3 — custom items и общая рекомендация.

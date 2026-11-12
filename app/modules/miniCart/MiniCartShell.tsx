@@ -79,7 +79,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       displayMode: controlledMode,
       onDisplayModeChange,
       recommendationText,
-      assignmentsReadOnly = false,
+      assignmentOps,
+      hideMkbSearch = false,
     },
     ref,
   ) {
@@ -113,7 +114,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       shellTabs,
       initiallyOpen: true,
       recommendationText,
-      assignmentsReadOnly,
+      assignmentOps,
     });
 
     const hostRef = useRef<HTMLDivElement>(null);
@@ -243,17 +244,19 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
           {ui.miniNav === "clinical-recs" ? (
             <div className="preparaty__mini-recs">
-              <MiniCartMkbSearch
-                query={ui.mkbQuery}
-                open={ui.mkbSearchOpen}
-                visit={ui.mkbVisit}
-                age={ui.mkbAge}
-                onQueryChange={ui.setMkbQuery}
-                onOpenChange={ui.setMkbSearchOpen}
-                onVisitChange={ui.setMkbVisit}
-                onAgeChange={ui.setMkbAge}
-                onSearch={() => undefined}
-              />
+              {hideMkbSearch ? null : (
+                <MiniCartMkbSearch
+                  query={ui.mkbQuery}
+                  open={ui.mkbSearchOpen}
+                  visit={ui.mkbVisit}
+                  age={ui.mkbAge}
+                  onQueryChange={ui.setMkbQuery}
+                  onOpenChange={ui.setMkbSearchOpen}
+                  onVisitChange={ui.setMkbVisit}
+                  onAgeChange={ui.setMkbAge}
+                  onSearch={() => undefined}
+                />
+              )}
               <MiniCartSectionTabs
                 tabs={ui.tabs}
                 activeTab={ui.activeTab}
@@ -270,21 +273,35 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                 shellTabs={shellTabs}
                 drugItems={ui.drugItems}
                 classicItems={ui.classicItems}
-                assignmentsReadOnly={assignmentsReadOnly}
+                canToggle={
+                  !ui.flags.isDirectoryBacked || ui.flags.canToggle
+                }
+                canComment={
+                  !ui.flags.isDirectoryBacked || ui.flags.canComment
+                }
+                canOpenTrade={ui.canOpenTradePicker}
+                canOpenScheme={ui.canOpenSchemePicker}
+                canOpenCombo={ui.canOpenComboPicker}
+                canSelectAll={
+                  !ui.flags.isDirectoryBacked || ui.flags.canSelectAllRequired
+                }
                 onToggle={ui.toggleItem}
                 onOpenComment={ui.openComment}
                 onOpenInfo={ui.setInfoTargetId}
                 onOpenTrade={(itemId, anchor) => {
-                  if (assignmentsReadOnly) return;
+                  const item = ui.findItem(itemId);
+                  if (!item || !ui.canOpenTradePicker(item)) return;
                   ui.setTradeTargetId(itemId);
                   setTradeAnchor(anchor);
                 }}
                 onOpenScheme={(itemId) => {
-                  if (assignmentsReadOnly) return;
+                  const item = ui.findItem(itemId);
+                  if (!item || !ui.canOpenSchemePicker(item)) return;
                   ui.setSchemeTargetId(itemId);
                 }}
                 onOpenCombo={(itemId) => {
-                  if (assignmentsReadOnly) return;
+                  const item = ui.findItem(itemId);
+                  if (!item || !ui.canOpenComboPicker(item)) return;
                   ui.setComboTargetId(itemId);
                 }}
                 onSelectAll={ui.selectAllRequired}
@@ -308,14 +325,14 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
         <MiniCartFooter
           recommendation={ui.recommendation}
           onRecommendationChange={(value) => {
-            if (assignmentsReadOnly) return;
+            if (ui.flags.isDirectoryBacked) return;
             ui.setRecommendation(value);
           }}
           onAddClick={() => {
-            if (assignmentsReadOnly) return;
+            if (ui.flags.isDirectoryBacked) return;
             ui.setAddModalOpen(true);
           }}
-          assignmentsReadOnly={assignmentsReadOnly}
+          assignmentsReadOnly={ui.flags.isDirectoryBacked}
         />
       </aside>
     ) : null;
@@ -364,13 +381,11 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                     subtitle="Комментарий к назначению"
                     value={ui.noteDraft}
                     onChange={ui.setNoteDraft}
-                    readOnly={assignmentsReadOnly}
+                    readOnly={
+                      ui.flags.isDirectoryBacked && !ui.flags.canComment
+                    }
                     onClose={() => ui.setNoteTargetId(null)}
                     onSave={() => {
-                      if (assignmentsReadOnly) {
-                        ui.setNoteTargetId(null);
-                        return;
-                      }
                       ui.updateComment(noteItem.id, ui.noteDraft);
                       ui.setNoteTargetId(null);
                     }}
@@ -380,6 +395,10 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                 {infoItem ? (
                   <MiniCartInfoModal
                     item={infoItem}
+                    editable={ui.canEditItemFields(infoItem)}
+                    onChangeField={(field, value) =>
+                      ui.setMedicationField(infoItem.id, field, value)
+                    }
                     onClose={() => ui.setInfoTargetId(null)}
                   />
                 ) : null}

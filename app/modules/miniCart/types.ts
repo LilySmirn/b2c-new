@@ -1,3 +1,11 @@
+import type { MiniCartAssignmentOps } from "./assignmentOps";
+
+export type {
+  MiniCartAssignmentOps,
+  MiniCartMedsField,
+  MiniCartMedsPick,
+} from "./assignmentOps";
+
 export type MiniCartNav = "clinical-recs" | "easymed-ai" | "interactions";
 
 export type MiniCartVisit = "primary" | "repeat" | "inpatient";
@@ -155,8 +163,10 @@ export type MiniCartProps = {
    */
   recommendationText?: string;
   /**
-   * Реальный режим `/cart`: назначения только для отображения,
-   * локальные правки не сохраняются в справочник.
+   * Операции поверх PrescriptionChecklist.
+   * Если заданы — локальные мутации назначений отключены; доступны только переданные ops (D1…).
    */
-  assignmentsReadOnly?: boolean;
+  assignmentOps?: MiniCartAssignmentOps;
+  /** Скрыть поиск МКБ (реальный `/cart`: диагноз только для чтения). */
+  hideMkbSearch?: boolean;
 };

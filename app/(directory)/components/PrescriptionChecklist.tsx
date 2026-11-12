@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   assignmentFromDraft,
   clearedAssignmentDraft,
@@ -89,6 +96,21 @@ const readMedicationField = (
   field: MedicationField,
 ) => drafts[item.id]?.[field] ?? "";
 
+export type PrescriptionChecklistHandle = {
+  toggleItem: (itemId: string) => void;
+  setItemComment: (itemId: string, comment: string) => void;
+  applyMedsPick: (
+    itemId: string,
+    pick: Partial<Pick<MedsRowSelection, "inn" | "trade" | "dose" | "form">>,
+  ) => void;
+  setMedicationField: (
+    itemId: string,
+    field: MedicationField,
+    value: string,
+  ) => void;
+  selectAllRequiredDiagnostics: () => void;
+};
+
 type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
   /**
@@ -107,19 +129,25 @@ type PrescriptionChecklistProps = {
   medsRecommendationKey?: string;
 };
 
-export default function PrescriptionChecklist({
-  onSelectionChange,
-  onAssignmentSnapshotChange,
-  uncheckItemId,
-  onUncheckHandled,
-  clearSelectionSignal = 0,
-  initialSections = [],
-  appliedTemplateItems = null,
-  appendixA3Tables = [],
-  isAppendixA3Loading = false,
-  appendixA3Error = "",
-  medsRecommendationKey = "",
-}: PrescriptionChecklistProps) {
+const PrescriptionChecklist = forwardRef<
+  PrescriptionChecklistHandle,
+  PrescriptionChecklistProps
+>(function PrescriptionChecklist(
+  {
+    onSelectionChange,
+    onAssignmentSnapshotChange,
+    uncheckItemId,
+    onUncheckHandled,
+    clearSelectionSignal = 0,
+    initialSections = [],
+    appliedTemplateItems = null,
+    appendixA3Tables = [],
+    isAppendixA3Loading = false,
+    appendixA3Error = "",
+    medsRecommendationKey = "",
+  },
+  ref,
+) {
   const [sections, setSections] = useState(() =>
     mergeChecklistSectionsByTitle(initialSections),
   );
@@ -343,6 +371,26 @@ export default function PrescriptionChecklist({
     setCommentTarget(null);
   };
 
+  const setItemComment = (itemId: string, comment: string) => {
+    const trimmedComment = comment.trim();
+
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        items: section.items.map((item) =>
+          itemMatchesId(item, itemId)
+            ? {
+                ...item,
+                checked: trimmedComment ? true : item.checked,
+                comment: trimmedComment,
+              }
+            : item,
+        ),
+      })),
+    );
+    writeCommentSource(itemId, "user");
+  };
+
   useEffect(() => {
     if (!commentTarget) return;
 
@@ -559,6 +607,28 @@ export default function PrescriptionChecklist({
       })),
     );
   };
+
+  const findItemById = (itemId: string) =>
+    sections
+      .flatMap((section) => section.items)
+      .find((item) => itemMatchesId(item, itemId)) ?? null;
+
+  const applyMedsPickById = (
+    itemId: string,
+    pick: Partial<Pick<MedsRowSelection, "inn" | "trade" | "dose" | "form">>,
+  ) => {
+    const item = findItemById(itemId);
+    if (!item) return;
+    commitMedsSelection(item, pick);
+  };
+
+  useImperativeHandle(ref, () => ({
+    toggleItem: toggleChecked,
+    setItemComment,
+    applyMedsPick: applyMedsPickById,
+    setMedicationField: updateMedicationField,
+    selectAllRequiredDiagnostics: toggleRequiredDiagnostics,
+  }));
 
   const updateMedicationIntake = (id: string, intake: MedicationIntake) => {
     setMedicationIntake((current) => ({
@@ -1164,4 +1234,6 @@ export default function PrescriptionChecklist({
       )}
     </div>
   );
-}
+});
+
+export default PrescriptionChecklist;

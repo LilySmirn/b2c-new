@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react";
 import { schemeBadgeText } from "@/app/(directory)/components/medications/combinationSelection";
-import { displayName, displaySub, isSelectableDrug } from "../lib/display";
+import { displayName, displaySub } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartShellTab } from "../types";
 
 type MiniCartItemListProps = {
@@ -8,7 +8,12 @@ type MiniCartItemListProps = {
   shellTabs: Record<string, MiniCartShellTab>;
   drugItems: MiniCartCatalogItem[];
   classicItems: MiniCartCatalogItem[];
-  assignmentsReadOnly?: boolean;
+  canToggle?: boolean;
+  canComment?: boolean;
+  canSelectAll?: boolean;
+  canOpenTrade?: (item: MiniCartCatalogItem) => boolean;
+  canOpenScheme?: (item: MiniCartCatalogItem) => boolean;
+  canOpenCombo?: (item: MiniCartCatalogItem) => boolean;
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
@@ -43,7 +48,11 @@ function MarkButton({
 
 function DrugRow({
   item,
-  assignmentsReadOnly = false,
+  canToggle = true,
+  canComment = true,
+  canOpenTrade,
+  canOpenScheme,
+  canOpenCombo,
   onToggle,
   onOpenComment,
   onOpenInfo,
@@ -52,7 +61,11 @@ function DrugRow({
   onOpenCombo,
 }: {
   item: MiniCartCatalogItem;
-  assignmentsReadOnly?: boolean;
+  canToggle?: boolean;
+  canComment?: boolean;
+  canOpenTrade?: (item: MiniCartCatalogItem) => boolean;
+  canOpenScheme?: (item: MiniCartCatalogItem) => boolean;
+  canOpenCombo?: (item: MiniCartCatalogItem) => boolean;
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
@@ -60,12 +73,16 @@ function DrugRow({
   onOpenScheme: (itemId: string) => void;
   onOpenCombo: (itemId: string) => void;
 }) {
-  const selectable = !assignmentsReadOnly && isSelectableDrug(item);
-  const sub = assignmentsReadOnly
-    ? item.selectedTrade && item.selectedInn
+  const selectable =
+    Boolean(canOpenTrade?.(item)) ||
+    Boolean(canOpenScheme?.(item)) ||
+    Boolean(canOpenCombo?.(item));
+  const showPickerHint = selectable;
+  const sub = showPickerHint
+    ? displaySub(item)
+    : item.selectedTrade && item.selectedInn
       ? item.selectedInn
-      : ""
-    : displaySub(item);
+      : item.selectedInn || "";
   const name = displayName(item);
 
   const openPicker = (event: MouseEvent<HTMLButtonElement>) => {
@@ -116,7 +133,7 @@ function DrugRow({
           <input
             type="checkbox"
             checked={Boolean(item.selected)}
-            disabled={assignmentsReadOnly}
+            disabled={!canToggle}
             aria-label={`Выбрать ${item.name || name}`}
             onChange={() => onToggle(item.id)}
           />
@@ -157,6 +174,7 @@ function DrugRow({
       <button
         type="button"
         className={`preparaty__classic-comment${item.commentShort ? " is-filled" : ""}`}
+        disabled={!canComment}
         onClick={() => onOpenComment(item.id)}
       >
         {item.commentShort || "Комментарий..."}
@@ -167,13 +185,15 @@ function DrugRow({
 
 function ClassicRow({
   item,
-  assignmentsReadOnly = false,
+  canToggle = true,
+  canComment = true,
   onToggle,
   onOpenComment,
   onOpenInfo,
 }: {
   item: MiniCartCatalogItem;
-  assignmentsReadOnly?: boolean;
+  canToggle?: boolean;
+  canComment?: boolean;
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
@@ -188,7 +208,7 @@ function ClassicRow({
           className={`preparaty__checkbox${item.selected ? " is-checked" : ""}`}
           aria-label={`Выбрать ${item.name}`}
           aria-pressed={Boolean(item.selected)}
-          disabled={assignmentsReadOnly}
+          disabled={!canToggle}
           onClick={() => onToggle(item.id)}
         >
           {item.selected ? "✓" : ""}
@@ -200,7 +220,7 @@ function ClassicRow({
         type="button"
         className="preparaty__classic-name"
         aria-pressed={Boolean(item.selected)}
-        disabled={assignmentsReadOnly}
+        disabled={!canToggle}
         onClick={() => onToggle(item.id)}
       >
         {item.name}
@@ -218,6 +238,7 @@ function ClassicRow({
       <button
         type="button"
         className={`preparaty__classic-comment${item.commentText ? " is-filled" : ""}`}
+        disabled={!canComment}
         onClick={() => onOpenComment(item.id)}
       >
         {item.commentText || "Комментарий..."}
@@ -231,7 +252,12 @@ export default function MiniCartItemList({
   shellTabs,
   drugItems,
   classicItems,
-  assignmentsReadOnly = false,
+  canToggle = true,
+  canComment = true,
+  canSelectAll = true,
+  canOpenTrade,
+  canOpenScheme,
+  canOpenCombo,
   onToggle,
   onOpenComment,
   onOpenInfo,
@@ -247,7 +273,11 @@ export default function MiniCartItemList({
           <DrugRow
             key={item.id}
             item={item}
-            assignmentsReadOnly={assignmentsReadOnly}
+            canToggle={canToggle}
+            canComment={canComment}
+            canOpenTrade={canOpenTrade}
+            canOpenScheme={canOpenScheme}
+            canOpenCombo={canOpenCombo}
             onToggle={onToggle}
             onOpenComment={onOpenComment}
             onOpenInfo={onOpenInfo}
@@ -300,7 +330,7 @@ export default function MiniCartItemList({
                   className="preparaty__checkbox"
                   aria-label={shell.selectAllLabel}
                   aria-pressed="false"
-                  disabled={assignmentsReadOnly}
+                  disabled={!canSelectAll}
                   onClick={() => onSelectAll(activeTab)}
                 />
               ) : null}
@@ -310,7 +340,8 @@ export default function MiniCartItemList({
               <ClassicRow
                 key={item.id}
                 item={item}
-                assignmentsReadOnly={assignmentsReadOnly}
+                canToggle={canToggle}
+                canComment={canComment}
                 onToggle={onToggle}
                 onOpenComment={onOpenComment}
                 onOpenInfo={onOpenInfo}

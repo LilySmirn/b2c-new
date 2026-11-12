@@ -1,16 +1,54 @@
 import { displayName } from "../lib/display";
-import type { MiniCartCatalogItem } from "../types";
+import type { MiniCartCatalogItem, MiniCartMedsField } from "../types";
 import MiniCartPortal from "./MiniCartPortal";
 
 type MiniCartInfoModalProps = {
   item: MiniCartCatalogItem;
   onClose: () => void;
+  editable?: boolean;
+  onChangeField?: (field: MiniCartMedsField, value: string) => void;
 };
 
-export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalProps) {
-  const dose = item.selectedDose?.trim() || "";
-  const form = item.selectedForm?.trim() || "";
+export default function MiniCartInfoModal({
+  item,
+  onClose,
+  editable = false,
+  onChangeField,
+}: MiniCartInfoModalProps) {
+  const dose = item.selectedDose ?? "";
+  const form = item.selectedForm ?? "";
+  const scheme = item.scheme ?? "";
+  const course = item.course ?? "";
   const componentEntries = Object.entries(item.componentPicks ?? {});
+
+  const field = (
+    id: MiniCartMedsField,
+    label: string,
+    value: string,
+  ) => {
+    if (!editable || !onChangeField) {
+      if (!value.trim()) return null;
+      return (
+        <>
+          <h3>{label}</h3>
+          <p>{value}</p>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <h3>{label}</h3>
+        <input
+          className="preparaty__note-text"
+          style={{ width: "100%", boxSizing: "border-box", marginBottom: 8 }}
+          value={value}
+          aria-label={label}
+          onChange={(event) => onChangeField(id, event.target.value)}
+        />
+      </>
+    );
+  };
 
   return (
     <MiniCartPortal>
@@ -52,30 +90,10 @@ export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalPr
               <p>{item.selectedTrade}</p>
             </>
           ) : null}
-          {dose ? (
-            <>
-              <h3>Доза</h3>
-              <p>{dose}</p>
-            </>
-          ) : null}
-          {form ? (
-            <>
-              <h3>Форма</h3>
-              <p>{form}</p>
-            </>
-          ) : null}
-          {item.scheme ? (
-            <>
-              <h3>Схема</h3>
-              <p>{item.scheme}</p>
-            </>
-          ) : null}
-          {item.course ? (
-            <>
-              <h3>Курс</h3>
-              <p>{item.course}</p>
-            </>
-          ) : null}
+          {field("dose", "Доза", dose)}
+          {field("form", "Форма", form)}
+          {field("scheme", "Схема", scheme)}
+          {field("course", "Курс", course)}
           {componentEntries.length > 0 ? (
             <>
               <h3>Компоненты схемы</h3>

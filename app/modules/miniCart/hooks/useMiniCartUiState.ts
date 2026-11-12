@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  miniCartOpFlags,
+  type MiniCartAssignmentOps,
+} from "../assignmentOps";
 import type {
   MiniCartAge,
   MiniCartCatalogItem,
@@ -18,7 +22,7 @@ export type MiniCartUiStateArgs = {
   shellTabs: Record<string, MiniCartShellTab>;
   initiallyOpen?: boolean;
   recommendationText?: string;
-  assignmentsReadOnly?: boolean;
+  assignmentOps?: MiniCartAssignmentOps;
 };
 
 export function useMiniCartUiState({
@@ -28,8 +32,9 @@ export function useMiniCartUiState({
   shellTabs,
   initiallyOpen = true,
   recommendationText,
-  assignmentsReadOnly = false,
+  assignmentOps,
 }: MiniCartUiStateArgs) {
+  const flags = miniCartOpFlags(assignmentOps);
   const activeFromTabs =
     initialTabs.find((tab) => tab.active)?.id ??
     initialTabs.find((tab) => tab.enabled)?.id ??
@@ -62,7 +67,6 @@ export function useMiniCartUiState({
   const [aiInput, setAiInput] = useState("");
   const [ixQuery, setIxQuery] = useState("");
 
-  // Подхват секций/каталога/назначений без remount Shell (PiP остаётся открытым).
   useEffect(() => {
     setDrugItems(initialDrugItems);
     setClassicItems(initialClassicItems);
@@ -89,7 +93,11 @@ export function useMiniCartUiState({
   );
 
   const toggleItem = (itemId: string) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) {
+      if (!flags.canToggle) return;
+      assignmentOps?.toggleItem(itemId);
+      return;
+    }
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId ? { ...item, selected: !item.selected } : item,
@@ -103,7 +111,11 @@ export function useMiniCartUiState({
   };
 
   const updateComment = (itemId: string, comment: string) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) {
+      if (!flags.canComment) return;
+      assignmentOps?.setComment(itemId, comment);
+      return;
+    }
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId ? { ...item, commentShort: comment } : item,
@@ -120,7 +132,11 @@ export function useMiniCartUiState({
     itemId: string,
     pick: { inn: string; trade: string; dose?: string; form?: string },
   ) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) {
+      if (!flags.canTrade) return;
+      assignmentOps?.applyMedsPick(itemId, pick);
+      return;
+    }
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -137,11 +153,32 @@ export function useMiniCartUiState({
     );
   };
 
+  const setMedicationField = (
+    itemId: string,
+    field: "dose" | "form" | "scheme" | "course",
+    value: string,
+  ) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canEditFields) return;
+      assignmentOps?.setMedicationField(itemId, field, value);
+      return;
+    }
+    setDrugItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        if (field === "dose") return { ...item, selectedDose: value };
+        if (field === "form") return { ...item, selectedForm: value };
+        if (field === "scheme") return { ...item, scheme: value };
+        return { ...item, course: value };
+      }),
+    );
+  };
+
   const applySchemePicks = (
     itemId: string,
     picks: Record<string, MiniCartComponentPick>,
   ) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -163,7 +200,7 @@ export function useMiniCartUiState({
     itemId: string,
     pick: { inn: string; trade: string },
   ) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -184,20 +221,14 @@ export function useMiniCartUiState({
     null;
 
   const openComment = (itemId: string) => {
-    if (assignmentsReadOnly) {
-      // Только просмотр: открываем note с текущим текстом без сохранения.
-      const item = findItem(itemId);
-      setNoteDraft(item?.commentShort || item?.commentText || "");
-      setNoteTargetId(itemId);
-      return;
-    }
+    if (flags.isDirectoryBacked && !flags.canComment) return;
     const item = findItem(itemId);
     setNoteDraft(item?.commentShort || item?.commentText || "");
     setNoteTargetId(itemId);
   };
 
   const addCustomItem = (name: string) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) return;
     const id = `custom-${customSeq}`;
     setCustomSeq((value) => value + 1);
     setClassicItems((prev) => [
@@ -215,12 +246,50 @@ export function useMiniCartUiState({
   };
 
   const selectAllRequired = (tabId: string) => {
-    if (assignmentsReadOnly) return;
+    if (flags.isDirectoryBacked) {
+      if (!flags.canSelectAllRequired) return;
+      if (tabId === "required-diagnostics") {
+        assignmentOps?.selectAllRequiredDiagnostics?.();
+      }
+      return;
+    }
     setClassicItems((prev) =>
       prev.map((item) =>
         item.tabId === tabId ? { ...item, selected: true } : item,
       ),
     );
+  };
+
+  /** D1: торговое имя только для kind=trade; группы/схемы — D2. */
+  const canOpenTradePicker = (item: MiniCartCatalogItem) => {
+    if (flags.isDirectoryBacked) {
+      return flags.canTrade && item.kind === "trade";
+    }
+    return (
+      item.kind === "alternatives" ||
+      item.kind === "trade" ||
+      item.kind === "extra-drug"
+    );
+  };
+
+  const canOpenSchemePicker = (item: MiniCartCatalogItem) => {
+    if (flags.isDirectoryBacked) return false;
+    return item.kind === "scheme";
+  };
+
+  const canOpenComboPicker = (item: MiniCartCatalogItem) => {
+    if (flags.isDirectoryBacked) return false;
+    return item.kind === "combo";
+  };
+
+  const canEditItemFields = (item: MiniCartCatalogItem) => {
+    if (flags.isDirectoryBacked) {
+      return (
+        flags.canEditFields &&
+        (item.kind === "trade" || item.kind === "plain" || item.kind === "extra-drug")
+      );
+    }
+    return true;
   };
 
   return {
@@ -265,11 +334,16 @@ export function useMiniCartUiState({
     setAiInput,
     ixQuery,
     setIxQuery,
-    assignmentsReadOnly,
+    flags,
+    canOpenTradePicker,
+    canOpenSchemePicker,
+    canOpenComboPicker,
+    canEditItemFields,
     toggleItem,
     updateComment,
     openComment,
     applyTrade,
+    setMedicationField,
     applySchemePicks,
     applyComboPick,
     addCustomItem,
