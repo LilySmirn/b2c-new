@@ -8,6 +8,7 @@ const HIDDEN_HEADER_PATHS = new Set([
   '/cart',
   '/access-error',
   '/auth',
+  '/dev/mini-cart-preview',
 ]);
 
 type ConditionalHeaderProps = {

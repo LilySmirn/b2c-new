@@ -8,6 +8,7 @@ const HIDDEN_FOOTER_PATHS = new Set([
   '/cart',
   '/access-error',
   '/auth',
+  '/dev/mini-cart-preview',
 ]);
 
 type ConditionalFooterProps = {
