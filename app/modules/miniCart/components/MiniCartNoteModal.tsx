@@ -7,6 +7,7 @@ type MiniCartNoteModalProps = {
   onChange: (value: string) => void;
   onClose: () => void;
   onSave: () => void;
+  readOnly?: boolean;
 };
 
 export default function MiniCartNoteModal({
@@ -16,6 +17,7 @@ export default function MiniCartNoteModal({
   onChange,
   onClose,
   onSave,
+  readOnly = false,
 }: MiniCartNoteModalProps) {
   return (
     <MiniCartPortal>
@@ -44,26 +46,46 @@ export default function MiniCartNoteModal({
             id="mini-cart-note-text"
             className="preparaty__note-text"
             rows={6}
-            placeholder="Напишите комментарий к назначению..."
+            placeholder={
+              readOnly
+                ? "Комментарий отсутствует"
+                : "Напишите комментарий к назначению..."
+            }
             value={value}
-            onChange={(event) => onChange(event.target.value)}
+            readOnly={readOnly}
+            onChange={(event) => {
+              if (readOnly) return;
+              onChange(event.target.value);
+            }}
           />
         </div>
         <div className="preparaty__note-foot">
-          <button
-            type="button"
-            className="preparaty__scheme-btn preparaty__scheme-btn--ghost"
-            onClick={onClose}
-          >
-            Отмена
-          </button>
-          <button
-            type="button"
-            className="preparaty__scheme-btn preparaty__scheme-btn--primary"
-            onClick={onSave}
-          >
-            Сохранить
-          </button>
+          {readOnly ? (
+            <button
+              type="button"
+              className="preparaty__scheme-btn preparaty__scheme-btn--primary"
+              onClick={onClose}
+            >
+              Закрыть
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="preparaty__scheme-btn preparaty__scheme-btn--ghost"
+                onClick={onClose}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="preparaty__scheme-btn preparaty__scheme-btn--primary"
+                onClick={onSave}
+              >
+                Сохранить
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

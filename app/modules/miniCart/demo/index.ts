@@ -42,9 +42,9 @@ export const flattenShellClassicItems = (
           level: row.level || "",
           hint: row.hint || "",
           commentText: row.comment || "",
-          selected: false,
+          selected: Boolean(row.selected),
           tabId,
-          group: group.title || "",
+          group: group.id || group.title || "",
         });
       });
     });

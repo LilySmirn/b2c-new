@@ -7,6 +7,8 @@ export {
   MINI_CART_PREVIEW_ENABLED,
 } from "./featureFlag";
 export { supportsDocumentPip } from "./pip/documentPip";
+export { adaptDirectoryCartToMiniCart } from "./adapters/fromDirectoryCart";
+export { useDirectoryMiniCartData } from "./hooks/useDirectoryMiniCartData";
 export type {
   MiniCartCatalogItem,
   MiniCartDisplayMode,

@@ -69,6 +69,8 @@ export type MiniCartCatalogItem = {
 };
 
 export type MiniCartShellGroup = {
+  /** Стабильный ключ группы (section.id); для фильтрации classicItems. */
+  id?: string;
   title?: string;
   items?: Array<{
     id?: string;
@@ -77,6 +79,7 @@ export type MiniCartShellGroup = {
     level?: string;
     hint?: string;
     comment?: string;
+    selected?: boolean;
   }>;
 };
 
@@ -146,4 +149,14 @@ export type MiniCartProps = {
   /** Controlled режим отображения. */
   displayMode?: MiniCartDisplayMode;
   onDisplayModeChange?: (mode: MiniCartDisplayMode) => void;
+  /**
+   * Общая рекомендация из внешнего источника (SideCart / storage).
+   * Если задана — локальный state только зеркалит значение.
+   */
+  recommendationText?: string;
+  /**
+   * Реальный режим `/cart`: назначения только для отображения,
+   * локальные правки не сохраняются в справочник.
+   */
+  assignmentsReadOnly?: boolean;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   MiniCartAge,
   MiniCartCatalogItem,
@@ -17,6 +17,8 @@ export type MiniCartUiStateArgs = {
   initialClassicItems: MiniCartCatalogItem[];
   shellTabs: Record<string, MiniCartShellTab>;
   initiallyOpen?: boolean;
+  recommendationText?: string;
+  assignmentsReadOnly?: boolean;
 };
 
 export function useMiniCartUiState({
@@ -25,6 +27,8 @@ export function useMiniCartUiState({
   initialClassicItems,
   shellTabs,
   initiallyOpen = true,
+  recommendationText,
+  assignmentsReadOnly = false,
 }: MiniCartUiStateArgs) {
   const activeFromTabs =
     initialTabs.find((tab) => tab.active)?.id ??
@@ -35,14 +39,18 @@ export function useMiniCartUiState({
   const [docked, setDocked] = useState(false);
   const [miniNav, setMiniNav] = useState<MiniCartNav>("clinical-recs");
   const [activeTab, setActiveTab] = useState(activeFromTabs);
-  const [miniTabPage, setMiniTabPage] = useState(activeFromTabs === "drugs" || (initialTabs.findIndex((t) => t.id === activeFromTabs) >= 4) ? (initialTabs.findIndex((t) => t.id === activeFromTabs) >= 4 ? 1 : 0) : 0);
+  const [miniTabPage, setMiniTabPage] = useState(
+    initialTabs.findIndex((tab) => tab.id === activeFromTabs) >= 4 ? 1 : 0,
+  );
   const [drugItems, setDrugItems] = useState(initialDrugItems);
   const [classicItems, setClassicItems] = useState(initialClassicItems);
   const [mkbQuery, setMkbQuery] = useState("");
   const [mkbSearchOpen, setMkbSearchOpen] = useState(false);
   const [mkbVisit, setMkbVisit] = useState<MiniCartVisit>("primary");
   const [mkbAge, setMkbAge] = useState<MiniCartAge>("adult");
-  const [recommendation, setRecommendation] = useState("");
+  const [recommendation, setRecommendation] = useState(
+    () => recommendationText ?? "",
+  );
   const [noteTargetId, setNoteTargetId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [infoTargetId, setInfoTargetId] = useState<string | null>(null);
@@ -54,10 +62,23 @@ export function useMiniCartUiState({
   const [aiInput, setAiInput] = useState("");
   const [ixQuery, setIxQuery] = useState("");
 
+  // Подхват секций/каталога/назначений без remount Shell (PiP остаётся открытым).
+  useEffect(() => {
+    setDrugItems(initialDrugItems);
+    setClassicItems(initialClassicItems);
+  }, [initialClassicItems, initialDrugItems]);
+
+  useEffect(() => {
+    if (recommendationText === undefined) return;
+    setRecommendation(recommendationText);
+  }, [recommendationText]);
+
   const tabs = useMemo(
     () =>
       initialTabs.map((tab) => {
-        if (tab.id === "drugs") return { ...tab, enabled: true };
+        if (tab.id === "drugs") {
+          return { ...tab, enabled: tab.enabled !== false };
+        }
         const shell = shellTabs[tab.id];
         if (shell && typeof shell.enabled === "boolean") {
           return { ...tab, enabled: shell.enabled };
@@ -68,6 +89,7 @@ export function useMiniCartUiState({
   );
 
   const toggleItem = (itemId: string) => {
+    if (assignmentsReadOnly) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId ? { ...item, selected: !item.selected } : item,
@@ -81,6 +103,7 @@ export function useMiniCartUiState({
   };
 
   const updateComment = (itemId: string, comment: string) => {
+    if (assignmentsReadOnly) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId ? { ...item, commentShort: comment } : item,
@@ -97,6 +120,7 @@ export function useMiniCartUiState({
     itemId: string,
     pick: { inn: string; trade: string; dose?: string; form?: string },
   ) => {
+    if (assignmentsReadOnly) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -117,6 +141,7 @@ export function useMiniCartUiState({
     itemId: string,
     picks: Record<string, MiniCartComponentPick>,
   ) => {
+    if (assignmentsReadOnly) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -138,6 +163,7 @@ export function useMiniCartUiState({
     itemId: string,
     pick: { inn: string; trade: string },
   ) => {
+    if (assignmentsReadOnly) return;
     setDrugItems((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -158,12 +184,20 @@ export function useMiniCartUiState({
     null;
 
   const openComment = (itemId: string) => {
+    if (assignmentsReadOnly) {
+      // Только просмотр: открываем note с текущим текстом без сохранения.
+      const item = findItem(itemId);
+      setNoteDraft(item?.commentShort || item?.commentText || "");
+      setNoteTargetId(itemId);
+      return;
+    }
     const item = findItem(itemId);
     setNoteDraft(item?.commentShort || item?.commentText || "");
     setNoteTargetId(itemId);
   };
 
   const addCustomItem = (name: string) => {
+    if (assignmentsReadOnly) return;
     const id = `custom-${customSeq}`;
     setCustomSeq((value) => value + 1);
     setClassicItems((prev) => [
@@ -181,6 +215,7 @@ export function useMiniCartUiState({
   };
 
   const selectAllRequired = (tabId: string) => {
+    if (assignmentsReadOnly) return;
     setClassicItems((prev) =>
       prev.map((item) =>
         item.tabId === tabId ? { ...item, selected: true } : item,
@@ -230,6 +265,7 @@ export function useMiniCartUiState({
     setAiInput,
     ixQuery,
     setIxQuery,
+    assignmentsReadOnly,
     toggleItem,
     updateComment,
     openComment,

@@ -51,9 +51,9 @@ function flattenClassicItems(
           level: row.level || "",
           hint: row.hint || "",
           commentText: row.comment || "",
-          selected: false,
+          selected: Boolean(row.selected),
           tabId,
-          group: group.title || "",
+          group: group.id || group.title || "",
         });
       });
     });
@@ -78,6 +78,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       initiallyOpen = false,
       displayMode: controlledMode,
       onDisplayModeChange,
+      recommendationText,
+      assignmentsReadOnly = false,
     },
     ref,
   ) {
@@ -110,6 +112,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       initialClassicItems: classicSeed,
       shellTabs,
       initiallyOpen: true,
+      recommendationText,
+      assignmentsReadOnly,
     });
 
     const hostRef = useRef<HTMLDivElement>(null);
@@ -266,15 +270,23 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                 shellTabs={shellTabs}
                 drugItems={ui.drugItems}
                 classicItems={ui.classicItems}
+                assignmentsReadOnly={assignmentsReadOnly}
                 onToggle={ui.toggleItem}
                 onOpenComment={ui.openComment}
                 onOpenInfo={ui.setInfoTargetId}
                 onOpenTrade={(itemId, anchor) => {
+                  if (assignmentsReadOnly) return;
                   ui.setTradeTargetId(itemId);
                   setTradeAnchor(anchor);
                 }}
-                onOpenScheme={ui.setSchemeTargetId}
-                onOpenCombo={ui.setComboTargetId}
+                onOpenScheme={(itemId) => {
+                  if (assignmentsReadOnly) return;
+                  ui.setSchemeTargetId(itemId);
+                }}
+                onOpenCombo={(itemId) => {
+                  if (assignmentsReadOnly) return;
+                  ui.setComboTargetId(itemId);
+                }}
                 onSelectAll={ui.selectAllRequired}
               />
             </div>
@@ -295,8 +307,15 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
         <MiniCartFooter
           recommendation={ui.recommendation}
-          onRecommendationChange={ui.setRecommendation}
-          onAddClick={() => ui.setAddModalOpen(true)}
+          onRecommendationChange={(value) => {
+            if (assignmentsReadOnly) return;
+            ui.setRecommendation(value);
+          }}
+          onAddClick={() => {
+            if (assignmentsReadOnly) return;
+            ui.setAddModalOpen(true);
+          }}
+          assignmentsReadOnly={assignmentsReadOnly}
         />
       </aside>
     ) : null;
@@ -345,8 +364,13 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                     subtitle="Комментарий к назначению"
                     value={ui.noteDraft}
                     onChange={ui.setNoteDraft}
+                    readOnly={assignmentsReadOnly}
                     onClose={() => ui.setNoteTargetId(null)}
                     onSave={() => {
+                      if (assignmentsReadOnly) {
+                        ui.setNoteTargetId(null);
+                        return;
+                      }
                       ui.updateComment(noteItem.id, ui.noteDraft);
                       ui.setNoteTargetId(null);
                     }}

@@ -8,6 +8,10 @@ type MiniCartInfoModalProps = {
 };
 
 export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalProps) {
+  const dose = item.selectedDose?.trim() || "";
+  const form = item.selectedForm?.trim() || "";
+  const componentEntries = Object.entries(item.componentPicks ?? {});
+
   return (
     <MiniCartPortal>
     <div className="preparaty__info-layer" role="presentation">
@@ -35,7 +39,31 @@ export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalPr
           </button>
         </div>
         <div className="preparaty__info-body">
-          <p>{item.hint || "Дополнительное описание отсутствует в демо-данных."}</p>
+          <p>{item.hint || "Дополнительное описание отсутствует."}</p>
+          {item.selectedInn ? (
+            <>
+              <h3>МНН</h3>
+              <p>{item.selectedInn}</p>
+            </>
+          ) : null}
+          {item.selectedTrade && item.kind !== "scheme" ? (
+            <>
+              <h3>Торговое наименование</h3>
+              <p>{item.selectedTrade}</p>
+            </>
+          ) : null}
+          {dose ? (
+            <>
+              <h3>Доза</h3>
+              <p>{dose}</p>
+            </>
+          ) : null}
+          {form ? (
+            <>
+              <h3>Форма</h3>
+              <p>{form}</p>
+            </>
+          ) : null}
           {item.scheme ? (
             <>
               <h3>Схема</h3>
@@ -46,6 +74,26 @@ export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalPr
             <>
               <h3>Курс</h3>
               <p>{item.course}</p>
+            </>
+          ) : null}
+          {componentEntries.length > 0 ? (
+            <>
+              <h3>Компоненты схемы</h3>
+              <ul>
+                {componentEntries.map(([componentId, pick]) => {
+                  const component = item.components?.find((row) => row.id === componentId);
+                  const label = component?.label || componentId;
+                  const details = [pick.trade || pick.inn, pick.dose, pick.form]
+                    .filter(Boolean)
+                    .join(" · ");
+                  return (
+                    <li key={componentId}>
+                      <strong>{label}</strong>
+                      {details ? ` — ${details}` : ""}
+                    </li>
+                  );
+                })}
+              </ul>
             </>
           ) : null}
         </div>

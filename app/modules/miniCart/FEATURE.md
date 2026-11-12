@@ -32,6 +32,24 @@ NEXT_PUBLIC_MINI_CART=1
 
 `/dev/mini-cart-preview` — демо K26 + кнопка открытия PiP.
 
+## Данные
+
+На `/cart` при `MINI_CART_PREVIEW_ENABLED` мини-корзинка получает view-model из:
+
+- `checklistSections` / `diagnosisTitle` страницы корзины;
+- `useMedsCatalog(recommendationKey)` → существующий `medsCatalogSession` (без повторного fetch);
+- таблиц приложения А3, уже загруженных страницей;
+- снимка назначений `ChecklistAssignmentSnapshot` из `PrescriptionChecklist` (`medicationDrafts`, intake, combinations, itemStates);
+- custom items / общей рекомендации из `cartStorage` (как у SideCart).
+
+Адаптер: `adapters/fromDirectoryCart.ts`. Хук: `hooks/useDirectoryMiniCartData.ts`.
+
+В реальном режиме `/cart` — `assignmentsReadOnly`: отображение без локального сохранения правок.
+
+Demo-preview по-прежнему со своим локальным UI-state.
+
+Пока **не** подключены: двустороннее редактирование, поиск МКБ, запись в карту / копирование, шаблоны, AI, interactions.
+
 ## Следующий этап
 
-Подключение реальных данных / shared cart sync.
+Подэтап C — поиск и смена МКБ; затем двустороннее редактирование назначений.

@@ -12,6 +12,10 @@ import {
   type AssignmentCommentSource,
   type AssignmentFieldState,
 } from "./medications/assignmentScheme";
+import type {
+  ChecklistAssignmentSnapshot,
+  MedicationFieldDraft,
+} from "./medications/assignmentSnapshot";
 import DrugInfoModal, {
   EMPTY_MEDICATION_INTAKE,
   type MedicationIntake,
@@ -34,72 +38,29 @@ import { useMedsCatalog } from "./medications/useMedsCatalog";
 import LoadingSpinner from "./LoadingSpinner";
 import styles from "./PrescriptionChecklist.module.css";
 
-export type ChecklistItem = {
-  id: string;
-  checked: boolean;
-  qualityControl: boolean;
-  code: string;
-  title: string;
-  info: string;
-  infoComment?: string;
-  comment: string;
-  treatmentPlan?: string;
-  treatmentDuration?: string;
-  sourceIds?: string[];
-  mergedItems?: ChecklistItem[];
-};
-
-export type ChecklistSection = {
-  id: string;
-  title: string;
-  categoryId: string;
-  categoryTitle?: string;
-  groupTitle: string;
-  items: ChecklistItem[];
-};
-
-export type SelectedPrescription = {
-  id: string;
-  categoryId?: string;
-  categoryTitle?: string;
-  groupTitle: string;
-  sectionTitle: string;
-  title: string;
-  comment: string;
-  treatmentPlan?: string;
-  treatmentDuration?: string;
-};
-
-export type AppendixA3Table = {
-  name: string | null;
-  html: string;
-  comment: string | null;
-};
-
-const comparePriorityValues = (left: string, right: string) => {
-  const leftValue = left.trim();
-  const rightValue = right.trim();
-
-  if (!leftValue) return 1;
-  if (!rightValue) return -1;
-
-  const leftNumber = Number(leftValue.replace(",", "."));
-  const rightNumber = Number(rightValue.replace(",", "."));
-  const leftIsNumber = Number.isFinite(leftNumber);
-  const rightIsNumber = Number.isFinite(rightNumber);
-
-  if (leftIsNumber && rightIsNumber && leftNumber !== rightNumber) {
-    return leftNumber - rightNumber;
-  }
-
-  return leftValue.localeCompare(rightValue, "ru", {
-    numeric: true,
-    sensitivity: "base",
-  });
-};
-
-const getPriorityString = (left: string, right: string) =>
-  comparePriorityValues(left, right) <= 0 ? left : right;
+export type {
+  AppendixA3Table,
+  ChecklistItem,
+  ChecklistSection,
+  SelectedPrescription,
+} from "./checklistModel";
+export {
+  defaultChecklistCategories,
+  getChecklistCategoryPosition,
+  mergeChecklistSectionsByTitle,
+  shouldShowSectionTitle,
+  sortSectionsForDisplay,
+} from "./checklistModel";
+import {
+  defaultChecklistCategories,
+  mergeChecklistSectionsByTitle,
+  shouldShowSectionTitle,
+  sortSectionsForDisplay,
+  type AppendixA3Table,
+  type ChecklistItem,
+  type ChecklistSection,
+  type SelectedPrescription,
+} from "./checklistModel";
 
 const getItemIds = (item: ChecklistItem) => item.sourceIds ?? [item.id];
 
@@ -107,120 +68,6 @@ const itemMatchesId = (item: ChecklistItem, id: string) =>
   getItemIds(item).includes(id);
 
 const getMergedItems = (item: ChecklistItem) => item.mergedItems ?? [item];
-
-const mergeChecklistItemsByTitle = (items: ChecklistItem[]) => {
-  const mergedItems = new Map<string, ChecklistItem>();
-
-  items.forEach((item) => {
-    const titleKey = item.title.trim().toLocaleLowerCase("ru");
-    const existingItem = mergedItems.get(titleKey);
-
-    if (!existingItem) {
-      mergedItems.set(titleKey, {
-        ...item,
-        sourceIds: getItemIds(item),
-        mergedItems: getMergedItems(item),
-      });
-      return;
-    }
-
-    const nextMergedItems = [
-      ...getMergedItems(existingItem),
-      ...getMergedItems(item),
-    ]
-      .slice()
-      .sort((left, right) => {
-        const codeComparison = comparePriorityValues(left.code, right.code);
-
-        if (codeComparison !== 0) return codeComparison;
-
-        return comparePriorityValues(left.id, right.id);
-      });
-
-    mergedItems.set(titleKey, {
-      ...existingItem,
-      id: getPriorityString(existingItem.id, item.id),
-      checked: existingItem.checked || item.checked,
-      qualityControl: existingItem.qualityControl || item.qualityControl,
-      code: getPriorityString(existingItem.code, item.code),
-      title: getPriorityString(existingItem.title, item.title),
-      info: getPriorityString(existingItem.info, item.info),
-      infoComment: getPriorityString(
-        existingItem.infoComment ?? "",
-        item.infoComment ?? "",
-      ),
-      comment: existingItem.comment || item.comment,
-      treatmentPlan: existingItem.treatmentPlan || item.treatmentPlan,
-      treatmentDuration:
-        existingItem.treatmentDuration || item.treatmentDuration,
-      sourceIds: Array.from(
-        new Set([...getItemIds(existingItem), ...getItemIds(item)]),
-      ),
-      mergedItems: nextMergedItems,
-    });
-  });
-
-  return Array.from(mergedItems.values());
-};
-
-const mergeChecklistSectionsByTitle = (sections: ChecklistSection[]) =>
-  sections.map((section) => ({
-    ...section,
-    items: mergeChecklistItemsByTitle(section.items),
-  }));
-
-const defaultChecklistCategories = [
-  { id: "required-diagnostics", label: "Диагностика обязательная" },
-  { id: "indicated-diagnostics", label: "Диагностика по показаниям" },
-  { id: "treatment", label: "Лечение" },
-  { id: "medications", label: "Препараты" },
-  { id: "scales", label: "Шкалы и опросники" },
-  { id: "lifestyle", label: "Образ жизни" },
-  { id: "vaccination", label: "Вакцинация" },
-  { id: "appendix-a3", label: "Приложение А3" },
-];
-
-export const getChecklistCategoryPosition = (categoryId?: string) => {
-  const position = defaultChecklistCategories.findIndex(
-    (category) => category.id === categoryId,
-  );
-
-  return position === -1 ? Number.MAX_SAFE_INTEGER : position;
-};
-
-const normalizeSectionTitle = (value: string) =>
-  value
-    .trim()
-    .toLocaleLowerCase("ru")
-    .replace(/ё/g, "е")
-    .replace(/\s+/g, " ");
-
-const genericHiddenSectionTitlesByCategory = new Map<string, Set<string>>([
-  ["treatment", new Set(["немедикаментозное лечение"])],
-  ["medications", new Set(["медикаментозное лечение"])],
-]);
-
-const shouldShowSectionTitle = (section: ChecklistSection) =>
-  !genericHiddenSectionTitlesByCategory
-    .get(section.categoryId)
-    ?.has(normalizeSectionTitle(section.title));
-
-const OFFLABEL_SECTION_TITLE = "Offlabel";
-
-const isOfflabelSection = (section: ChecklistSection) =>
-  section.categoryId === "medications" &&
-  normalizeSectionTitle(section.title) === normalizeSectionTitle(OFFLABEL_SECTION_TITLE);
-
-const sortSectionsForDisplay = (sections: ChecklistSection[]) =>
-  sections.slice().sort((left, right) => {
-    if (left.categoryId !== "medications" || right.categoryId !== "medications") {
-      return 0;
-    }
-
-    if (isOfflabelSection(left) === isOfflabelSection(right)) return 0;
-
-    return isOfflabelSection(left) ? 1 : -1;
-  });
 
 const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
   const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
@@ -234,11 +81,7 @@ const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
   );
 };
 
-type MedicationDraft = Partial<Record<MedicationField, string>> & {
-  inn?: string;
-  trade?: string;
-  recordId?: string;
-};
+type MedicationDraft = MedicationFieldDraft;
 
 const readMedicationField = (
   drafts: Record<string, MedicationDraft>,
@@ -248,6 +91,11 @@ const readMedicationField = (
 
 type PrescriptionChecklistProps = {
   onSelectionChange?: (items: SelectedPrescription[]) => void;
+  /**
+   * Снимок локальных drafts/комбинаций/checked для мини-корзинки.
+   * Не создаёт второй store — только зеркало в родителе.
+   */
+  onAssignmentSnapshotChange?: (snapshot: ChecklistAssignmentSnapshot) => void;
   uncheckItemId?: string | null;
   onUncheckHandled?: () => void;
   clearSelectionSignal?: number;
@@ -261,6 +109,7 @@ type PrescriptionChecklistProps = {
 
 export default function PrescriptionChecklist({
   onSelectionChange,
+  onAssignmentSnapshotChange,
   uncheckItemId,
   onUncheckHandled,
   clearSelectionSignal = 0,
@@ -523,6 +372,34 @@ export default function PrescriptionChecklist({
       ),
     );
   }, [checklistCategories, onSelectionChange, sections]);
+
+  useEffect(() => {
+    if (!onAssignmentSnapshotChange) return;
+
+    const itemStates: ChecklistAssignmentSnapshot["itemStates"] = {};
+    sections.forEach((section) => {
+      section.items.forEach((item) => {
+        const state = { checked: item.checked, comment: item.comment };
+        itemStates[item.id] = state;
+        getItemIds(item).forEach((id) => {
+          itemStates[id] = state;
+        });
+      });
+    });
+
+    onAssignmentSnapshotChange({
+      medicationDrafts,
+      medicationIntake,
+      combinations: combinationByItemId,
+      itemStates,
+    });
+  }, [
+    combinationByItemId,
+    medicationDrafts,
+    medicationIntake,
+    onAssignmentSnapshotChange,
+    sections,
+  ]);
 
   useEffect(() => {
     if (!appliedTemplateItems) return;

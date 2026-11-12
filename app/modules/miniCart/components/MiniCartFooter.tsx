@@ -4,6 +4,7 @@ type MiniCartFooterProps = {
   onAddClick: () => void;
   onWrite?: () => void;
   onCopy?: () => void;
+  assignmentsReadOnly?: boolean;
 };
 
 export default function MiniCartFooter({
@@ -12,10 +13,17 @@ export default function MiniCartFooter({
   onAddClick,
   onWrite,
   onCopy,
+  assignmentsReadOnly = false,
 }: MiniCartFooterProps) {
   return (
     <div className="preparaty__mini-panel-foot">
-      <button type="button" className="preparaty__mini-panel-add" onClick={onAddClick}>
+      <button
+        type="button"
+        className="preparaty__mini-panel-add"
+        onClick={onAddClick}
+        disabled={assignmentsReadOnly}
+        aria-disabled={assignmentsReadOnly}
+      >
         <span aria-hidden="true">+</span>
         <span>Добавить услугу/медикамент</span>
       </button>
@@ -25,10 +33,11 @@ export default function MiniCartFooter({
         placeholder="Напишите общую рекомендацию для пациента..."
         aria-label="Общая рекомендация для пациента"
         value={recommendation}
+        readOnly={assignmentsReadOnly}
         onChange={(event) => onRecommendationChange(event.target.value)}
       />
       <div className="preparaty__mini-panel-actions">
-        <button type="button" className="preparaty__cart-btn" onClick={onWrite}>
+        <button type="button" className="preparaty__cart-btn" onClick={onWrite} disabled>
           <svg
             className="preparaty__cart-btn-icon"
             width="20"
@@ -46,7 +55,7 @@ export default function MiniCartFooter({
             <span>в карту</span>
           </span>
         </button>
-        <button type="button" className="preparaty__cart-btn" onClick={onCopy}>
+        <button type="button" className="preparaty__cart-btn" onClick={onCopy} disabled>
           <svg
             className="preparaty__cart-btn-icon"
             width="20"

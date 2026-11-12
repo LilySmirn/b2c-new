@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { schemeBadgeText } from "@/app/(directory)/components/medications/combinationSelection";
 import { displayName, displaySub, isSelectableDrug } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartShellTab } from "../types";
 
@@ -7,6 +8,7 @@ type MiniCartItemListProps = {
   shellTabs: Record<string, MiniCartShellTab>;
   drugItems: MiniCartCatalogItem[];
   classicItems: MiniCartCatalogItem[];
+  assignmentsReadOnly?: boolean;
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
@@ -41,6 +43,7 @@ function MarkButton({
 
 function DrugRow({
   item,
+  assignmentsReadOnly = false,
   onToggle,
   onOpenComment,
   onOpenInfo,
@@ -49,6 +52,7 @@ function DrugRow({
   onOpenCombo,
 }: {
   item: MiniCartCatalogItem;
+  assignmentsReadOnly?: boolean;
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
@@ -56,8 +60,12 @@ function DrugRow({
   onOpenScheme: (itemId: string) => void;
   onOpenCombo: (itemId: string) => void;
 }) {
-  const selectable = isSelectableDrug(item);
-  const sub = displaySub(item);
+  const selectable = !assignmentsReadOnly && isSelectableDrug(item);
+  const sub = assignmentsReadOnly
+    ? item.selectedTrade && item.selectedInn
+      ? item.selectedInn
+      : ""
+    : displaySub(item);
   const name = displayName(item);
 
   const openPicker = (event: MouseEvent<HTMLButtonElement>) => {
@@ -108,6 +116,7 @@ function DrugRow({
           <input
             type="checkbox"
             checked={Boolean(item.selected)}
+            disabled={assignmentsReadOnly}
             aria-label={`Выбрать ${item.name || name}`}
             onChange={() => onToggle(item.id)}
           />
@@ -118,12 +127,18 @@ function DrugRow({
       </div>
       {item.kind === "scheme" ? (
         <div className="preparaty__scheme">
-          <span className="preparaty__mark preparaty__mark--scheme">Схема · 3 препарата</span>
+          <span className="preparaty__mark preparaty__mark--scheme">
+            {schemeBadgeText(
+              item.components?.length || item.composition?.length || 0,
+            )}
+          </span>
           {nameNode}
         </div>
       ) : item.kind === "combo" ? (
         <div className="preparaty__combo">
-          <span className="preparaty__mark preparaty__mark--combo">Комбинация · 3 ДВ</span>
+          <span className="preparaty__mark preparaty__mark--combo">
+            {`Комбинация · ${item.composition?.length || item.alternatives?.length || 0} ДВ`}
+          </span>
           {nameNode}
         </div>
       ) : (
@@ -152,11 +167,13 @@ function DrugRow({
 
 function ClassicRow({
   item,
+  assignmentsReadOnly = false,
   onToggle,
   onOpenComment,
   onOpenInfo,
 }: {
   item: MiniCartCatalogItem;
+  assignmentsReadOnly?: boolean;
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
@@ -171,6 +188,7 @@ function ClassicRow({
           className={`preparaty__checkbox${item.selected ? " is-checked" : ""}`}
           aria-label={`Выбрать ${item.name}`}
           aria-pressed={Boolean(item.selected)}
+          disabled={assignmentsReadOnly}
           onClick={() => onToggle(item.id)}
         >
           {item.selected ? "✓" : ""}
@@ -182,6 +200,7 @@ function ClassicRow({
         type="button"
         className="preparaty__classic-name"
         aria-pressed={Boolean(item.selected)}
+        disabled={assignmentsReadOnly}
         onClick={() => onToggle(item.id)}
       >
         {item.name}
@@ -212,6 +231,7 @@ export default function MiniCartItemList({
   shellTabs,
   drugItems,
   classicItems,
+  assignmentsReadOnly = false,
   onToggle,
   onOpenComment,
   onOpenInfo,
@@ -227,6 +247,7 @@ export default function MiniCartItemList({
           <DrugRow
             key={item.id}
             item={item}
+            assignmentsReadOnly={assignmentsReadOnly}
             onToggle={onToggle}
             onOpenComment={onOpenComment}
             onOpenInfo={onOpenInfo}
@@ -262,13 +283,14 @@ export default function MiniCartItemList({
   return (
     <div className="preparaty__mini-panel-list">
       {groups.map((group, groupIndex) => {
+        const groupKey = group.id || group.title || "";
         const rows = classicItems.filter(
-          (item) => item.tabId === activeTab && item.group === (group.title || ""),
+          (item) => item.tabId === activeTab && item.group === groupKey,
         );
         const showSelectAll = groupIndex === 0 && Boolean(shell.selectAllLabel);
 
         return (
-          <section key={`${activeTab}-${group.title || groupIndex}`} className="preparaty__section">
+          <section key={`${activeTab}-${groupKey || groupIndex}`} className="preparaty__section">
             <div
               className={`preparaty__section-row${showSelectAll ? "" : " preparaty__section-row--no-check"}`}
             >
@@ -278,6 +300,7 @@ export default function MiniCartItemList({
                   className="preparaty__checkbox"
                   aria-label={shell.selectAllLabel}
                   aria-pressed="false"
+                  disabled={assignmentsReadOnly}
                   onClick={() => onSelectAll(activeTab)}
                 />
               ) : null}
@@ -287,6 +310,7 @@ export default function MiniCartItemList({
               <ClassicRow
                 key={item.id}
                 item={item}
+                assignmentsReadOnly={assignmentsReadOnly}
                 onToggle={onToggle}
                 onOpenComment={onOpenComment}
                 onOpenInfo={onOpenInfo}

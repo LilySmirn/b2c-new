@@ -27,10 +27,15 @@ import {
   writeStoredSelections,
   type StoredCartRecommendation,
 } from "@/app/(directory)/shared/cart";
+import {
+  EMPTY_ASSIGNMENT_SNAPSHOT,
+  type ChecklistAssignmentSnapshot,
+} from "@/app/(directory)/components/medications/assignmentSnapshot";
 import MiniCartHost, {
   type MiniCartHostHandle,
 } from "@/app/modules/miniCart/MiniCartHost";
 import { MINI_CART_PREVIEW_ENABLED } from "@/app/modules/miniCart/featureFlag";
+import { useDirectoryMiniCartData } from "@/app/modules/miniCart/hooks/useDirectoryMiniCartData";
 import type { MiniCartDisplayMode } from "@/app/modules/miniCart/types";
 
 type AppendixA3Table = {
@@ -107,6 +112,8 @@ export default function CartPreviewPage() {
   const [checklistSyncEpoch, setChecklistSyncEpoch] = useState(0);
   const [miniCartMode, setMiniCartMode] =
     useState<MiniCartDisplayMode>("full");
+  const [assignmentSnapshot, setAssignmentSnapshot] =
+    useState<ChecklistAssignmentSnapshot>(EMPTY_ASSIGNMENT_SNAPSHOT);
   const miniCartRef = useRef<MiniCartHostHandle>(null);
 
   recommendationKeyRef.current = recommendationKey;
@@ -115,6 +122,13 @@ export default function CartPreviewPage() {
   const handleMiniCartCollapse = useCallback(() => {
     void miniCartRef.current?.requestCompactFromGesture();
   }, []);
+
+  const handleAssignmentSnapshotChange = useCallback(
+    (snapshot: ChecklistAssignmentSnapshot) => {
+      setAssignmentSnapshot(snapshot);
+    },
+    [],
+  );
 
   const loadAppendixA3 = useCallback((crMId: string | undefined) => {
     if (!crMId?.trim()) {
@@ -360,6 +374,16 @@ export default function CartPreviewPage() {
     writeStoredSelections(recommendationKey, template.items);
   };
 
+  const miniCartData = useDirectoryMiniCartData({
+    diagnosisTitle,
+    sections: checklistSections,
+    recommendationKey,
+    appendixA3Tables,
+    isAppendixA3Loading,
+    appendixA3Error,
+    assignment: assignmentSnapshot,
+  });
+
   if (!isCartReady) {
     return null;
   }
@@ -387,6 +411,11 @@ export default function CartPreviewPage() {
         <PrescriptionChecklist
           key={checklistSyncEpoch}
           onSelectionChange={handleSelectionChange}
+          onAssignmentSnapshotChange={
+            MINI_CART_PREVIEW_ENABLED
+              ? handleAssignmentSnapshotChange
+              : undefined
+          }
           uncheckItemId={uncheckItemId}
           onUncheckHandled={() => setUncheckItemId(null)}
           clearSelectionSignal={clearSelectionSignal}
@@ -412,12 +441,13 @@ export default function CartPreviewPage() {
         <MiniCartHost
           ref={miniCartRef}
           force
-          diagnosis={diagnosisTitle || "Назначения"}
-          tabs={[
-            { id: "drugs", label: "Препараты", active: true, enabled: true },
-          ]}
-          drugItems={[]}
-          shellTabs={{}}
+          diagnosis={miniCartData.diagnosis}
+          tabs={miniCartData.tabs}
+          drugItems={miniCartData.drugItems}
+          shellTabs={miniCartData.shellTabs}
+          trades={miniCartData.trades}
+          recommendationText={miniCartData.recommendation}
+          assignmentsReadOnly
           displayMode={miniCartMode}
           onDisplayModeChange={setMiniCartMode}
         />
