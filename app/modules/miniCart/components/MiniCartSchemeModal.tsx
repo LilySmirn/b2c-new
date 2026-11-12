@@ -6,6 +6,7 @@ import type {
   MiniCartComponentPick,
   MiniCartTradesBook,
 } from "../types";
+import MiniCartPortal from "./MiniCartPortal";
 
 type MiniCartSchemeModalProps = {
   item: MiniCartCatalogItem;
@@ -72,6 +73,7 @@ export default function MiniCartSchemeModal({
   };
 
   return (
+    <MiniCartPortal>
     <div className="preparaty__scheme-layer" role="presentation">
       <div
         className="preparaty__scheme-backdrop"
@@ -271,5 +273,6 @@ export default function MiniCartSchemeModal({
         </div>
       </div>
     </div>
+    </MiniCartPortal>
   );
 }

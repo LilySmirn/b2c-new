@@ -1,8 +1,11 @@
 "use client";
 
-import MiniCartShell from "./MiniCartShell";
+import { forwardRef } from "react";
+import MiniCartShell, { type MiniCartShellHandle } from "./MiniCartShell";
 import { MINI_CART_ENABLED } from "./featureFlag";
 import type { MiniCartProps } from "./types";
+
+export type MiniCartHostHandle = MiniCartShellHandle;
 
 type MiniCartHostProps = MiniCartProps & {
   /** Force-render even when feature flag is off (только preview). */
@@ -11,12 +14,13 @@ type MiniCartHostProps = MiniCartProps & {
 
 /**
  * Точка подключения модуля мини-корзинки.
- * На текущем этапе не встраивается в полноразмерную корзину.
+ * PiP / режимы — внутри MiniCartShell; Host только гейтит feature flag.
  */
-export default function MiniCartHost({
-  force = false,
-  ...props
-}: MiniCartHostProps) {
-  if (!force && !MINI_CART_ENABLED) return null;
-  return <MiniCartShell {...props} />;
-}
+const MiniCartHost = forwardRef<MiniCartHostHandle, MiniCartHostProps>(
+  function MiniCartHost({ force = false, ...props }, ref) {
+    if (!force && !MINI_CART_ENABLED) return null;
+    return <MiniCartShell ref={ref} {...props} />;
+  },
+);
+
+export default MiniCartHost;

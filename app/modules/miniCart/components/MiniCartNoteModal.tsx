@@ -1,3 +1,5 @@
+import MiniCartPortal from "./MiniCartPortal";
+
 type MiniCartNoteModalProps = {
   title: string;
   subtitle: string;
@@ -16,6 +18,7 @@ export default function MiniCartNoteModal({
   onSave,
 }: MiniCartNoteModalProps) {
   return (
+    <MiniCartPortal>
     <div className="preparaty__note-layer" role="presentation">
       <div className="preparaty__note-backdrop" aria-hidden="true" onClick={onClose} />
       <div className="preparaty__note-dialog" role="dialog" aria-modal="true" aria-label="Комментарий">
@@ -64,5 +67,6 @@ export default function MiniCartNoteModal({
         </div>
       </div>
     </div>
+    </MiniCartPortal>
   );
 }

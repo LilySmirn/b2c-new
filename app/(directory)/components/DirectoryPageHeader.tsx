@@ -17,6 +17,9 @@ type DirectoryPageHeaderProps = {
   diagnosisTitle?: string;
   recommendationId?: string;
   recommendationSource?: string;
+  /** Кнопка «Свернуть» (мини-корзинка). Только cart + feature flag. */
+  onCollapse?: () => void;
+  collapseHidden?: boolean;
 };
 
 const getRecommendationExternalUrl = (source: string, id?: string) => {
@@ -79,6 +82,8 @@ export default function DirectoryPageHeader({
   diagnosisTitle,
   recommendationId,
   recommendationSource,
+  onCollapse,
+  collapseHidden = false,
 }: DirectoryPageHeaderProps) {
   const sourceMeta = getSourceMeta(recommendationSource, recommendationId);
   const [isB2cUser, setIsB2cUser] = useState(false);
@@ -105,6 +110,16 @@ export default function DirectoryPageHeader({
   const action =
     variant === 'cart' ? (
       <div className={styles.cartActions}>
+        {onCollapse && !collapseHidden ? (
+          <button
+            type="button"
+            className={`${styles.action} ${styles.collapseAction}`}
+            onClick={onCollapse}
+            aria-pressed="false"
+          >
+            Свернуть
+          </button>
+        ) : null}
         {sourceMeta ? (
           <a
             href={sourceMeta.url}

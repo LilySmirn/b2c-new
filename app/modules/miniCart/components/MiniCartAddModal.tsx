@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MiniCartPortal from "./MiniCartPortal";
 
 type MiniCartAddModalProps = {
   onClose: () => void;
@@ -9,6 +10,7 @@ export default function MiniCartAddModal({ onClose, onSave }: MiniCartAddModalPr
   const [name, setName] = useState("");
 
   return (
+    <MiniCartPortal>
     <div className="preparaty__cart-modal-layer" role="presentation">
       <div className="preparaty__cart-modal-backdrop" aria-hidden="true" onClick={onClose} />
       <div
@@ -57,5 +59,6 @@ export default function MiniCartAddModal({ onClose, onSave }: MiniCartAddModalPr
         </div>
       </div>
     </div>
+    </MiniCartPortal>
   );
 }

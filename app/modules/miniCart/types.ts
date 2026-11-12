@@ -127,6 +127,9 @@ export type MiniCartAiMessage = {
   time?: string;
 };
 
+/** Режимы отображения (как в vanilla-прототипе). */
+export type MiniCartDisplayMode = "full" | "compact" | "docked";
+
 export type MiniCartProps = {
   diagnosis: string;
   tabs: MiniCartTab[];
@@ -135,6 +138,12 @@ export type MiniCartProps = {
   trades?: MiniCartTradesBook;
   interactions?: Record<string, unknown>;
   className?: string;
-  /** Preview: start visible without host collapse flow */
+  /**
+   * Preview / uncontrolled: стартовать сразу в compact.
+   * Игнорируется при controlled `displayMode`.
+   */
   initiallyOpen?: boolean;
+  /** Controlled режим отображения. */
+  displayMode?: MiniCartDisplayMode;
+  onDisplayModeChange?: (mode: MiniCartDisplayMode) => void;
 };

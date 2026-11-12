@@ -27,6 +27,11 @@ import {
   writeStoredSelections,
   type StoredCartRecommendation,
 } from "@/app/(directory)/shared/cart";
+import MiniCartHost, {
+  type MiniCartHostHandle,
+} from "@/app/modules/miniCart/MiniCartHost";
+import { MINI_CART_PREVIEW_ENABLED } from "@/app/modules/miniCart/featureFlag";
+import type { MiniCartDisplayMode } from "@/app/modules/miniCart/types";
 
 type AppendixA3Table = {
   name: string | null;
@@ -100,9 +105,16 @@ export default function CartPreviewPage() {
   const recommendationKeyRef = useRef("");
   const selectedItemsRef = useRef<SelectedPrescription[]>([]);
   const [checklistSyncEpoch, setChecklistSyncEpoch] = useState(0);
+  const [miniCartMode, setMiniCartMode] =
+    useState<MiniCartDisplayMode>("full");
+  const miniCartRef = useRef<MiniCartHostHandle>(null);
 
   recommendationKeyRef.current = recommendationKey;
   selectedItemsRef.current = selectedItems;
+
+  const handleMiniCartCollapse = useCallback(() => {
+    void miniCartRef.current?.requestCompactFromGesture();
+  }, []);
 
   const loadAppendixA3 = useCallback((crMId: string | undefined) => {
     if (!crMId?.trim()) {
@@ -352,6 +364,8 @@ export default function CartPreviewPage() {
     return null;
   }
   
+  const fullCartVisible = miniCartMode === "full";
+
   return (
     <>
       <DirectoryPageHeader
@@ -359,8 +373,16 @@ export default function CartPreviewPage() {
         diagnosisTitle={diagnosisTitle}
         recommendationId={recommendationId}
         recommendationSource={recommendationSource}
+        onCollapse={
+          MINI_CART_PREVIEW_ENABLED ? handleMiniCartCollapse : undefined
+        }
+        collapseHidden={!fullCartVisible}
       />
-      <main className={styles.page}>
+      <main
+        className={styles.page}
+        hidden={!fullCartVisible}
+        aria-hidden={!fullCartVisible}
+      >
       <section className={styles.layout}>
         <PrescriptionChecklist
           key={checklistSyncEpoch}
@@ -386,6 +408,20 @@ export default function CartPreviewPage() {
         />
       </section>
       </main>
+      {MINI_CART_PREVIEW_ENABLED ? (
+        <MiniCartHost
+          ref={miniCartRef}
+          force
+          diagnosis={diagnosisTitle || "Назначения"}
+          tabs={[
+            { id: "drugs", label: "Препараты", active: true, enabled: true },
+          ]}
+          drugItems={[]}
+          shellTabs={{}}
+          displayMode={miniCartMode}
+          onDisplayModeChange={setMiniCartMode}
+        />
+      ) : null}
     </>
   );
 }

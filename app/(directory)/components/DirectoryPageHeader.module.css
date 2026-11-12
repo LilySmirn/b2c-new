@@ -131,6 +131,11 @@
   gap: 10px;
 }
 
+.collapseAction {
+  white-space: nowrap;
+  font-family: inherit;
+}
+
 .sourceAction {
   gap: 8px;
   padding-top: 8px;

@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { displayName, displaySub, isSelectableDrug } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartShellTab } from "../types";
 
@@ -9,7 +10,7 @@ type MiniCartItemListProps = {
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
-  onOpenTrade: (itemId: string) => void;
+  onOpenTrade: (itemId: string, anchor: HTMLElement | null) => void;
   onOpenScheme: (itemId: string) => void;
   onOpenCombo: (itemId: string) => void;
   onSelectAll: (tabId: string) => void;
@@ -51,7 +52,7 @@ function DrugRow({
   onToggle: (itemId: string) => void;
   onOpenComment: (itemId: string) => void;
   onOpenInfo: (itemId: string) => void;
-  onOpenTrade: (itemId: string) => void;
+  onOpenTrade: (itemId: string, anchor: HTMLElement | null) => void;
   onOpenScheme: (itemId: string) => void;
   onOpenCombo: (itemId: string) => void;
 }) {
@@ -59,7 +60,7 @@ function DrugRow({
   const sub = displaySub(item);
   const name = displayName(item);
 
-  const openPicker = () => {
+  const openPicker = (event: MouseEvent<HTMLButtonElement>) => {
     if (item.kind === "scheme") {
       onOpenScheme(item.id);
       return;
@@ -68,7 +69,7 @@ function DrugRow({
       onOpenCombo(item.id);
       return;
     }
-    onOpenTrade(item.id);
+    onOpenTrade(item.id, event.currentTarget);
   };
 
   const nameNode = selectable ? (

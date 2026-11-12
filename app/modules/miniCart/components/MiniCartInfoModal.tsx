@@ -1,5 +1,6 @@
 import { displayName } from "../lib/display";
 import type { MiniCartCatalogItem } from "../types";
+import MiniCartPortal from "./MiniCartPortal";
 
 type MiniCartInfoModalProps = {
   item: MiniCartCatalogItem;
@@ -8,6 +9,7 @@ type MiniCartInfoModalProps = {
 
 export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalProps) {
   return (
+    <MiniCartPortal>
     <div className="preparaty__info-layer" role="presentation">
       <div className="preparaty__info-backdrop" aria-hidden="true" onClick={onClose} />
       <div
@@ -49,5 +51,6 @@ export default function MiniCartInfoModal({ item, onClose }: MiniCartInfoModalPr
         </div>
       </div>
     </div>
+    </MiniCartPortal>
   );
 }

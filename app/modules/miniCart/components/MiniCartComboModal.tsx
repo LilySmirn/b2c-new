@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { MiniCartCatalogItem, MiniCartTradesBook } from "../types";
+import MiniCartPortal from "./MiniCartPortal";
 
 type MiniCartComboModalProps = {
   item: MiniCartCatalogItem;
@@ -35,6 +36,7 @@ export default function MiniCartComboModal({
   );
 
   return (
+    <MiniCartPortal>
     <div
       className="preparaty__scheme-layer preparaty__scheme-layer--combo"
       role="presentation"
@@ -216,5 +218,6 @@ export default function MiniCartComboModal({
         </div>
       </div>
     </div>
+    </MiniCartPortal>
   );
 }

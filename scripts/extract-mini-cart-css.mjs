@@ -206,19 +206,30 @@ const foundation = `/* Auto-extracted compact mini-cart styles. Scoped under .em
 }`;
 
 const popoverOverlay = `
-/* Preview/React: popover без абсолютного якоря строки */
-.emMiniCart .preparaty__popover {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1300;
-}
-
-/* Dev-preview: панель без шапки прототипа */
+/* Preview: панель без шапки прототипа */
 .emMiniCart.is-preview .preparaty__mini-panel {
   top: 24px;
   height: calc(100vh - 48px);
+}
+
+/* Document PiP mount */
+.emMiniCart.emMiniCart--pip,
+.emMiniCart.emMiniCart--pip .preparaty {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.emMiniCart.emMiniCart--pip .preparaty__mini-panel.is-pip {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }`;
 
 const out = [foundation, "", ...kept.map(scopeRule), popoverOverlay].join(

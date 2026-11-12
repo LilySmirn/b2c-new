@@ -1,47 +1,37 @@
-# Mini Cart (компактный интерфейс)
+# Mini Cart
 
-Изолированный React-модуль мини-корзинки, перенесённый из vanilla-прототипа `mini-korzinka/`.
+Изолированный React-модуль компактной мини-корзинки + Document Picture-in-Picture.
 
-## Статус этапа
-
-- UI компактного режима перенесён на React/TypeScript.
-- Shared cart storage / sync **не** подключены.
-- Document Picture-in-Picture **не** реализован.
-- Кнопка «Свернуть» полноразмерной корзины **не** подключена.
-
-## Feature flag
+## Feature flags
 
 ```bash
 NEXT_PUBLIC_MINI_CART=1
 ```
 
-- `MINI_CART_ENABLED` — будущее включение модуля.
-- `MINI_CART_PREVIEW_ENABLED` — preview только вне production при включённом флаге.
+| Константа | Условие |
+|---|---|
+| `MINI_CART_ENABLED` | флаг = 1 |
+| `MINI_CART_PREVIEW_ENABLED` | флаг = 1 и `NODE_ENV !== "production"` |
 
-## Публичный API
+Кнопка «Свернуть» на `/cart` и PiP-интеграция активны только при `MINI_CART_PREVIEW_ENABLED` (dev).
 
-```ts
-import { MiniCartHost, MiniCartShell, MINI_CART_ENABLED } from "@/app/modules/miniCart";
-```
+## Режимы
 
-- `MiniCartHost` — точка подключения (уважает feature flag).
-- `MiniCartShell` — контейнер компактного UI; данные и обработчики через props.
+`full` → `compact` (PiP или in-page fallback) → `docked` (логотип) → обратно.
+
+Открытие PiP только из user gesture (`requestCompactFromGesture`).
+
+## PiP
+
+- `pip/documentPip.ts` — requestWindow, стили, mount
+- `hooks/useDocumentPip.ts` — жизненный цикл
+- UI остаётся в React-дереве opener; в PiP уходит через `createPortal`
+- Модалки/поповеры — `MiniCartPortal` в `ownerDocument` PiP
 
 ## Preview
 
-Временный маршрут: `/dev/mini-cart-preview`
+`/dev/mini-cart-preview` — демо K26 + кнопка открытия PiP.
 
-Доступен только при `NEXT_PUBLIC_MINI_CART=1` и `NODE_ENV !== "production"`.
-Использует демо-данные K26 из `demo/`.
+## Следующий этап
 
-## Стили
-
-`styles/miniCartScope.css` — извлечённые стили компактного режима, scoped под `.emMiniCart`.
-Импортируются из `MiniCartShell` (не глобально в layout).
-
-## Следующие этапы
-
-1. Document Picture-in-Picture.
-2. Подключение shared cart storage / sync.
-3. Связка с кнопкой «Свернуть» полноразмерной корзины.
-4. Реальные API для МКБ / AI / взаимодействий.
+Подключение реальных данных / shared cart sync.
