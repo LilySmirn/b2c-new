@@ -9,7 +9,7 @@ import type {
   ChecklistSection,
   SelectedPrescription,
 } from "../components/PrescriptionChecklist";
-import SideCart from "../components/SideCart";
+import SideCart, { type SideCartHandle } from "../components/SideCart";
 import type { MiniCartAssignmentOps } from "@/app/modules/miniCart/assignmentOps";
 import styles from "./cart.module.css";
 import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
@@ -122,6 +122,7 @@ export default function CartPreviewPage() {
     useState<ChecklistAssignmentSnapshot>(EMPTY_ASSIGNMENT_SNAPSHOT);
   const miniCartRef = useRef<MiniCartHostHandle>(null);
   const checklistRef = useRef<PrescriptionChecklistHandle>(null);
+  const sideCartRef = useRef<SideCartHandle>(null);
 
   recommendationKeyRef.current = recommendationKey;
   selectedItemsRef.current = selectedItems;
@@ -137,7 +138,7 @@ export default function CartPreviewPage() {
     [],
   );
 
-  /** Стабильные обёртки: всегда делегируют в актуальный handle чеклиста. */
+  /** Стабильные обёртки: делегируют в checklist / SideCart (единый store). */
   const miniCartAssignmentOps = useMemo<MiniCartAssignmentOps>(
     () => ({
       toggleItem: (itemId) => checklistRef.current?.toggleItem(itemId),
@@ -159,6 +160,12 @@ export default function CartPreviewPage() {
         checklistRef.current?.resetMedicationAssignment(itemId),
       applyOriginalRecommendation: (itemId) =>
         checklistRef.current?.applyOriginalRecommendation(itemId),
+      addCustomItem: (values) => sideCartRef.current?.addCustomItem(values),
+      updateCustomItem: (id, values) =>
+        sideCartRef.current?.updateCustomItem(id, values),
+      removeCustomItem: (id) => sideCartRef.current?.removeCustomItem(id),
+      setGeneralRecommendation: (value) =>
+        sideCartRef.current?.setGeneralComment(value),
     }),
     [],
   );
@@ -461,6 +468,7 @@ export default function CartPreviewPage() {
           medsRecommendationKey={recommendationKey}
         />
         <SideCart
+          ref={sideCartRef}
           selectedItems={selectedItems}
           onDeleteItem={handleDeleteItem}
           onDeleteAll={handleDeleteAll}
@@ -481,6 +489,7 @@ export default function CartPreviewPage() {
           shellTabs={miniCartData.shellTabs}
           trades={miniCartData.trades}
           recommendationText={miniCartData.recommendation}
+          customItems={miniCartData.customItems}
           schemeByItemId={miniCartData.schemeByItemId}
           assignmentOps={miniCartAssignmentOps}
           hideMkbSearch

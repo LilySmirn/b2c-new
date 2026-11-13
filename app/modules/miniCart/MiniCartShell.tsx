@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 import MiniCartAddModal from "./components/MiniCartAddModal";
 import MiniCartAiPanel from "./components/MiniCartAiPanel";
 import MiniCartComboModal from "./components/MiniCartComboModal";
+import MiniCartCustomItemsScreen from "./components/MiniCartCustomItemsScreen";
 import MiniCartDock from "./components/MiniCartDock";
 import MiniCartDrugDetailsScreen from "./components/MiniCartDrugDetailsScreen";
 import MiniCartFooter from "./components/MiniCartFooter";
@@ -38,6 +39,8 @@ import type {
 } from "./types";
 import "./styles/miniCartScope.css";
 import "./styles/miniCartDrugDetails.css";
+import "./styles/miniCartAddModal.css";
+import "./styles/miniCartCustomItems.css";
 
 function flattenClassicItems(
   shellTabs: MiniCartProps["shellTabs"],
@@ -45,6 +48,7 @@ function flattenClassicItems(
   const list: MiniCartCatalogItem[] = [];
   Object.entries(shellTabs).forEach(([tabId, shell]) => {
     (shell.groups ?? []).forEach((group) => {
+      const groupKey = group.id || group.title || "";
       (group.items ?? []).forEach((row, index) => {
         if (!row?.name) return;
         list.push({
@@ -55,9 +59,10 @@ function flattenClassicItems(
           level: row.level || "",
           hint: row.hint || "",
           commentText: row.comment || "",
+          commentShort: row.comment || "",
           selected: Boolean(row.selected),
           tabId,
-          group: group.id || group.title || "",
+          group: groupKey,
         });
       });
     });
@@ -83,6 +88,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       displayMode: controlledMode,
       onDisplayModeChange,
       recommendationText,
+      customItems: customItemsProp,
       assignmentOps,
       schemeByItemId = {},
       hideMkbSearch = false,
@@ -119,6 +125,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       shellTabs,
       initiallyOpen: true,
       recommendationText,
+      customItems: customItemsProp,
       assignmentOps,
     });
 
@@ -137,8 +144,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setTradeTargetId,
       setSchemeTargetId,
       setComboTargetId,
-      setAddModalOpen,
-      closeDrugDetails,
+      closeCustomItemModal,
+      closeInnerView,
     } = ui;
 
     const closeOverlays = useCallback(() => {
@@ -147,12 +154,12 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setTradeTargetId(null);
       setSchemeTargetId(null);
       setComboTargetId(null);
-      setAddModalOpen(false);
+      closeCustomItemModal();
       setTradeAnchor(null);
-      closeDrugDetails();
+      closeInnerView();
     }, [
-      closeDrugDetails,
-      setAddModalOpen,
+      closeCustomItemModal,
+      closeInnerView,
       setComboTargetId,
       setInfoTargetId,
       setNoteTargetId,
@@ -203,9 +210,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
           ui.setMedicationInfoComment(itemId, trimmed);
         }
       }
-      closeDrugDetails();
+      closeInnerView();
     }, [
-      closeDrugDetails,
+      closeInnerView,
       ui.findItem,
       ui.setMedicationInfoComment,
       ui.view,
@@ -214,9 +221,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     useEffect(() => {
       if (ui.view.type !== "drug-details") return;
       if (!ui.findItem(ui.view.itemId)) {
-        closeDrugDetails();
+        closeInnerView();
       }
-    }, [closeDrugDetails, ui.findItem, ui.view]);
+    }, [closeInnerView, ui.findItem, ui.view]);
 
     const enterCompactFromGesture = useCallback(async () => {
       setMode("compact");
@@ -269,22 +276,24 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     const comboItem = ui.comboTargetId ? ui.findItem(ui.comboTargetId) : null;
     const selectedDrugs = ui.drugItems.filter((item) => item.selected);
     const showDrugDetails = Boolean(drugDetailsItem);
+    const showCustomItems = ui.view.type === "custom-items";
+    const showInnerScreen = showDrugDetails || showCustomItems;
 
-    const wasDrugDetailsRef = useRef(false);
+    const wasInnerScreenRef = useRef(false);
     useLayoutEffect(() => {
-      if (showDrugDetails) {
-        wasDrugDetailsRef.current = true;
+      if (showInnerScreen) {
+        wasInnerScreenRef.current = true;
         return;
       }
-      if (!wasDrugDetailsRef.current || !listScrollRef.current) return;
-      wasDrugDetailsRef.current = false;
+      if (!wasInnerScreenRef.current || !listScrollRef.current) return;
+      wasInnerScreenRef.current = false;
       const list = listScrollRef.current.querySelector(
         ".preparaty__mini-panel-list",
       );
       if (list instanceof HTMLElement) {
         list.scrollTop = ui.listScrollTop;
       }
-    }, [showDrugDetails, ui.listScrollTop]);
+    }, [showInnerScreen, ui.listScrollTop]);
 
     const panel = showCompactPanel ? (
       <aside
@@ -293,7 +302,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
         }}
         className={`preparaty__mini-panel${isPip ? " is-pip" : ""}${
           showDrugDetails ? " is-drug-details" : ""
-        }`}
+        }${showCustomItems ? " is-custom-items" : ""}`}
         aria-label="Миникорзинка"
       >
         <MiniCartHeader
@@ -342,6 +351,24 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
               }
               ui.setSchemeTargetId(drugDetailsItem.id);
             }}
+          />
+        ) : showCustomItems ? (
+          <MiniCartCustomItemsScreen
+            items={ui.customItems}
+            canAdd={
+              !ui.flags.isDirectoryBacked || ui.flags.canAddCustomItem
+            }
+            canEdit={
+              !ui.flags.isDirectoryBacked || ui.flags.canUpdateCustomItem
+            }
+            canDelete={
+              !ui.flags.isDirectoryBacked || ui.flags.canRemoveCustomItem
+            }
+            onBack={ui.closeInnerView}
+            onDone={ui.closeInnerView}
+            onAdd={ui.openAddCustomItem}
+            onEdit={ui.openCustomItemEditor}
+            onDelete={ui.removeCustomItem}
           />
         ) : (
           <>
@@ -448,15 +475,18 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
             <MiniCartFooter
               recommendation={ui.recommendation}
-              onRecommendationChange={(value) => {
-                if (ui.flags.isDirectoryBacked) return;
-                ui.setRecommendation(value);
-              }}
-              onAddClick={() => {
-                if (ui.flags.isDirectoryBacked) return;
-                ui.setAddModalOpen(true);
-              }}
-              assignmentsReadOnly={ui.flags.isDirectoryBacked}
+              onRecommendationChange={ui.setRecommendation}
+              onAddClick={ui.openAddCustomItem}
+              onOpenCustomItems={() =>
+                ui.openCustomItemsScreen(captureListScroll())
+              }
+              customItemsCount={ui.customItems.length}
+              canAdd={
+                !ui.flags.isDirectoryBacked || ui.flags.canAddCustomItem
+              }
+              canEditRecommendation={
+                !ui.flags.isDirectoryBacked || ui.flags.canSetRecommendation
+              }
             />
           </>
         )}
@@ -587,11 +617,21 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
                 {ui.addModalOpen ? (
                   <MiniCartAddModal
-                    onClose={() => ui.setAddModalOpen(false)}
-                    onSave={(name) => {
-                      ui.addCustomItem(name);
-                      ui.setAddModalOpen(false);
-                    }}
+                    key={ui.editingCustomItemId ?? "add"}
+                    mode={ui.editingCustomItemId ? "edit" : "add"}
+                    initialName={
+                      ui.editingCustomItemId
+                        ? ui.findCustomItem(ui.editingCustomItemId)?.name || ""
+                        : ""
+                    }
+                    initialComment={
+                      ui.editingCustomItemId
+                        ? ui.findCustomItem(ui.editingCustomItemId)?.comment ||
+                          ""
+                        : ""
+                    }
+                    onClose={ui.closeCustomItemModal}
+                    onSubmit={ui.saveCustomItem}
                   />
                 ) : null}
               </>

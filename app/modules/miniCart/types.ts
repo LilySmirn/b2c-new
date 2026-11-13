@@ -32,7 +32,15 @@ export type MiniCartMedicationDetails = {
 /** Внутренние экраны мини-корзинки (без смены URL). */
 export type MiniCartView =
   | { type: "list" }
-  | { type: "drug-details"; itemId: string };
+  | { type: "drug-details"; itemId: string }
+  | { type: "custom-items" };
+
+/** Пользовательская позиция (как StoredCustomCartItem / SideCart). */
+export type MiniCartCustomItem = {
+  id: string;
+  name: string;
+  comment: string;
+};
 
 /** Production-источник мастера схемы для directory-backed режима. */
 export type MiniCartSchemeSource = {
@@ -199,7 +207,12 @@ export type MiniCartProps = {
    */
   recommendationText?: string;
   /**
-   * Операции поверх PrescriptionChecklist.
+   * Пользовательские назначения из SideCart / cartStorage.
+   * Отдельная коллекция — не входит в разделы КР.
+   */
+  customItems?: readonly MiniCartCustomItem[];
+  /**
+   * Операции поверх PrescriptionChecklist / SideCart.
    * Если заданы — локальные мутации назначений отключены; доступны только переданные ops (D1…).
    */
   assignmentOps?: MiniCartAssignmentOps;

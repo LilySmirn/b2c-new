@@ -59,9 +59,6 @@ import type {
 
 /** Вкладки мини-корзинки: «Препараты» всегда `drugs` (см. MiniCartItemList). */
 export const MINI_CART_DRUGS_TAB_ID = "drugs";
-export const MINI_CART_CUSTOM_TAB_ID = "lifestyle";
-export const MINI_CART_CUSTOM_GROUP_ID = "custom-misc";
-export const MINI_CART_CUSTOM_GROUP_TITLE = "Прочее";
 
 const CATEGORY_TO_TAB_ID: Record<string, string> = {
   medications: MINI_CART_DRUGS_TAB_ID,
@@ -95,6 +92,11 @@ export type DirectoryMiniCartViewModel = {
   shellTabs: Record<string, MiniCartShellTab>;
   trades: MiniCartTradesBook;
   recommendation: string;
+  /**
+   * Пользовательские назначения (SideCart / cartStorage).
+   * Не входят в shellTabs / разделы КР — отдельный экран «Дополнительно».
+   */
+  customItems: StoredCustomCartItem[];
   /** Production-компоненты схем для компактного мастера (индексы = picks). */
   schemeByItemId: Record<string, MiniCartSchemeSource>;
 };
@@ -465,43 +467,12 @@ const buildTradesBook = (catalog: MedsCatalogResponse): MiniCartTradesBook => {
   return book;
 };
 
-const appendCustomItemsGroup = (
-  shellTabs: Record<string, MiniCartShellTab>,
-  customItems: readonly StoredCustomCartItem[],
-) => {
-  if (customItems.length === 0) return;
-
-  const tabId = MINI_CART_CUSTOM_TAB_ID;
-  const existing = shellTabs[tabId] ?? { enabled: true, groups: [] };
-  const groups = [...(existing.groups ?? [])];
-  groups.push({
-    id: MINI_CART_CUSTOM_GROUP_ID,
-    title: MINI_CART_CUSTOM_GROUP_TITLE,
-    items: customItems.map((item) => ({
-      id: item.id,
-      name: item.name,
-      qc: "",
-      level: "",
-      hint: "",
-      comment: item.comment || "",
-      selected: true,
-    })),
-  });
-
-  shellTabs[tabId] = {
-    ...existing,
-    enabled: true,
-    groups,
-  };
-};
-
 const buildClassicShellTabs = (
   sections: ChecklistSection[],
   appendixA3Tables: AppendixA3Table[],
   isAppendixA3Loading: boolean,
   appendixA3Error: string,
   assignment: ChecklistAssignmentSnapshot,
-  customItems: readonly StoredCustomCartItem[],
 ): Record<string, MiniCartShellTab> => {
   const shellTabs: Record<string, MiniCartShellTab> = {};
   const byCategory = new Map<string, ChecklistSection[]>();
@@ -581,8 +552,6 @@ const buildClassicShellTabs = (
     };
   }
 
-  appendCustomItemsGroup(shellTabs, customItems);
-
   return shellTabs;
 };
 
@@ -596,9 +565,6 @@ const buildTabs = (
   );
   if (shellTabs[categoryIdToMiniCartTabId("appendix-a3")]?.enabled) {
     available.add(categoryIdToMiniCartTabId("appendix-a3"));
-  }
-  if (shellTabs[MINI_CART_CUSTOM_TAB_ID]?.enabled) {
-    available.add(MINI_CART_CUSTOM_TAB_ID);
   }
 
   const preferredActive = hasMedications
@@ -668,7 +634,6 @@ export const adaptDirectoryCartToMiniCart = (
     Boolean(source.isAppendixA3Loading),
     source.appendixA3Error ?? "",
     assignment,
-    customItems,
   );
 
   const tabs = buildTabs(merged, shellTabs, drugItems.length > 0);
@@ -680,6 +645,7 @@ export const adaptDirectoryCartToMiniCart = (
     shellTabs,
     trades: buildTradesBook(source.catalog),
     recommendation: source.generalRecommendation ?? "",
+    customItems: [...customItems],
     schemeByItemId,
   };
 };

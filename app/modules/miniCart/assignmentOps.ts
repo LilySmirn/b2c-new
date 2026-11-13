@@ -1,6 +1,6 @@
 /**
  * Операции изменения назначений полноразмерной корзины из мини-корзинки.
- * Реализуются в PrescriptionChecklist; мини-корзинка только вызывает их.
+ * Реализуются в PrescriptionChecklist / SideCart; мини-корзинка только вызывает их.
  */
 
 import type { MedicationIntake } from "@/app/(directory)/components/medications/assignmentScheme";
@@ -13,6 +13,11 @@ export type MiniCartMedsPick = {
   trade?: string;
   dose?: string;
   form?: string;
+};
+
+export type MiniCartCustomItemValues = {
+  name: string;
+  comment: string;
 };
 
 export type { CombinationDraft as MiniCartCombinationDraft };
@@ -55,6 +60,20 @@ export type MiniCartAssignmentOps = {
   resetMedicationAssignment?: (itemId: string) => void;
   /** Подставить схему/курс из КР (как «Подставить в назначение»). */
   applyOriginalRecommendation?: (itemId: string) => void;
+  /**
+   * D3: пользовательская услуга/медикамент (SideCart + cartStorage).
+   * id создаётся в SideCart через createBrowserId.
+   */
+  addCustomItem?: (values: MiniCartCustomItemValues) => void;
+  /** D3: обновить существующую пользовательскую позицию, сохранив id. */
+  updateCustomItem?: (id: string, values: MiniCartCustomItemValues) => void;
+  /** D3: удалить пользовательскую позицию (без подтверждения, как в SideCart). */
+  removeCustomItem?: (id: string) => void;
+  /**
+   * D3: общая рекомендация для пациента.
+   * Как RecommendationField в SideCart — запись на каждый ввод.
+   */
+  setGeneralRecommendation?: (value: string) => void;
 };
 
 /** Какие действия доступны при частичном подключении ops. */
@@ -69,6 +88,10 @@ export const miniCartOpFlags = (ops?: MiniCartAssignmentOps | null) => ({
   canInfoComment: Boolean(ops?.setMedicationInfoComment),
   canResetAssignment: Boolean(ops?.resetMedicationAssignment),
   canApplyOriginal: Boolean(ops?.applyOriginalRecommendation),
+  canAddCustomItem: Boolean(ops?.addCustomItem),
+  canUpdateCustomItem: Boolean(ops?.updateCustomItem),
+  canRemoveCustomItem: Boolean(ops?.removeCustomItem),
+  canSetRecommendation: Boolean(ops?.setGeneralRecommendation),
   /** Внешнее управление назначениями (не demo local state). */
   isDirectoryBacked: Boolean(ops),
 });

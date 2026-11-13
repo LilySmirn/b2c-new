@@ -2,38 +2,54 @@ type MiniCartFooterProps = {
   recommendation: string;
   onRecommendationChange: (value: string) => void;
   onAddClick: () => void;
+  onOpenCustomItems: () => void;
+  customItemsCount: number;
   onWrite?: () => void;
   onCopy?: () => void;
-  assignmentsReadOnly?: boolean;
+  canAdd?: boolean;
+  canEditRecommendation?: boolean;
 };
 
 export default function MiniCartFooter({
   recommendation,
   onRecommendationChange,
   onAddClick,
+  onOpenCustomItems,
+  customItemsCount,
   onWrite,
   onCopy,
-  assignmentsReadOnly = false,
+  canAdd = true,
+  canEditRecommendation = true,
 }: MiniCartFooterProps) {
   return (
     <div className="preparaty__mini-panel-foot">
-      <button
-        type="button"
-        className="preparaty__mini-panel-add"
-        onClick={onAddClick}
-        disabled={assignmentsReadOnly}
-        aria-disabled={assignmentsReadOnly}
-      >
-        <span aria-hidden="true">+</span>
-        <span>Добавить услугу/медикамент</span>
-      </button>
+      <div className="preparaty__mini-panel-add-row">
+        <button
+          type="button"
+          className="preparaty__mini-panel-add"
+          onClick={onAddClick}
+          disabled={!canAdd}
+          aria-disabled={!canAdd}
+        >
+          <span aria-hidden="true">+</span>
+          <span>Добавить услугу/медикамент</span>
+        </button>
+        <button
+          type="button"
+          className="preparaty__mini-panel-extra"
+          onClick={onOpenCustomItems}
+          aria-label={`Дополнительно, ${customItemsCount}`}
+        >
+          Дополнительно ({customItemsCount})
+        </button>
+      </div>
       <textarea
         className="preparaty__cart-note preparaty__mini-rec"
         rows={1}
         placeholder="Напишите общую рекомендацию для пациента..."
         aria-label="Общая рекомендация для пациента"
         value={recommendation}
-        readOnly={assignmentsReadOnly}
+        readOnly={!canEditRecommendation}
         onChange={(event) => onRecommendationChange(event.target.value)}
       />
       <div className="preparaty__mini-panel-actions">

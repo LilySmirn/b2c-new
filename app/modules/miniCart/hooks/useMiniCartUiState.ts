@@ -14,6 +14,7 @@ import type {
   MiniCartAge,
   MiniCartCatalogItem,
   MiniCartComponentPick,
+  MiniCartCustomItem,
   MiniCartNav,
   MiniCartShellTab,
   MiniCartTab,
@@ -28,6 +29,8 @@ export type MiniCartUiStateArgs = {
   shellTabs: Record<string, MiniCartShellTab>;
   initiallyOpen?: boolean;
   recommendationText?: string;
+  /** Directory-backed: зеркало SideCart / cartStorage. */
+  customItems?: readonly MiniCartCustomItem[];
   assignmentOps?: MiniCartAssignmentOps;
 };
 
@@ -38,6 +41,7 @@ export function useMiniCartUiState({
   shellTabs,
   initiallyOpen = true,
   recommendationText,
+  customItems: customItemsProp,
   assignmentOps,
 }: MiniCartUiStateArgs) {
   const flags = miniCartOpFlags(assignmentOps);
@@ -66,16 +70,27 @@ export function useMiniCartUiState({
   const [noteDraft, setNoteDraft] = useState("");
   /** Информационное окно для non-drug (диагностика / лечение). */
   const [infoTargetId, setInfoTargetId] = useState<string | null>(null);
-  /** Внутренний экран препарата: list | drug-details. */
+  /** Внутренние экраны: list | drug-details | custom-items. */
   const [view, setView] = useState<MiniCartView>({ type: "list" });
   const [listScrollTop, setListScrollTop] = useState(0);
   const [tradeTargetId, setTradeTargetId] = useState<string | null>(null);
   const [schemeTargetId, setSchemeTargetId] = useState<string | null>(null);
   const [comboTargetId, setComboTargetId] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  /** null = создание; string = редактирование пользовательской позиции. */
+  const [editingCustomItemId, setEditingCustomItemId] = useState<string | null>(
+    null,
+  );
+  const [localCustomItems, setLocalCustomItems] = useState<MiniCartCustomItem[]>(
+    [],
+  );
   const [customSeq, setCustomSeq] = useState(1);
   const [aiInput, setAiInput] = useState("");
   const [ixQuery, setIxQuery] = useState("");
+
+  const customItems = flags.isDirectoryBacked
+    ? (customItemsProp ?? [])
+    : localCustomItems;
 
   useEffect(() => {
     setDrugItems(initialDrugItems);
@@ -318,9 +333,17 @@ export function useMiniCartUiState({
     setInfoTargetId(null);
   };
 
-  const closeDrugDetails = () => {
+  const openCustomItemsScreen = (scrollTop = 0) => {
+    setListScrollTop(scrollTop);
+    setView({ type: "custom-items" });
+  };
+
+  /** Закрыть любой внутренний экран и вернуться к основному списку. */
+  const closeInnerView = () => {
     setView({ type: "list" });
   };
+
+  const closeDrugDetails = closeInnerView;
 
   const applySchemePicks = (
     itemId: string,
@@ -373,6 +396,9 @@ export function useMiniCartUiState({
     classicItems.find((item) => item.id === itemId) ||
     null;
 
+  const findCustomItem = (itemId: string) =>
+    customItems.find((item) => item.id === itemId) ?? null;
+
   const openInfoForItem = (itemId: string, scrollTop = 0) => {
     const item = findItem(itemId);
     if (!item) return;
@@ -398,22 +424,74 @@ export function useMiniCartUiState({
     setNoteTargetId(itemId);
   };
 
-  const addCustomItem = (name: string) => {
-    if (flags.isDirectoryBacked) return;
-    const id = `custom-${customSeq}`;
-    setCustomSeq((value) => value + 1);
-    setClassicItems((prev) => [
-      ...prev,
-      {
-        id,
-        kind: "custom",
-        name,
-        selected: true,
-        commentText: "",
-        tabId: "lifestyle",
-        group: "Прочее",
-      },
-    ]);
+  const openAddCustomItem = () => {
+    if (flags.isDirectoryBacked && !flags.canAddCustomItem) return;
+    setEditingCustomItemId(null);
+    setAddModalOpen(true);
+  };
+
+  const openCustomItemEditor = (itemId: string) => {
+    const item = findCustomItem(itemId);
+    if (!item) return;
+    if (flags.isDirectoryBacked && !flags.canUpdateCustomItem) return;
+    setEditingCustomItemId(itemId);
+    setAddModalOpen(true);
+  };
+
+  const closeCustomItemModal = () => {
+    setAddModalOpen(false);
+    setEditingCustomItemId(null);
+  };
+
+  const saveCustomItem = (values: { name: string; comment: string }) => {
+    if (flags.isDirectoryBacked) {
+      if (editingCustomItemId) {
+        if (!flags.canUpdateCustomItem) return;
+        assignmentOps?.updateCustomItem?.(editingCustomItemId, values);
+      } else {
+        if (!flags.canAddCustomItem) return;
+        assignmentOps?.addCustomItem?.(values);
+      }
+      closeCustomItemModal();
+      return;
+    }
+
+    if (editingCustomItemId) {
+      setLocalCustomItems((prev) =>
+        prev.map((item) =>
+          item.id === editingCustomItemId
+            ? { ...item, name: values.name, comment: values.comment }
+            : item,
+        ),
+      );
+    } else {
+      const id = `custom-${customSeq}`;
+      setCustomSeq((value) => value + 1);
+      setLocalCustomItems((prev) => [
+        ...prev,
+        { id, name: values.name, comment: values.comment },
+      ]);
+    }
+    closeCustomItemModal();
+  };
+
+  const removeCustomItem = (itemId: string) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canRemoveCustomItem) return;
+      assignmentOps?.removeCustomItem?.(itemId);
+      return;
+    }
+    setLocalCustomItems((prev) => prev.filter((item) => item.id !== itemId));
+  };
+
+  const setRecommendationValue = (value: string) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canSetRecommendation) return;
+      setRecommendation(value);
+      assignmentOps?.setGeneralRecommendation?.(value);
+      return;
+    }
+    setRecommendation(value);
   };
 
   const selectAllRequired = (tabId: string) => {
@@ -495,7 +573,7 @@ export function useMiniCartUiState({
     mkbAge,
     setMkbAge,
     recommendation,
-    setRecommendation,
+    setRecommendation: setRecommendationValue,
     noteTargetId,
     setNoteTargetId,
     noteDraft,
@@ -507,6 +585,8 @@ export function useMiniCartUiState({
     listScrollTop,
     openDrugDetails,
     closeDrugDetails,
+    openCustomItemsScreen,
+    closeInnerView,
     openInfoForItem,
     tradeTargetId,
     setTradeTargetId,
@@ -516,6 +596,14 @@ export function useMiniCartUiState({
     setComboTargetId,
     addModalOpen,
     setAddModalOpen,
+    editingCustomItemId,
+    openAddCustomItem,
+    openCustomItemEditor,
+    closeCustomItemModal,
+    saveCustomItem,
+    removeCustomItem,
+    customItems,
+    findCustomItem,
     aiInput,
     setAiInput,
     ixQuery,
@@ -537,7 +625,6 @@ export function useMiniCartUiState({
     applySchemePicks,
     applyCombination,
     applyComboPick,
-    addCustomItem,
     selectAllRequired,
     findItem,
   };

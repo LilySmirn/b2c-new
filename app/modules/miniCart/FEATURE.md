@@ -26,7 +26,7 @@ NEXT_PUBLIC_MINI_CART=1
 - `pip/documentPip.ts` — requestWindow, копирование stylesheet/style, mount `#em-mini-cart-pip-root.emMiniCart`
 - UI остаётся в React-дереве opener; панель и оверлеи уходят через `createPortal`
 - Модалки/поповеры — `MiniCartPortal` → `portalRoot` (PiP root / host `.emMiniCart`)
-- Системный крестик PiP (`pagehide`): `flushSync` снимает порталы, пока document ещё жив; `closeOverlays` сбрасывает модалки/drug-details; `isLivePortalTarget` не пускает createPortal в мёртвый window
+- Системный крестик PiP (`pagehide`): `flushSync` снимает порталы, пока document ещё жив; `closeOverlays` сбрасывает модалки / drug-details / custom-items / форму custom item; `isLivePortalTarget` не пускает createPortal в мёртвый window
 
 **Важно:** портальные оверлеи рендерятся **вне** `.preparaty`. Поэтому:
 
@@ -39,7 +39,9 @@ NEXT_PUBLIC_MINI_CART=1
 Дополнительно (не перезаписываются extract-скриптом):
 
 - `styles/miniCartDrugDetails.css` — экран препарата;
-- `styles/miniCartInfoModal.css` — шапка/прокрутка/выравнивание info-модалки нелекарственных позиций.
+- `styles/miniCartInfoModal.css` — шапка/прокрутка/выравнивание info-модалки нелекарственных позиций;
+- `styles/miniCartAddModal.css` — поля формы пользовательской позиции;
+- `styles/miniCartCustomItems.css` — экран «Дополнительно» и ряд кнопок footer.
 
 ## Preview
 
@@ -54,21 +56,48 @@ NEXT_PUBLIC_MINI_CART=1
 
 Источник: `PrescriptionChecklist` → `assignmentSnapshot` (+ `commentSources`) → `fromDirectoryCart` → MiniCart.
 
-Мутации: `MiniCartAssignmentOps` → `PrescriptionChecklistHandle` (без второго store).
+Мутации checklist: `MiniCartAssignmentOps` → `PrescriptionChecklistHandle` (без второго store).
+
+### D3 / D3.1. Пользовательские позиции и общая рекомендация
+
+Единый источник — React-state `SideCart` + `cartStorage` (`customItems` / `generalComments` по `recommendationKey`).
+
+| Операция | Full | Mini |
+|---|---|---|
+| Добавить / изменить / удалить custom | `CustomCartItemModal` → `setCustomItems` | `MiniCartAddModal` → `SideCartHandle` через ops |
+| Общая рекомендация | `RecommendationField` onChange | footer textarea → `setGeneralComment` через ops |
+
+Тип позиции в production: одна сущность `{ id, name, comment }` (услуга/медикамент без раздельных подтипов).  
+`id` — `createBrowserId()`; при редактировании id сохраняется.  
+Валидация: имя 1…160, первая буква заглавная; комментарий до 500, trim при сохранении.  
+Удаление без подтверждения (как в SideCart).  
+Общая рекомендация пишется на каждый ввод (как в full); пустой/whitespace очищает storage.
+
+**D3.1:** пользовательские позиции **не** маппятся в раздел «Образ жизни» / `lifestyle`.  
+Адаптер отдаёт отдельную коллекцию `customItems`. Вкладка «Образ жизни» зависит только от содержимого КР.
+
+В footer основная строка:
+
+- слева «+ Добавить услугу/медикамент»;
+- справа «Дополнительно (N)» → внутренний экран `custom-items`.
+
+Синхронизация Full ↔ Mini: `SideCart` пишет в `cartStorage` + `publishCartSync`; `useDirectoryMiniCartData` перечитывает extras (включая `origin: "local"`).
 
 ### Внутренние экраны (без смены URL)
 
 ```ts
 type MiniCartView =
   | { type: "list" }
-  | { type: "drug-details"; itemId: string };
+  | { type: "drug-details"; itemId: string }
+  | { type: "custom-items" };
 ```
 
 - Кнопка «i» **лекарственной** позиции открывает экран внутри той же мини-корзинки / PiP.
-- Диагностика и лечебные мероприятия по-прежнему используют `MiniCartInfoModal`.
-- «Назад» / «Готово» возвращают к списку; черновики уже записаны (как в `DrugInfoModal`).
-- При expand/dock детали закрываются; данные назначения сохраняются в `PrescriptionChecklist`.
-- Позиция прокрутки списка восстанавливается при возврате.
+- Диагностика и лечебные мероприятия — `MiniCartInfoModal`.
+- «Дополнительно (N)» — `MiniCartCustomItemsScreen` (список / empty / add / edit / delete).
+- Добавление и редактирование позиций — `MiniCartAddModal` (portal).
+- «Назад» / «Готово» возвращают к списку; `listScrollTop` + активная вкладка / раздел КР сохраняются.
+- При expand/dock / системном закрытии PiP внутренние экраны закрываются через `closeInnerView` + `closeCustomItemModal`.
 
 ### Экран препарата
 
@@ -81,6 +110,15 @@ type MiniCartView =
 
 Поповеры дозы/формы: `MiniCartCatalogCombo` → `MiniCartPortal` + `ownerDocument` PiP.
 
+### Экран «Дополнительно»
+
+Компонент: `components/MiniCartCustomItemsScreen.tsx`.
+
+- Заголовок «Дополнительно (N)», подпись «Назначения, добавленные врачом».
+- Список: название + комментарий (столбцом), ✎ / × справа.
+- Пустое состояние без авто-закрытия экрана.
+- Добавление с основного экрана не переключает на «Дополнительно»; добавление с внутреннего экрана оставляет на нём.
+
 ## Следующий этап
 
-D3 — custom items и общая рекомендация.
+D4 — копирование выбранных назначений.

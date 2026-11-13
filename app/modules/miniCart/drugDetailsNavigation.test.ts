@@ -175,6 +175,14 @@ describe("drug-details navigation model", () => {
     view = { type: "list" };
     assert.equal(view.type, "list");
   });
+
+  it("switches between list and custom-items without URL", () => {
+    let view: MiniCartView = { type: "list" };
+    view = { type: "custom-items" };
+    assert.equal(view.type, "custom-items");
+    view = { type: "list" };
+    assert.equal(view.type, "list");
+  });
 });
 
 describe("drug-details assignment ops flags", () => {

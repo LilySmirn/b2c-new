@@ -504,12 +504,32 @@ describe("adaptDirectoryCartToMiniCart", () => {
     assert.equal(lab?.selected, true);
     assert.equal(lab?.comment, "обязательно");
 
-    const customGroup = view.shellTabs.lifestyle?.groups?.find(
-      (group) => group.title === "Прочее",
+    assert.equal(view.customItems.length, 1);
+    assert.equal(view.customItems[0]?.id, "custom-1");
+    assert.equal(view.customItems[0]?.name, "Доп. препарат");
+    assert.equal(view.customItems[0]?.comment, "вне КР");
+    assert.equal(
+      view.shellTabs.lifestyle?.groups?.some((group) => group.id === "custom-misc") ??
+        false,
+      false,
     );
-    assert.equal(customGroup?.items?.[0]?.name, "Доп. препарат");
-    assert.equal(customGroup?.items?.[0]?.selected, true);
-    assert.equal(view.tabs.find((tab) => tab.id === "lifestyle")?.enabled, true);
+    assert.equal(view.tabs.find((tab) => tab.id === "lifestyle")?.enabled, false);
     assert.equal(view.recommendation, "Контроль через 2 недели");
+  });
+
+  it("keeps lifestyle disabled when only custom items exist", () => {
+    const view = adaptDirectoryCartToMiniCart({
+      diagnosisTitle: "K26",
+      sections: [],
+      catalog: { drugs: [], interactions: null },
+      catalogQuery: null,
+      customItems: [{ id: "c1", name: "Услуга", comment: "" }],
+      generalRecommendation: "",
+    });
+
+    assert.equal(view.customItems.length, 1);
+    assert.equal(view.recommendation, "");
+    assert.equal(view.tabs.find((tab) => tab.id === "lifestyle")?.enabled, false);
+    assert.equal(view.shellTabs.lifestyle?.enabled ?? false, false);
   });
 });

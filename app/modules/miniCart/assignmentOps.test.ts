@@ -52,4 +52,23 @@ describe("miniCartOpFlags", () => {
     assert.equal(flags.canInfoComment, false);
     assert.equal(flags.canApplyOriginal, false);
   });
+
+  it("exposes D3 custom item and recommendation ops", () => {
+    const flags = miniCartOpFlags({
+      toggleItem: () => undefined,
+      setComment: () => undefined,
+      applyMedsPick: () => undefined,
+      setMedicationField: () => undefined,
+      addCustomItem: () => undefined,
+      updateCustomItem: () => undefined,
+      removeCustomItem: () => undefined,
+      setGeneralRecommendation: () => undefined,
+    });
+
+    assert.equal(flags.canAddCustomItem, true);
+    assert.equal(flags.canUpdateCustomItem, true);
+    assert.equal(flags.canRemoveCustomItem, true);
+    assert.equal(flags.canSetRecommendation, true);
+    assert.equal(flags.isDirectoryBacked, true);
+  });
 });

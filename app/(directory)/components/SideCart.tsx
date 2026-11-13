@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import ActionPanel from "./ActionPanel";
 import CustomCartItemModal from "./CustomCartItemModal";
 import CartTemplateToggle from "./CartTemplateToggle";
@@ -25,6 +31,16 @@ import trashIcon from "@/assets/images/delete-icon.svg";
 import deleteIcon from "@/assets/images/delete.svg";
 
 export type CustomCartItem = StoredCustomCartItem;
+
+export type SideCartHandle = {
+  addCustomItem: (values: { name: string; comment: string }) => void;
+  updateCustomItem: (
+    id: string,
+    values: { name: string; comment: string },
+  ) => void;
+  removeCustomItem: (id: string) => void;
+  setGeneralComment: (value: string) => void;
+};
 
 type SideCartProps = {
   selectedItems?: SelectedPrescription[];
@@ -81,15 +97,18 @@ const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[])
       return acc;
     }, {});
 
-export default function SideCart({
-  selectedItems = [],
-  onDeleteItem,
-  onDeleteAll,
-  onApplyTemplate,
-  diagnosisCode = "",
-  recommendationTitle = "",
-  storageKey = "",
-}: SideCartProps) {
+const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
+  {
+    selectedItems = [],
+    onDeleteItem,
+    onDeleteAll,
+    onApplyTemplate,
+    diagnosisCode = "",
+    recommendationTitle = "",
+    storageKey = "",
+  },
+  ref,
+) {
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isSelectTemplateModalOpen, setIsSelectTemplateModalOpen] = useState(false);
   const [customItems, setCustomItems] = useState<CustomCartItem[]>([]);
@@ -107,6 +126,36 @@ export default function SideCart({
 
   customItemsRef.current = customItems;
   generalCommentRef.current = generalComment;
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      addCustomItem: ({ name, comment }) => {
+        setCustomItems((prev) => [
+          ...prev,
+          {
+            id: createBrowserId(),
+            name,
+            comment,
+          },
+        ]);
+      },
+      updateCustomItem: (id, { name, comment }) => {
+        setCustomItems((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, name, comment } : item,
+          ),
+        );
+      },
+      removeCustomItem: (id) => {
+        setCustomItems((prev) => prev.filter((item) => item.id !== id));
+      },
+      setGeneralComment: (value) => {
+        setGeneralComment(value);
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     getCartSync().start();
@@ -373,4 +422,6 @@ export default function SideCart({
       ) : null}
     </aside>
   );
-}
+});
+
+export default SideCart;
