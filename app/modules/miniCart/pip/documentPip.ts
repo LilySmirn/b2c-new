@@ -48,6 +48,31 @@ export function isPipWindowOpen(
   }
 }
 
+/**
+ * Можно ли безопасно вызывать createPortal / DOM-операции для target.
+ * После системного закрытия PiP document/window уже мёртвы — портал в них ломает React.
+ */
+export function isLivePortalTarget(
+  target: Element | null | undefined,
+): target is HTMLElement {
+  if (!target || typeof target !== "object") return false;
+  // Duck-typing: без instanceof HTMLElement (в node:test DOM API может отсутствовать).
+  const node = target as HTMLElement;
+  if (typeof node.nodeType !== "number" || node.nodeType !== 1) return false;
+  try {
+    const doc = node.ownerDocument;
+    if (!doc) return false;
+    const view = doc.defaultView;
+    if (!view || view.closed) return false;
+    if (doc.body?.contains(node) || doc.documentElement?.contains(node)) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function resolvePipSize(panel?: HTMLElement | null): {
   width: number;
   height: number;

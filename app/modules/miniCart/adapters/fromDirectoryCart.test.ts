@@ -472,6 +472,9 @@ describe("adaptDirectoryCartToMiniCart", () => {
           "med-drug": { checked: true, comment: "по схеме" },
           "med-combo": { checked: true, comment: "" },
         },
+        commentSources: {
+          "med-drug": "user",
+        },
       },
       customItems: [
         { id: "custom-1", name: "Доп. препарат", comment: "вне КР" },

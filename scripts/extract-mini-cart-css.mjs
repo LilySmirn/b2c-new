@@ -297,6 +297,7 @@ const portalPatches = `
   color: #0f172a;
   font-size: 13px;
   font-weight: 700;
+  text-align: left;
 }
 
 .emMiniCart .preparaty__info-dialog .preparaty__note-body > p,
@@ -305,6 +306,15 @@ const portalPatches = `
   color: #334155;
   font-size: 13px;
   line-height: 1.45;
+  text-align: left;
+}
+
+/* Info modal: keep close button top-right even under the 860px card-head column rule.
+ * Full layout/scroll overrides live in styles/miniCartInfoModal.css. */
+@media (max-width: 860px) {
+  .emMiniCart .preparaty__info-dialog .preparaty__card-head {
+    flex-direction: row;
+  }
 }
 
 .emMiniCart .preparaty__check input:checked + span,

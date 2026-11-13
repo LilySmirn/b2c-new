@@ -111,6 +111,15 @@ export type PrescriptionChecklistHandle = {
   selectAllRequiredDiagnostics: () => void;
   /** D2: сохранить подтверждённую схему/комбинацию (как SchemeWizard → confirmCombination). */
   applyCombination: (itemId: string, draft: CombinationDraft) => void;
+  /** Экран препарата в мини-корзинке: приём. */
+  setMedicationIntake: (itemId: string, intake: MedicationIntake) => void;
+  /**
+   * Комментарий из DrugInfoModal / компактного экрана:
+   * без авто-check, source=user.
+   */
+  setMedicationInfoComment: (itemId: string, comment: string) => void;
+  resetMedicationAssignment: (itemId: string) => void;
+  applyOriginalRecommendation: (itemId: string) => void;
 };
 
 type PrescriptionChecklistProps = {
@@ -442,9 +451,11 @@ const PrescriptionChecklist = forwardRef<
       medicationIntake,
       combinations: combinationByItemId,
       itemStates,
+      commentSources,
     });
   }, [
     combinationByItemId,
+    commentSources,
     medicationDrafts,
     medicationIntake,
     onAssignmentSnapshotChange,
@@ -699,15 +710,6 @@ const PrescriptionChecklist = forwardRef<
     confirmCombination(itemId, draft);
   };
 
-  useImperativeHandle(ref, () => ({
-    toggleItem: toggleChecked,
-    setItemComment,
-    applyMedsPick: applyMedsPickById,
-    setMedicationField: updateMedicationField,
-    selectAllRequiredDiagnostics: toggleRequiredDiagnostics,
-    applyCombination: applyCombinationById,
-  }));
-
   const applyOriginalRecommendation = (item: ChecklistItem) => {
     const scheme = item.treatmentPlan ?? "";
     const course = item.treatmentDuration ?? "";
@@ -733,6 +735,36 @@ const PrescriptionChecklist = forwardRef<
       return next;
     });
   };
+
+  const setMedicationInfoComment = (itemId: string, comment: string) => {
+    updateMedicationComment(itemId, comment);
+    writeCommentSource(itemId, "user");
+  };
+
+  const resetMedicationAssignmentById = (itemId: string) => {
+    const item = findItemById(itemId);
+    if (!item) return;
+    resetMedicationAssignment(item);
+  };
+
+  const applyOriginalRecommendationById = (itemId: string) => {
+    const item = findItemById(itemId);
+    if (!item) return;
+    applyOriginalRecommendation(item);
+  };
+
+  useImperativeHandle(ref, () => ({
+    toggleItem: toggleChecked,
+    setItemComment,
+    applyMedsPick: applyMedsPickById,
+    setMedicationField: updateMedicationField,
+    selectAllRequiredDiagnostics: toggleRequiredDiagnostics,
+    applyCombination: applyCombinationById,
+    setMedicationIntake: updateMedicationIntake,
+    setMedicationInfoComment,
+    resetMedicationAssignment: resetMedicationAssignmentById,
+    applyOriginalRecommendation: applyOriginalRecommendationById,
+  }));
 
   const visibleSections = sortSectionsForDisplay(
     sections.filter((section) => section.categoryId === activeCategoryId),

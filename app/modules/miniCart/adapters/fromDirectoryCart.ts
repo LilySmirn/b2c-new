@@ -14,6 +14,9 @@ import {
 } from "@/app/(directory)/components/checklistModel";
 import {
   assignmentFromDraft,
+  combinationAssignmentView,
+  displayedAssignmentComment,
+  EMPTY_MEDICATION_INTAKE,
   hasCustomAssignment,
   tableScheduleValue,
 } from "@/app/(directory)/components/medications/assignmentScheme";
@@ -26,7 +29,10 @@ import {
   sanitizeCombinationDraft,
   type CombinationDraft,
 } from "@/app/(directory)/components/medications/combinationSelection";
-import { matchMedsDrugForItem } from "@/app/(directory)/components/medications/medsClient";
+import {
+  buildMedsRowView,
+  matchMedsDrugForItem,
+} from "@/app/(directory)/components/medications/medsClient";
 import type {
   MedsCatalogComponent,
   MedsCatalogDrug,
@@ -34,6 +40,7 @@ import type {
   MedsCatalogInnGroup,
   MedsCatalogItemRecord,
   MedsCatalogResponse,
+  MedsRowSelection,
 } from "@/app/(directory)/components/medications/medsCatalogTypes";
 import type { StoredCustomCartItem } from "@/app/(directory)/shared/cart";
 import type {
@@ -42,6 +49,7 @@ import type {
   MiniCartComponent,
   MiniCartComponentPick,
   MiniCartItemKind,
+  MiniCartMedicationDetails,
   MiniCartSchemeSource,
   MiniCartShellTab,
   MiniCartTab,
@@ -226,6 +234,63 @@ const resolveItemState = (
   return { checked: item.checked, comment: item.comment };
 };
 
+const selectionFromDraft = (
+  draft: ChecklistAssignmentSnapshot["medicationDrafts"][string] | undefined,
+): MedsRowSelection => ({
+  inn: draft?.inn ?? "",
+  trade: draft?.trade ?? "",
+  dose: draft?.dose ?? "",
+  form: draft?.form ?? "",
+  recordId: draft?.recordId ?? "",
+});
+
+const resolveCommentSource = (
+  item: ChecklistItem,
+  assignment: ChecklistAssignmentSnapshot,
+) => {
+  const byId = assignment.commentSources?.[item.id];
+  if (byId) return byId;
+  for (const sourceId of item.sourceIds ?? []) {
+    const source = assignment.commentSources?.[sourceId];
+    if (source) return source;
+  }
+  return "clinical-recommendation" as const;
+};
+
+const buildMedicationDetails = (
+  item: ChecklistItem,
+  entry: MedsCatalogDrug | null,
+  assignment: ChecklistAssignmentSnapshot,
+  fields: ReturnType<typeof assignmentFromDraft>,
+  combinationDraft: CombinationDraft | undefined,
+): MiniCartMedicationDetails => {
+  const selection = selectionFromDraft(assignment.medicationDrafts[item.id]);
+  const medsView = buildMedsRowView(entry, selection);
+  const commentSource = resolveCommentSource(item, assignment);
+  const combination =
+    entry?.type === "combination"
+      ? combinationAssignmentView(
+          item.title,
+          entry.combination_data,
+          combinationDraft,
+        )
+      : null;
+
+  return {
+    description: item.info?.trim() || "",
+    infoComment: item.infoComment?.trim() || "",
+    originalScheme: item.treatmentPlan ?? "",
+    originalCourse: item.treatmentDuration ?? "",
+    schemeDraft: fields.schemeText,
+    courseDraft: fields.courseText,
+    intake: fields.intake ?? EMPTY_MEDICATION_INTAKE,
+    noteCustom: commentSource === "user",
+    doseOptions: medsView.doseOptions,
+    formOptions: medsView.formOptions,
+    combination,
+  };
+};
+
 const mapDrugItem = (
   item: ChecklistItem,
   entry: MedsCatalogDrug | null,
@@ -264,6 +329,18 @@ const mapDrugItem = (
       ? combinationSelectionSummary(entry.combination_data, combinationDraft)
       : "";
   const itemState = resolveItemState(item, assignment);
+  const commentSource = resolveCommentSource(item, assignment);
+  const displayedComment = displayedAssignmentComment(
+    { text: itemState.comment || "", source: commentSource },
+    custom,
+  );
+  const medicationDetails = buildMedicationDetails(
+    item,
+    entry,
+    assignment,
+    fields,
+    combinationDraft,
+  );
 
   return {
     id: item.id,
@@ -290,9 +367,10 @@ const mapDrugItem = (
       schemeSummary || draft?.trade || "",
     selectedDose: fields.dose,
     selectedForm: fields.form,
-    commentShort: itemState.comment || "",
-    commentText: itemState.comment || "",
+    commentShort: displayedComment,
+    commentText: displayedComment,
     tabId: MINI_CART_DRUGS_TAB_ID,
+    medicationDetails,
   };
 };
 

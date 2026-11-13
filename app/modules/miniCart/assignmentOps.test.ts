@@ -36,4 +36,20 @@ describe("miniCartOpFlags", () => {
 
     assert.equal(miniCartOpFlags(ops).canScheme, true);
   });
+
+  it("exposes drug-details ops independently", () => {
+    const flags = miniCartOpFlags({
+      toggleItem: () => undefined,
+      setComment: () => undefined,
+      applyMedsPick: () => undefined,
+      setMedicationField: () => undefined,
+      setMedicationIntake: () => undefined,
+      resetMedicationAssignment: () => undefined,
+    });
+
+    assert.equal(flags.canIntake, true);
+    assert.equal(flags.canResetAssignment, true);
+    assert.equal(flags.canInfoComment, false);
+    assert.equal(flags.canApplyOriginal, false);
+  });
 });

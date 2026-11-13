@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -14,6 +15,7 @@ import MiniCartAddModal from "./components/MiniCartAddModal";
 import MiniCartAiPanel from "./components/MiniCartAiPanel";
 import MiniCartComboModal from "./components/MiniCartComboModal";
 import MiniCartDock from "./components/MiniCartDock";
+import MiniCartDrugDetailsScreen from "./components/MiniCartDrugDetailsScreen";
 import MiniCartFooter from "./components/MiniCartFooter";
 import MiniCartHeader from "./components/MiniCartHeader";
 import MiniCartInfoModal from "./components/MiniCartInfoModal";
@@ -28,12 +30,14 @@ import MiniCartTradePopover from "./components/MiniCartTradePopover";
 import { MiniCartPortalProvider } from "./context/MiniCartPortalContext";
 import { useDocumentPip } from "./hooks/useDocumentPip";
 import { useMiniCartUiState } from "./hooks/useMiniCartUiState";
+import { isLivePortalTarget } from "./pip/documentPip";
 import type {
   MiniCartCatalogItem,
   MiniCartDisplayMode,
   MiniCartProps,
 } from "./types";
 import "./styles/miniCartScope.css";
+import "./styles/miniCartDrugDetails.css";
 
 function flattenClassicItems(
   shellTabs: MiniCartProps["shellTabs"],
@@ -120,29 +124,12 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
     const hostRef = useRef<HTMLDivElement>(null);
     const panelMeasureRef = useRef<HTMLElement | null>(null);
+    const listScrollRef = useRef<HTMLDivElement | null>(null);
+    const closeOverlaysRef = useRef<() => void>(() => undefined);
     const [tradeAnchor, setTradeAnchor] = useState<HTMLElement | null>(null);
     const [fallbackRoot, setFallbackRoot] = useState<HTMLElement | null>(null);
 
     const wantPip = mode === "compact";
-
-    const pip = useDocumentPip({
-      wantPip,
-      measureEl: panelMeasureRef.current,
-      onPipClosedByBrowser: () => {
-        setMode("compact");
-      },
-    });
-
-    useEffect(() => {
-      setFallbackRoot(hostRef.current);
-    }, []);
-
-    const isPip = pip.active;
-    const ownerDocument =
-      (isPip && pip.pipWindow?.document) ||
-      (typeof document !== "undefined"
-        ? document
-        : (null as unknown as Document));
 
     const {
       setNoteTargetId,
@@ -151,6 +138,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setSchemeTargetId,
       setComboTargetId,
       setAddModalOpen,
+      closeDrugDetails,
     } = ui;
 
     const closeOverlays = useCallback(() => {
@@ -161,7 +149,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setComboTargetId(null);
       setAddModalOpen(false);
       setTradeAnchor(null);
+      closeDrugDetails();
     }, [
+      closeDrugDetails,
       setAddModalOpen,
       setComboTargetId,
       setInfoTargetId,
@@ -169,6 +159,64 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setSchemeTargetId,
       setTradeTargetId,
     ]);
+    closeOverlaysRef.current = closeOverlays;
+
+    const pip = useDocumentPip({
+      wantPip,
+      measureEl: panelMeasureRef.current,
+      onPipClosedByBrowser: () => {
+        // Системный крестик PiP: сбросить модалки/экраны до fallback-рендера.
+        closeOverlaysRef.current();
+        setMode("compact");
+      },
+    });
+
+    useEffect(() => {
+      setFallbackRoot(hostRef.current);
+    }, []);
+
+    const livePipTarget =
+      pip.active && isLivePortalTarget(pip.portalTarget)
+        ? pip.portalTarget
+        : null;
+    const isPip = Boolean(livePipTarget);
+    const ownerDocument =
+      (isPip && pip.pipWindow?.document) ||
+      (typeof document !== "undefined"
+        ? document
+        : (null as unknown as Document));
+
+    const captureListScroll = useCallback(() => {
+      const list = listScrollRef.current?.querySelector(
+        ".preparaty__mini-panel-list",
+      );
+      return list instanceof HTMLElement ? list.scrollTop : 0;
+    }, []);
+
+    const leaveDrugDetails = useCallback(() => {
+      if (ui.view.type === "drug-details") {
+        const itemId = ui.view.itemId;
+        const item = ui.findItem(itemId);
+        const raw = item?.commentText ?? "";
+        const trimmed = raw.trim();
+        if (trimmed !== raw) {
+          ui.setMedicationInfoComment(itemId, trimmed);
+        }
+      }
+      closeDrugDetails();
+    }, [
+      closeDrugDetails,
+      ui.findItem,
+      ui.setMedicationInfoComment,
+      ui.view,
+    ]);
+
+    useEffect(() => {
+      if (ui.view.type !== "drug-details") return;
+      if (!ui.findItem(ui.view.itemId)) {
+        closeDrugDetails();
+      }
+    }, [closeDrugDetails, ui.findItem, ui.view]);
 
     const enterCompactFromGesture = useCallback(async () => {
       setMode("compact");
@@ -214,17 +262,38 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
     const noteItem = ui.noteTargetId ? ui.findItem(ui.noteTargetId) : null;
     const infoItem = ui.infoTargetId ? ui.findItem(ui.infoTargetId) : null;
+    const drugDetailsItem =
+      ui.view.type === "drug-details" ? ui.findItem(ui.view.itemId) : null;
     const tradeItem = ui.tradeTargetId ? ui.findItem(ui.tradeTargetId) : null;
     const schemeItem = ui.schemeTargetId ? ui.findItem(ui.schemeTargetId) : null;
     const comboItem = ui.comboTargetId ? ui.findItem(ui.comboTargetId) : null;
     const selectedDrugs = ui.drugItems.filter((item) => item.selected);
+    const showDrugDetails = Boolean(drugDetailsItem);
+
+    const wasDrugDetailsRef = useRef(false);
+    useLayoutEffect(() => {
+      if (showDrugDetails) {
+        wasDrugDetailsRef.current = true;
+        return;
+      }
+      if (!wasDrugDetailsRef.current || !listScrollRef.current) return;
+      wasDrugDetailsRef.current = false;
+      const list = listScrollRef.current.querySelector(
+        ".preparaty__mini-panel-list",
+      );
+      if (list instanceof HTMLElement) {
+        list.scrollTop = ui.listScrollTop;
+      }
+    }, [showDrugDetails, ui.listScrollTop]);
 
     const panel = showCompactPanel ? (
       <aside
         ref={(node) => {
           panelMeasureRef.current = node;
         }}
-        className={`preparaty__mini-panel${isPip ? " is-pip" : ""}`}
+        className={`preparaty__mini-panel${isPip ? " is-pip" : ""}${
+          showDrugDetails ? " is-drug-details" : ""
+        }`}
         aria-label="Миникорзинка"
       >
         <MiniCartHeader
@@ -234,128 +303,182 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
           onClose={handleClose}
         />
 
-        <div className="preparaty__mini-panel-body">
-          <MiniCartNavTabs
-            value={ui.miniNav}
-            onChange={(nav) => {
-              ui.setMiniNav(nav);
-              if (nav !== "clinical-recs") ui.setMkbSearchOpen(false);
+        {showDrugDetails && drugDetailsItem ? (
+          <MiniCartDrugDetailsScreen
+            item={drugDetailsItem}
+            editable={ui.canEditItemFields(drugDetailsItem)}
+            canToggle={!ui.flags.isDirectoryBacked || ui.flags.canToggle}
+            canReset={
+              !ui.flags.isDirectoryBacked || ui.flags.canResetAssignment
+            }
+            canApplyOriginal={
+              !ui.flags.isDirectoryBacked || ui.flags.canApplyOriginal
+            }
+            canOpenScheme={ui.canOpenSchemePicker(drugDetailsItem)}
+            schemeLocked={ui.schemeTargetId === drugDetailsItem.id}
+            onBack={leaveDrugDetails}
+            onDone={leaveDrugDetails}
+            onToggleInclude={() => ui.toggleItem(drugDetailsItem.id)}
+            onChangeField={(field, value) =>
+              ui.setMedicationField(drugDetailsItem.id, field, value)
+            }
+            onCommentChange={(value) =>
+              ui.setMedicationInfoComment(drugDetailsItem.id, value)
+            }
+            onIntakeChange={(intake) =>
+              ui.setMedicationIntake(drugDetailsItem.id, intake)
+            }
+            onReset={() => ui.resetMedicationAssignment(drugDetailsItem.id)}
+            onApplyOriginal={() =>
+              ui.applyOriginalRecommendation(drugDetailsItem.id)
+            }
+            onOpenScheme={() => {
+              if (!ui.canOpenSchemePicker(drugDetailsItem)) return;
+              if (
+                ui.flags.isDirectoryBacked &&
+                !(schemeByItemId[drugDetailsItem.id]?.components?.length > 0)
+              ) {
+                return;
+              }
+              ui.setSchemeTargetId(drugDetailsItem.id);
             }}
           />
+        ) : (
+          <>
+            <div className="preparaty__mini-panel-body" ref={listScrollRef}>
+              <MiniCartNavTabs
+                value={ui.miniNav}
+                onChange={(nav) => {
+                  ui.setMiniNav(nav);
+                  if (nav !== "clinical-recs") ui.setMkbSearchOpen(false);
+                }}
+              />
 
-          {ui.miniNav === "clinical-recs" ? (
-            <div className="preparaty__mini-recs">
-              {hideMkbSearch ? null : (
-                <MiniCartMkbSearch
-                  query={ui.mkbQuery}
-                  open={ui.mkbSearchOpen}
-                  visit={ui.mkbVisit}
-                  age={ui.mkbAge}
-                  onQueryChange={ui.setMkbQuery}
-                  onOpenChange={ui.setMkbSearchOpen}
-                  onVisitChange={ui.setMkbVisit}
-                  onAgeChange={ui.setMkbAge}
-                  onSearch={() => undefined}
+              {ui.miniNav === "clinical-recs" ? (
+                <div className="preparaty__mini-recs">
+                  {hideMkbSearch ? null : (
+                    <MiniCartMkbSearch
+                      query={ui.mkbQuery}
+                      open={ui.mkbSearchOpen}
+                      visit={ui.mkbVisit}
+                      age={ui.mkbAge}
+                      onQueryChange={ui.setMkbQuery}
+                      onOpenChange={ui.setMkbSearchOpen}
+                      onVisitChange={ui.setMkbVisit}
+                      onAgeChange={ui.setMkbAge}
+                      onSearch={() => undefined}
+                    />
+                  )}
+                  <MiniCartSectionTabs
+                    tabs={ui.tabs}
+                    activeTab={ui.activeTab}
+                    page={ui.miniTabPage}
+                    onTabChange={(tabId) => {
+                      ui.setActiveTab(tabId);
+                      const index = ui.tabs.findIndex((tab) => tab.id === tabId);
+                      ui.setMiniTabPage(index >= 4 ? 1 : 0);
+                    }}
+                    onPageChange={ui.setMiniTabPage}
+                  />
+                  <MiniCartItemList
+                    activeTab={ui.activeTab}
+                    shellTabs={shellTabs}
+                    drugItems={ui.drugItems}
+                    classicItems={ui.classicItems}
+                    canToggle={
+                      !ui.flags.isDirectoryBacked || ui.flags.canToggle
+                    }
+                    canComment={
+                      !ui.flags.isDirectoryBacked || ui.flags.canComment
+                    }
+                    canOpenTrade={ui.canOpenTradePicker}
+                    canOpenScheme={ui.canOpenSchemePicker}
+                    canOpenCombo={ui.canOpenComboPicker}
+                    canSelectAll={
+                      !ui.flags.isDirectoryBacked ||
+                      ui.flags.canSelectAllRequired
+                    }
+                    onToggle={ui.toggleItem}
+                    onOpenComment={ui.openComment}
+                    onOpenInfo={(itemId) =>
+                      ui.openInfoForItem(itemId, captureListScroll())
+                    }
+                    onOpenTrade={(itemId, anchor) => {
+                      const item = ui.findItem(itemId);
+                      if (!item || !ui.canOpenTradePicker(item)) return;
+                      ui.setTradeTargetId(itemId);
+                      setTradeAnchor(anchor);
+                    }}
+                    onOpenScheme={(itemId) => {
+                      const item = ui.findItem(itemId);
+                      if (!item || !ui.canOpenSchemePicker(item)) return;
+                      if (
+                        ui.flags.isDirectoryBacked &&
+                        !(schemeByItemId[itemId]?.components?.length > 0)
+                      ) {
+                        return;
+                      }
+                      ui.setSchemeTargetId(itemId);
+                    }}
+                    onOpenCombo={(itemId) => {
+                      const item = ui.findItem(itemId);
+                      if (!item || !ui.canOpenComboPicker(item)) return;
+                      ui.setComboTargetId(itemId);
+                    }}
+                    onSelectAll={ui.selectAllRequired}
+                  />
+                </div>
+              ) : null}
+
+              {ui.miniNav === "easymed-ai" ? (
+                <MiniCartAiPanel
+                  input={ui.aiInput}
+                  onInputChange={ui.setAiInput}
                 />
-              )}
-              <MiniCartSectionTabs
-                tabs={ui.tabs}
-                activeTab={ui.activeTab}
-                page={ui.miniTabPage}
-                onTabChange={(tabId) => {
-                  ui.setActiveTab(tabId);
-                  const index = ui.tabs.findIndex((tab) => tab.id === tabId);
-                  ui.setMiniTabPage(index >= 4 ? 1 : 0);
-                }}
-                onPageChange={ui.setMiniTabPage}
-              />
-              <MiniCartItemList
-                activeTab={ui.activeTab}
-                shellTabs={shellTabs}
-                drugItems={ui.drugItems}
-                classicItems={ui.classicItems}
-                canToggle={
-                  !ui.flags.isDirectoryBacked || ui.flags.canToggle
-                }
-                canComment={
-                  !ui.flags.isDirectoryBacked || ui.flags.canComment
-                }
-                canOpenTrade={ui.canOpenTradePicker}
-                canOpenScheme={ui.canOpenSchemePicker}
-                canOpenCombo={ui.canOpenComboPicker}
-                canSelectAll={
-                  !ui.flags.isDirectoryBacked || ui.flags.canSelectAllRequired
-                }
-                onToggle={ui.toggleItem}
-                onOpenComment={ui.openComment}
-                onOpenInfo={ui.setInfoTargetId}
-                onOpenTrade={(itemId, anchor) => {
-                  const item = ui.findItem(itemId);
-                  if (!item || !ui.canOpenTradePicker(item)) return;
-                  ui.setTradeTargetId(itemId);
-                  setTradeAnchor(anchor);
-                }}
-                onOpenScheme={(itemId) => {
-                  const item = ui.findItem(itemId);
-                  if (!item || !ui.canOpenSchemePicker(item)) return;
-                  if (
-                    ui.flags.isDirectoryBacked &&
-                    !(schemeByItemId[itemId]?.components?.length > 0)
-                  ) {
-                    return;
-                  }
-                  ui.setSchemeTargetId(itemId);
-                }}
-                onOpenCombo={(itemId) => {
-                  const item = ui.findItem(itemId);
-                  if (!item || !ui.canOpenComboPicker(item)) return;
-                  ui.setComboTargetId(itemId);
-                }}
-                onSelectAll={ui.selectAllRequired}
-              />
+              ) : null}
+
+              {ui.miniNav === "interactions" ? (
+                <MiniCartInteractionsPanel
+                  selectedDrugs={selectedDrugs}
+                  query={ui.ixQuery}
+                  onQueryChange={ui.setIxQuery}
+                />
+              ) : null}
             </div>
-          ) : null}
 
-          {ui.miniNav === "easymed-ai" ? (
-            <MiniCartAiPanel input={ui.aiInput} onInputChange={ui.setAiInput} />
-          ) : null}
-
-          {ui.miniNav === "interactions" ? (
-            <MiniCartInteractionsPanel
-              selectedDrugs={selectedDrugs}
-              query={ui.ixQuery}
-              onQueryChange={ui.setIxQuery}
+            <MiniCartFooter
+              recommendation={ui.recommendation}
+              onRecommendationChange={(value) => {
+                if (ui.flags.isDirectoryBacked) return;
+                ui.setRecommendation(value);
+              }}
+              onAddClick={() => {
+                if (ui.flags.isDirectoryBacked) return;
+                ui.setAddModalOpen(true);
+              }}
+              assignmentsReadOnly={ui.flags.isDirectoryBacked}
             />
-          ) : null}
-        </div>
-
-        <MiniCartFooter
-          recommendation={ui.recommendation}
-          onRecommendationChange={(value) => {
-            if (ui.flags.isDirectoryBacked) return;
-            ui.setRecommendation(value);
-          }}
-          onAddClick={() => {
-            if (ui.flags.isDirectoryBacked) return;
-            ui.setAddModalOpen(true);
-          }}
-          assignmentsReadOnly={ui.flags.isDirectoryBacked}
-        />
+          </>
+        )}
       </aside>
     ) : null;
 
-    const portalContextValue = useMemo(
-      () => ({
+    const portalContextValue = useMemo(() => {
+      const openerFallback = isLivePortalTarget(fallbackRoot)
+        ? fallbackRoot
+        : null;
+      return {
         ownerDocument:
           ownerDocument ||
           (typeof document !== "undefined"
             ? document
             : (null as unknown as Document)),
-        portalRoot: (isPip ? pip.portalTarget : fallbackRoot) as HTMLElement | null,
+        portalRoot: (isPip && livePipTarget
+          ? livePipTarget
+          : openerFallback) as HTMLElement | null,
         isPip,
-      }),
-      [fallbackRoot, isPip, ownerDocument, pip.portalTarget],
-    );
+      };
+    }, [fallbackRoot, isPip, livePipTarget, ownerDocument]);
 
     return (
       <div
@@ -373,8 +496,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
           >
             {mode !== "full" ? (
               <>
-                {isPip && pip.portalTarget && panel
-                  ? createPortal(panel, pip.portalTarget)
+                {isPip && livePipTarget && panel
+                  ? createPortal(panel, livePipTarget)
                   : panel}
 
                 <MiniCartDock

@@ -26,6 +26,7 @@ NEXT_PUBLIC_MINI_CART=1
 - `pip/documentPip.ts` — requestWindow, копирование stylesheet/style, mount `#em-mini-cart-pip-root.emMiniCart`
 - UI остаётся в React-дереве opener; панель и оверлеи уходят через `createPortal`
 - Модалки/поповеры — `MiniCartPortal` → `portalRoot` (PiP root / host `.emMiniCart`)
+- Системный крестик PiP (`pagehide`): `flushSync` снимает порталы, пока document ещё жив; `closeOverlays` сбрасывает модалки/drug-details; `isLivePortalTarget` не пускает createPortal в мёртвый window
 
 **Важно:** портальные оверлеи рендерятся **вне** `.preparaty`. Поэтому:
 
@@ -35,6 +36,11 @@ NEXT_PUBLIC_MINI_CART=1
 
 Стили генерируются `scripts/extract-mini-cart-css.mjs` из `mini-korzinka/styles.css` + foundation/portal patches в скрипте. Повторный запуск скрипта сохраняет эти патчи.
 
+Дополнительно (не перезаписываются extract-скриптом):
+
+- `styles/miniCartDrugDetails.css` — экран препарата;
+- `styles/miniCartInfoModal.css` — шапка/прокрутка/выравнивание info-модалки нелекарственных позиций.
+
 ## Preview
 
 `/dev/mini-cart-preview` — демо K26 + кнопка открытия PiP.
@@ -43,10 +49,37 @@ NEXT_PUBLIC_MINI_CART=1
 
 Два независимых потока (как в полной корзине):
 
-1. Черновик — `medicationDrafts` / combinations (без auto-check).
+1. Черновик — `medicationDrafts` / combinations / intake (без auto-check).
 2. Выбор — `sections.checked` → SideCart.
 
-Подробности D1/D2 — в истории интеграции. D3 пока не начат.
+Источник: `PrescriptionChecklist` → `assignmentSnapshot` (+ `commentSources`) → `fromDirectoryCart` → MiniCart.
+
+Мутации: `MiniCartAssignmentOps` → `PrescriptionChecklistHandle` (без второго store).
+
+### Внутренние экраны (без смены URL)
+
+```ts
+type MiniCartView =
+  | { type: "list" }
+  | { type: "drug-details"; itemId: string };
+```
+
+- Кнопка «i» **лекарственной** позиции открывает экран внутри той же мини-корзинки / PiP.
+- Диагностика и лечебные мероприятия по-прежнему используют `MiniCartInfoModal`.
+- «Назад» / «Готово» возвращают к списку; черновики уже записаны (как в `DrugInfoModal`).
+- При expand/dock детали закрываются; данные назначения сохраняются в `PrescriptionChecklist`.
+- Позиция прокрутки списка восстанавливается при возврате.
+
+### Экран препарата
+
+Компонент: `components/MiniCartDrugDetailsScreen.tsx`.
+
+Вкладки:
+
+- **Назначение** — доза/форма (каталог + ручной ввод), приём, схема (chips), курс, комментарий врача, превью для пациента, состав схемы + мастер, «Сбросить», чекбокс «Включить в назначения».
+- **Информация** — accordion: Справка, Комментарий из КР (если есть), Как указано в КР (+ подставить), Осторожно.
+
+Поповеры дозы/формы: `MiniCartCatalogCombo` → `MiniCartPortal` + `ownerDocument` PiP.
 
 ## Следующий этап
 

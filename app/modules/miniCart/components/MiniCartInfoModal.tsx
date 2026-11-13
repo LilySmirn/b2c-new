@@ -1,6 +1,7 @@
 import { displayName } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartMedsField } from "../types";
 import MiniCartPortal from "./MiniCartPortal";
+import "../styles/miniCartInfoModal.css";
 
 type MiniCartInfoModalProps = {
   item: MiniCartCatalogItem;
@@ -20,8 +21,8 @@ export default function MiniCartInfoModal({
   const scheme = item.scheme ?? "";
   const course = item.course ?? "";
   const componentEntries = Object.entries(item.componentPicks ?? {});
-  const subtitle =
-    [item.qc, item.level].filter(Boolean).join(" · ") || "Назначение";
+  const showQc = Boolean(item.qc?.trim());
+  const showLevel = Boolean(item.level?.trim());
 
   const field = (
     id: MiniCartMedsField,
@@ -66,29 +67,26 @@ export default function MiniCartInfoModal({
         >
           <div className="preparaty__card-head">
             <div className="preparaty__card-head-main">
-              <div>
-                <h2>{displayName(item)}</h2>
-                <p>{subtitle}</p>
-              </div>
-              <div className="preparaty__card-badges">
-                {item.qc ? (
-                  <span className="preparaty__card-badge">{item.qc}</span>
-                ) : null}
-                {item.level ? (
-                  <span className="preparaty__card-badge">{item.level}</span>
-                ) : null}
-              </div>
+              <h2>{displayName(item)}</h2>
+              {showQc || showLevel ? (
+                <div className="preparaty__card-badges">
+                  {showQc ? (
+                    <span className="preparaty__card-badge">{item.qc}</span>
+                  ) : null}
+                  {showLevel ? (
+                    <span className="preparaty__card-badge">{item.level}</span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
-            <div className="preparaty__card-head-actions">
-              <button
-                type="button"
-                className="preparaty__info-close"
-                aria-label="Закрыть"
-                onClick={onClose}
-              >
-                ×
-              </button>
-            </div>
+            <button
+              type="button"
+              className="preparaty__info-close"
+              aria-label="Закрыть"
+              onClick={onClose}
+            >
+              ×
+            </button>
           </div>
           <div className="preparaty__note-body">
             <div className="preparaty__card-block">

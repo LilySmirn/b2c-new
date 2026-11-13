@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  EMPTY_MEDICATION_INTAKE,
+  type MedicationIntake,
+} from "@/app/(directory)/components/medications/assignmentScheme";
 import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
 import {
   miniCartOpFlags,
@@ -13,6 +17,7 @@ import type {
   MiniCartNav,
   MiniCartShellTab,
   MiniCartTab,
+  MiniCartView,
   MiniCartVisit,
 } from "../types";
 
@@ -59,7 +64,11 @@ export function useMiniCartUiState({
   );
   const [noteTargetId, setNoteTargetId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  /** Информационное окно для non-drug (диагностика / лечение). */
   const [infoTargetId, setInfoTargetId] = useState<string | null>(null);
+  /** Внутренний экран препарата: list | drug-details. */
+  const [view, setView] = useState<MiniCartView>({ type: "list" });
+  const [listScrollTop, setListScrollTop] = useState(0);
   const [tradeTargetId, setTradeTargetId] = useState<string | null>(null);
   const [schemeTargetId, setSchemeTargetId] = useState<string | null>(null);
   const [comboTargetId, setComboTargetId] = useState<string | null>(null);
@@ -167,12 +176,150 @@ export function useMiniCartUiState({
     setDrugItems((prev) =>
       prev.map((item) => {
         if (item.id !== itemId) return item;
+        const details = item.medicationDetails;
         if (field === "dose") return { ...item, selectedDose: value };
         if (field === "form") return { ...item, selectedForm: value };
-        if (field === "scheme") return { ...item, scheme: value };
-        return { ...item, course: value };
+        if (field === "scheme") {
+          return {
+            ...item,
+            scheme: value,
+            medicationDetails: details
+              ? { ...details, schemeDraft: value }
+              : details,
+          };
+        }
+        return {
+          ...item,
+          course: value,
+          medicationDetails: details
+            ? { ...details, courseDraft: value }
+            : details,
+        };
       }),
     );
+  };
+
+  const setMedicationIntake = (itemId: string, intake: MedicationIntake) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canIntake) return;
+      assignmentOps?.setMedicationIntake?.(itemId, intake);
+      return;
+    }
+    setDrugItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const details = item.medicationDetails;
+        return {
+          ...item,
+          medicationDetails: details
+            ? { ...details, intake }
+            : {
+                description: item.hint || "",
+                infoComment: "",
+                originalScheme: item.scheme || "",
+                originalCourse: item.course || "",
+                schemeDraft: "",
+                courseDraft: "",
+                intake,
+                noteCustom: false,
+                doseOptions: [],
+                formOptions: [],
+                combination: null,
+              },
+        };
+      }),
+    );
+  };
+
+  const setMedicationInfoComment = (itemId: string, comment: string) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canInfoComment) return;
+      assignmentOps?.setMedicationInfoComment?.(itemId, comment);
+      return;
+    }
+    setDrugItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              commentText: comment,
+              commentShort: comment,
+              medicationDetails: item.medicationDetails
+                ? { ...item.medicationDetails, noteCustom: true }
+                : item.medicationDetails,
+            }
+          : item,
+      ),
+    );
+  };
+
+  const resetMedicationAssignment = (itemId: string) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canResetAssignment) return;
+      assignmentOps?.resetMedicationAssignment?.(itemId);
+      return;
+    }
+    setDrugItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const details = item.medicationDetails;
+        return {
+          ...item,
+          selectedDose: "",
+          selectedForm: "",
+          scheme: details?.originalScheme || item.scheme || "",
+          course: details?.originalCourse || item.course || "",
+          medicationDetails: details
+            ? {
+                ...details,
+                schemeDraft: "",
+                courseDraft: "",
+                intake: { ...EMPTY_MEDICATION_INTAKE },
+                noteCustom: false,
+              }
+            : details,
+        };
+      }),
+    );
+  };
+
+  const applyOriginalRecommendation = (itemId: string) => {
+    if (flags.isDirectoryBacked) {
+      if (!flags.canApplyOriginal) return;
+      assignmentOps?.applyOriginalRecommendation?.(itemId);
+      return;
+    }
+    setDrugItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const details = item.medicationDetails;
+        return {
+          ...item,
+          selectedDose: "",
+          selectedForm: "",
+          scheme: details?.originalScheme || item.scheme || "",
+          course: details?.originalCourse || item.course || "",
+          medicationDetails: details
+            ? {
+                ...details,
+                schemeDraft: "",
+                courseDraft: "",
+                intake: { ...EMPTY_MEDICATION_INTAKE },
+              }
+            : details,
+        };
+      }),
+    );
+  };
+
+  const openDrugDetails = (itemId: string, scrollTop = 0) => {
+    setListScrollTop(scrollTop);
+    setView({ type: "drug-details", itemId });
+    setInfoTargetId(null);
+  };
+
+  const closeDrugDetails = () => {
+    setView({ type: "list" });
   };
 
   const applySchemePicks = (
@@ -225,6 +372,24 @@ export function useMiniCartUiState({
     drugItems.find((item) => item.id === itemId) ||
     classicItems.find((item) => item.id === itemId) ||
     null;
+
+  const openInfoForItem = (itemId: string, scrollTop = 0) => {
+    const item = findItem(itemId);
+    if (!item) return;
+    // Лекарственные позиции — внутренний экран, не модалка на основной вкладке.
+    if (
+      item.kind === "plain" ||
+      item.kind === "trade" ||
+      item.kind === "alternatives" ||
+      item.kind === "scheme" ||
+      item.kind === "combo" ||
+      item.kind === "extra-drug"
+    ) {
+      openDrugDetails(itemId, scrollTop);
+      return;
+    }
+    setInfoTargetId(itemId);
+  };
 
   const openComment = (itemId: string) => {
     if (flags.isDirectoryBacked && !flags.canComment) return;
@@ -300,7 +465,8 @@ export function useMiniCartUiState({
         (item.kind === "trade" ||
           item.kind === "plain" ||
           item.kind === "alternatives" ||
-          item.kind === "extra-drug")
+          item.kind === "extra-drug" ||
+          item.kind === "scheme")
       );
     }
     return true;
@@ -336,6 +502,12 @@ export function useMiniCartUiState({
     setNoteDraft,
     infoTargetId,
     setInfoTargetId,
+    view,
+    setView,
+    listScrollTop,
+    openDrugDetails,
+    closeDrugDetails,
+    openInfoForItem,
     tradeTargetId,
     setTradeTargetId,
     schemeTargetId,
@@ -358,6 +530,10 @@ export function useMiniCartUiState({
     openComment,
     applyTrade,
     setMedicationField,
+    setMedicationIntake,
+    setMedicationInfoComment,
+    resetMedicationAssignment,
+    applyOriginalRecommendation,
     applySchemePicks,
     applyCombination,
     applyComboPick,

@@ -1,3 +1,7 @@
+import type {
+  CombinationAssignmentView,
+  MedicationIntake,
+} from "@/app/(directory)/components/medications/assignmentScheme";
 import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
 import type { MedsCatalogComponent } from "@/app/(directory)/components/medications/medsCatalogTypes";
 import type { MiniCartAssignmentOps } from "./assignmentOps";
@@ -7,6 +11,28 @@ export type {
   MiniCartMedsField,
   MiniCartMedsPick,
 } from "./assignmentOps";
+
+/** Данные экрана редактирования лекарственного назначения (drug-details). */
+export type MiniCartMedicationDetails = {
+  description: string;
+  infoComment: string;
+  originalScheme: string;
+  originalCourse: string;
+  /** Сырой черновик схемы (не display fallback из КР). */
+  schemeDraft: string;
+  /** Сырой черновик курса. */
+  courseDraft: string;
+  intake: MedicationIntake;
+  noteCustom: boolean;
+  doseOptions: readonly string[];
+  formOptions: readonly string[];
+  combination: CombinationAssignmentView | null;
+};
+
+/** Внутренние экраны мини-корзинки (без смены URL). */
+export type MiniCartView =
+  | { type: "list" }
+  | { type: "drug-details"; itemId: string };
 
 /** Production-источник мастера схемы для directory-backed режима. */
 export type MiniCartSchemeSource = {
@@ -82,6 +108,8 @@ export type MiniCartCatalogItem = {
   commentText?: string;
   tabId?: string;
   group?: string;
+  /** Поля экрана препарата; есть у directory-backed лекарственных позиций. */
+  medicationDetails?: MiniCartMedicationDetails;
 };
 
 export type MiniCartShellGroup = {

@@ -151,6 +151,14 @@ export default function CartPreviewPage() {
         checklistRef.current?.selectAllRequiredDiagnostics(),
       applyCombination: (itemId, draft) =>
         checklistRef.current?.applyCombination(itemId, draft),
+      setMedicationIntake: (itemId, intake) =>
+        checklistRef.current?.setMedicationIntake(itemId, intake),
+      setMedicationInfoComment: (itemId, comment) =>
+        checklistRef.current?.setMedicationInfoComment(itemId, comment),
+      resetMedicationAssignment: (itemId) =>
+        checklistRef.current?.resetMedicationAssignment(itemId),
+      applyOriginalRecommendation: (itemId) =>
+        checklistRef.current?.applyOriginalRecommendation(itemId),
     }),
     [],
   );

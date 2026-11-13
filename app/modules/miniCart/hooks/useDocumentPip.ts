@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   closeDocumentPipWindow,
   copyStylesToPip,
@@ -53,58 +54,86 @@ export function useDocumentPip({
   const pagehideRef = useRef<((this: Window, ev: PageTransitionEvent) => void) | null>(
     null,
   );
+  const tearingDownRef = useRef(false);
   const onClosedRef = useRef(onPipClosedByBrowser);
   const onErrorRef = useRef(onPipError);
   onClosedRef.current = onPipClosedByBrowser;
   onErrorRef.current = onPipError;
 
-  const teardown = useCallback((notifyBrowserClose: boolean) => {
-    const win = pipRef.current;
-    if (win && pagehideRef.current) {
-      try {
-        win.removeEventListener("pagehide", pagehideRef.current);
-      } catch {
-        /* ignore */
-      }
-    }
+  const clearPipState = useCallback((notifyBrowserClose: boolean) => {
     pagehideRef.current = null;
     pipRef.current = null;
     requestRef.current = null;
     setPipWindow(null);
     setPortalTarget(null);
-    closeDocumentPipWindow(win);
     if (notifyBrowserClose) {
       onClosedRef.current?.();
     }
   }, []);
 
+  const teardown = useCallback(
+    (notifyBrowserClose: boolean) => {
+      if (tearingDownRef.current) return;
+      tearingDownRef.current = true;
+
+      const win = pipRef.current;
+      if (win && pagehideRef.current) {
+        try {
+          win.removeEventListener("pagehide", pagehideRef.current);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      try {
+        // Системное закрытие: сбросить порталы/оверлеи, пока PiP document ещё доступен.
+        if (notifyBrowserClose) {
+          flushSync(() => {
+            clearPipState(true);
+          });
+        } else {
+          clearPipState(false);
+        }
+      } catch {
+        clearPipState(notifyBrowserClose);
+      } finally {
+        closeDocumentPipWindow(win);
+        tearingDownRef.current = false;
+      }
+    },
+    [clearPipState],
+  );
+
   const close = useCallback(() => {
     teardown(false);
   }, [teardown]);
 
-  const adopt = useCallback((win: DocumentPipWindow) => {
-    // Снять прежний pagehide, если переоткрываем.
-    if (pipRef.current && pagehideRef.current) {
-      try {
-        pipRef.current.removeEventListener("pagehide", pagehideRef.current);
-      } catch {
-        /* ignore */
+  const adopt = useCallback(
+    (win: DocumentPipWindow) => {
+      // Снять прежний pagehide, если переоткрываем.
+      if (pipRef.current && pagehideRef.current) {
+        try {
+          pipRef.current.removeEventListener("pagehide", pagehideRef.current);
+        } catch {
+          /* ignore */
+        }
       }
-    }
 
-    copyStylesToPip(document, win);
-    const mount = preparePipDocument(win);
-    pipRef.current = win;
-    setPipWindow(win);
-    setPortalTarget(mount);
+      copyStylesToPip(document, win);
+      const mount = preparePipDocument(win);
+      pipRef.current = win;
+      setPipWindow(win);
+      setPortalTarget(mount);
 
-    const onPageHide = () => {
-      teardown(true);
-    };
-    pagehideRef.current = onPageHide;
-    win.addEventListener("pagehide", onPageHide);
-    return true;
-  }, [teardown]);
+      const onPageHide = () => {
+        teardown(true);
+      };
+      pagehideRef.current = onPageHide;
+      win.addEventListener("pagehide", onPageHide);
+      return true;
+    },
+    [teardown],
+  );
 
   const openFromUserGesture = useCallback(async () => {
     if (!supported) return false;
