@@ -12,6 +12,10 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import MiniCartAddModal from "./components/MiniCartAddModal";
+import MiniCartChartFlow, {
+  type MiniCartChartBox,
+  type MiniCartChartStep,
+} from "./components/MiniCartChartFlow";
 import MiniCartAiPanel from "./components/MiniCartAiPanel";
 import MiniCartComboModal from "./components/MiniCartComboModal";
 import MiniCartCustomItemsScreen from "./components/MiniCartCustomItemsScreen";
@@ -140,6 +144,10 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     const closeOverlaysRef = useRef<() => void>(() => undefined);
     const [tradeAnchor, setTradeAnchor] = useState<HTMLElement | null>(null);
     const [fallbackRoot, setFallbackRoot] = useState<HTMLElement | null>(null);
+    const [chartStep, setChartStep] = useState<MiniCartChartStep | "closed">(
+      "closed",
+    );
+    const [chartBox, setChartBox] = useState<MiniCartChartBox | null>(null);
     const [copyNotice, setCopyNotice] = useState<{
       text: string;
       error: boolean;
@@ -168,6 +176,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       closeCustomItemModal();
       setTradeAnchor(null);
       closeInnerView();
+      setChartStep("closed");
     }, [
       closeCustomItemModal,
       closeInnerView,
@@ -192,6 +201,57 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     useEffect(() => {
       setFallbackRoot(hostRef.current);
     }, []);
+
+    useEffect(() => {
+      if (mode === "compact") return;
+      setChartStep("closed");
+    }, [mode]);
+
+    const readChartBox = useCallback((): MiniCartChartBox | null => {
+      const panel = panelMeasureRef.current;
+      const view = panel?.ownerDocument.defaultView;
+      if (!panel || !view) return null;
+      const rect = panel.getBoundingClientRect();
+      return {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        borderRadius: view.getComputedStyle(panel).borderRadius,
+      };
+    }, []);
+
+    const closeChartFlow = useCallback(() => {
+      setChartStep("closed");
+    }, []);
+
+    const openChartPrompt = useCallback(() => {
+      setChartBox(readChartBox());
+      setChartStep("prompt");
+    }, [readChartBox]);
+
+    const openChartContact = useCallback(() => {
+      setChartStep("contact");
+    }, []);
+
+    useEffect(() => {
+      if (chartStep === "closed") return;
+      const panel = panelMeasureRef.current;
+      const view = panel?.ownerDocument.defaultView;
+      if (!view) return;
+      const sync = () => {
+        const next = readChartBox();
+        if (next) setChartBox(next);
+      };
+      view.addEventListener("resize", sync);
+      return () => {
+        try {
+          view.removeEventListener("resize", sync);
+        } catch {
+          /* PiP window may already be closing */
+        }
+      };
+    }, [chartStep, readChartBox]);
 
     const livePipTarget =
       pip.active && isLivePortalTarget(pip.portalTarget)
@@ -546,6 +606,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
               canEditRecommendation={
                 !ui.flags.isDirectoryBacked || ui.flags.canSetRecommendation
               }
+              onWrite={openChartPrompt}
               onCopy={
                 assignmentOps?.copySelected ? handleCopySelected : undefined
               }
@@ -705,6 +766,15 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                     }
                     onClose={ui.closeCustomItemModal}
                     onSubmit={ui.saveCustomItem}
+                  />
+                ) : null}
+
+                {chartStep !== "closed" ? (
+                  <MiniCartChartFlow
+                    step={chartStep}
+                    box={chartBox}
+                    onClose={closeChartFlow}
+                    onContact={openChartContact}
                   />
                 ) : null}
               </>

@@ -8,6 +8,7 @@ import documentIcon from "@/assets/images/action-panel-3.svg";
 import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
 import DocumentTemplateModal from "@/app/(directory)/components/DocumentTemplateModal";
+import MisIntegrationModal from "@/app/(directory)/components/MisIntegrationModal";
 import CorporateContactPopup from "@/app/components/CorporateContactPopup";
 import {
   COPY_NOTICE_DURATION_MS,
@@ -156,41 +157,13 @@ export default function ActionPanel({
 
       {isIntegrationModalOpen ? (
         <div className={styles.modalOverlay} onClick={() => setIsIntegrationModalOpen(false)}>
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Информация об интеграции с МИС"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className={styles.closeButton}
-              onClick={() => setIsIntegrationModalOpen(false)}
-              aria-label="Закрыть окно интеграции с МИС"
-            >
-              ×
-            </button>
-
-            <p className={styles.modalText}>
-              Хотите реализовать интеграцию
-              <br />
-              в ваш МИС?
-            </p>
-
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.modalButton}
-                onClick={() => {
-                  setIsIntegrationModalOpen(false);
-                  setIsContactPopupOpen(true);
-                }}
-              >
-                Свяжитесь с нами
-              </button>
-            </div>
-          </div>
+          <MisIntegrationModal
+            onClose={() => setIsIntegrationModalOpen(false)}
+            onContact={() => {
+              setIsIntegrationModalOpen(false);
+              setIsContactPopupOpen(true);
+            }}
+          />
         </div>
       ) : null}
 

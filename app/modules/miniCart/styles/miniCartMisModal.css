@@ -1,0 +1,125 @@
+/*
+ * Окно «Запись в карту» и форма заявки внутри мини-корзинки.
+ * Не перезаписывается scripts/extract-mini-cart-css.mjs.
+ *
+ * Пока панель не измерена, геометрия совпадает с .preparaty__mini-panel.
+ * После клика слой получает inline-размер самой панели (в том числе preview и PiP).
+ */
+
+.emMiniCart .preparaty__mis-layer {
+  position: fixed;
+  z-index: 1400;
+  top: 108px;
+  right: 32px;
+  left: auto;
+  bottom: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(
+    max(320px, calc((min(100vw, 1600px) - 84px) * 0.3)),
+    calc(100vw - 48px)
+  );
+  height: calc(100vh - 155px);
+  padding: 12px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.48);
+  box-sizing: border-box;
+}
+
+.emMiniCart.is-preview .preparaty__mis-layer {
+  top: 24px;
+  height: calc(100vh - 48px);
+}
+
+.emMiniCart.emMiniCart--pip .preparaty__mis-layer {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.emMiniCart .preparaty__mis-dialog {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 100%;
+  margin: 0;
+  padding: 36px 14px 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.emMiniCart .preparaty__mis-dialog p {
+  padding: 0 8px;
+  color: #00182f;
+  font: 700 16px / 1.35 Arial, sans-serif;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+.emMiniCart .preparaty__mis-actions {
+  margin-top: 16px;
+}
+
+.emMiniCart .preparaty__mis-actions button {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: #1182ee;
+  color: #ffffff;
+  font: 700 15px / 1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.emMiniCart .preparaty__mis-actions button:hover,
+.emMiniCart .preparaty__mis-actions button:focus-visible {
+  background: #0f73d1;
+}
+
+.emMiniCart .preparaty__mis-layer.is-contact {
+  padding: 0;
+  background: transparent;
+}
+
+.emMiniCart .preparaty__mis-layer.is-contact .popup-overlay {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  padding: 8px;
+  overflow: hidden;
+  border-radius: inherit;
+  box-sizing: border-box;
+}
+
+.emMiniCart .preparaty__mis-layer.is-contact .call-popup {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 32px 14px 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 16px;
+}
+
+.emMiniCart .preparaty__mis-layer.is-contact .call-popup__text h2 {
+  font-size: 22px;
+  overflow-wrap: break-word;
+}
+
+.emMiniCart .preparaty__mis-layer.is-contact .call-popup__fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.emMiniCart .preparaty__mis-layer.is-contact .call-popup__form input {
+  min-width: 0;
+  max-width: 100%;
+}

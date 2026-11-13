@@ -9,6 +9,8 @@ interface ErrorModalProps {
     onClose?: () => void;
     redirectOnClose?: boolean;
     reportToTelegram?: boolean;
+    /** Держать оверлей внутри контейнера (мини-корзинка), а не на весь viewport. */
+    contained?: boolean;
 }
 
 export default function ErrorModal({
@@ -16,6 +18,7 @@ export default function ErrorModal({
     onClose,
     redirectOnClose = true,
     reportToTelegram = true,
+    contained = false,
 }: ErrorModalProps) {
     const router = useRouter();
 
@@ -49,7 +52,7 @@ export default function ErrorModal({
     };
 
     return (
-        <div className={styles.errorOverlay}>
+        <div className={`${styles.errorOverlay}${contained ? ` ${styles.errorOverlayContained}` : ''}`}>
             <div className={styles.errorModal}>
                 <h2>Сеанс завершён</h2>
                 <p>{message || 'Попробуйте ещё раз.'}</p>

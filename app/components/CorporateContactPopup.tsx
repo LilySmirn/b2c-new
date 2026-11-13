@@ -6,11 +6,30 @@ import { safeTry } from "@/app/lib/safeTry";
 
 type CorporateContactPopupProps = {
     onClose: () => void;
+    /**
+     * Документ, в котором видно окно: основная страница или Document PiP.
+     * Слушатели, noscroll и alert успеха привязаны к нему.
+     * Без пропа — глобальный document, как на страницах сайта.
+     */
+    ownerDocument?: Document;
+    /**
+     * ErrorModal по умолчанию уводит на `/`.
+     * Мини-корзинка передаёт false, чтобы не закрывать PiP и не терять назначения.
+     */
+    redirectOnError?: boolean;
+    /** Ошибка остаётся внутри мини-корзинки и не закрывает форму по клику на неё. */
+    containError?: boolean;
 };
 
-export default function CorporateContactPopup({ onClose }: CorporateContactPopupProps) {
+export default function CorporateContactPopup({
+    onClose,
+    ownerDocument,
+    redirectOnError = true,
+    containError = false,
+}: CorporateContactPopupProps) {
     const [loading, setLoading] = useState(false);
     const popupRef = useRef<HTMLDivElement>(null);
+    const errorRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState({
         email: "",
         name: "",
@@ -21,27 +40,34 @@ export default function CorporateContactPopup({ onClose }: CorporateContactPopup
     const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
-        document.body.classList.add("noscroll");
+        const doc = ownerDocument ?? document;
+        const body = doc.body;
+        body?.classList.add("noscroll");
 
         function handleClickOutside(event: MouseEvent) {
-            if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-                onClose();
-            }
+            const target = event.target as Node;
+            if (popupRef.current?.contains(target)) return;
+            if (containError && errorRef.current?.contains(target)) return;
+            onClose();
         }
 
         function handleKeyDown(event: KeyboardEvent) {
             if (event.key === "Escape") onClose();
         }
 
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("keydown", handleKeyDown);
+        doc.addEventListener("mousedown", handleClickOutside);
+        doc.addEventListener("keydown", handleKeyDown);
 
         return () => {
-            document.body.classList.remove("noscroll");
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleKeyDown);
+            try {
+                body?.classList.remove("noscroll");
+                doc.removeEventListener("mousedown", handleClickOutside);
+                doc.removeEventListener("keydown", handleKeyDown);
+            } catch {
+                /* документ PiP уже может быть закрыт */
+            }
         };
-    }, [onClose]);
+    }, [containError, onClose, ownerDocument]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -64,7 +90,12 @@ export default function CorporateContactPopup({ onClose }: CorporateContactPopup
                 const data = await response.json();
                 setFormData({ email: "", name: "", phone: "", crm: "" });
                 onClose();
-                alert(data.message);
+                const view = (ownerDocument ?? document).defaultView;
+                try {
+                    view?.alert(data.message);
+                } catch {
+                    /* окно уже закрыто */
+                }
             },
             { setErrorMsg, setShowError },
         );
@@ -123,11 +154,24 @@ export default function CorporateContactPopup({ onClose }: CorporateContactPopup
             </div>
 
             {showError && (
-                <ErrorModal
-                    message={errorMsg}
-                    onClose={() => setShowError(false)}
-                    reportToTelegram={false}
-                />
+                containError ? (
+                    <div ref={errorRef} style={{ display: "contents" }}>
+                        <ErrorModal
+                            message={errorMsg}
+                            onClose={() => setShowError(false)}
+                            reportToTelegram={false}
+                            redirectOnClose={redirectOnError}
+                            contained
+                        />
+                    </div>
+                ) : (
+                    <ErrorModal
+                        message={errorMsg}
+                        onClose={() => setShowError(false)}
+                        reportToTelegram={false}
+                        redirectOnClose={redirectOnError}
+                    />
+                )
             )}
         </>
     );

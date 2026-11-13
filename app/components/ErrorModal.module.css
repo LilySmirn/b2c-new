@@ -38,3 +38,27 @@
     cursor: pointer;
     width: 150px;
 }
+
+.errorOverlayContained {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.errorOverlayContained .errorModal {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.errorOverlayContained .errorModal h2 {
+    font-size: 18px;
+}
+
+.errorOverlayContained .errorModal p {
+    font-size: 14px;
+}

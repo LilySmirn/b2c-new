@@ -26,7 +26,7 @@ NEXT_PUBLIC_MINI_CART=1
 - `pip/documentPip.ts` — requestWindow, копирование stylesheet/style, mount `#em-mini-cart-pip-root.emMiniCart`
 - UI остаётся в React-дереве opener; панель и оверлеи уходят через `createPortal`
 - Модалки/поповеры — `MiniCartPortal` → `portalRoot` (PiP root / host `.emMiniCart`)
-- Системный крестик PiP (`pagehide`): `flushSync` снимает порталы, пока document ещё жив; `closeOverlays` сбрасывает модалки / drug-details / custom-items / форму custom item; `isLivePortalTarget` не пускает createPortal в мёртвый window
+- Системный крестик PiP (`pagehide`): `flushSync` снимает порталы, пока document ещё жив; `closeOverlays` сбрасывает модалки / drug-details / custom-items / форму custom item / окно МИС и форму заявки; `isLivePortalTarget` не пускает createPortal в мёртвый window
 
 **Важно:** портальные оверлеи рендерятся **вне** `.preparaty`. Поэтому:
 
@@ -41,7 +41,8 @@ NEXT_PUBLIC_MINI_CART=1
 - `styles/miniCartDrugDetails.css` — экран препарата;
 - `styles/miniCartInfoModal.css` — шапка/прокрутка/выравнивание info-модалки нелекарственных позиций;
 - `styles/miniCartAddModal.css` — поля формы пользовательской позиции;
-- `styles/miniCartCustomItems.css` — экран «Дополнительно» и ряд кнопок footer.
+- `styles/miniCartCustomItems.css` — экран «Дополнительно» и ряд кнопок footer;
+- `styles/miniCartMisModal.css` — окно «Запись в карту» и компактная форма заявки.
 
 ## Preview
 
@@ -125,11 +126,23 @@ type MiniCartView =
 
 Источник на момент клика — refs `SideCart` (`selectedItems`, `customItems`, `generalComment`), не список мини-корзинки и не storage. Мини-кнопка передаёт `ownerDocument` кнопки: вкладка `/cart`, fallback или Document PiP. Запись идёт в `defaultView` этого документа (`navigator.clipboard`, затем `writeText`, затем `execCommand` в том же документе).
 
-Кнопка «Скопировать выбранное» активна, когда подключён `copySelected` (как в full — без отдельного правила «пусто / только рекомендация»). «Запись в карту» не подключена.
+Кнопка «Скопировать выбранное» активна, когда подключён `copySelected` (как в full — без отдельного правила «пусто / только рекомендация»).
 
 Уведомление в панели mini, 2400 мс, тот же текст успеха: «Скопировано N услуг». N = выбранные + пользовательские позиции; общая рекомендация в счётчик не входит. Ошибка: «Не удалось скопировать выбранное в буфер обмена», без сообщения об успехе.
 
 В текст попадают только `title` и `comment` выбранной позиции. Доза, форма, торговое имя, схема, курс и приём сами по себе в буфер не пишутся — их нет и в full, пока они не сохранены в title/comment. Пользовательские позиции — раздел «Дополнительно», не «Образ жизни».
+
+### D5. «Запись в карту»
+
+Реальной отправки назначений в МИС нет — ни в full, ни в mini.
+
+Full (`ActionPanel`): кнопка всегда доступна. Открывает окно «Хотите реализовать интеграцию в ваш МИС?» с кнопкой «Свяжитесь с нами». Кнопка закрывает это окно и открывает `CorporateContactPopup` — форму корпоративного доступа (почта, имя, телефон, клиника). Валидация — `required` у полей и проверка на `/api/sendTelegram`. Успех: `alert` «Заявка успешно отправлена!», форма закрывается. Ошибка: `ErrorModal`. Назначения в запрос не входят.
+
+Mini использует тот же `MisIntegrationModal` и тот же `CorporateContactPopup` (поля, `safeTry`, `/api/sendTelegram`). Оба шага идут через `MiniCartPortal` в документ PiP или, в fallback, поверх панели. Основная вкладка не переключается, PiP не пересоздаётся.
+
+Отличие только у ошибки внутри mini: `redirectOnClose` выключен, чтобы «Ок» не делал `router.push('/')` и не сносил страницу `/cart` вместе с PiP. Успех показывается через `alert` окна, которому принадлежит форма (`ownerDocument.defaultView`), а не вкладки `/cart`.
+
+Кнопка «Запись в карту» активна всегда, как в full. Открытие и закрытие окна не меняют выбор, комментарии, рекомендацию, раздел КР и прокрутку. `closeOverlays` (свернуть, развернуть, закрыть, системный крестик PiP) сбрасывает и окно МИС, и форму. `noscroll` вешается на `body` того же документа, где открыта форма.
 
 ## Следующий этап
 

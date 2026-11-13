@@ -53,7 +53,7 @@ export default function MiniCartFooter({
         onChange={(event) => onRecommendationChange(event.target.value)}
       />
       <div className="preparaty__mini-panel-actions">
-        <button type="button" className="preparaty__cart-btn" onClick={onWrite} disabled>
+        <button type="button" className="preparaty__cart-btn" onClick={onWrite} disabled={!onWrite}>
           <svg
             className="preparaty__cart-btn-icon"
             width="20"
