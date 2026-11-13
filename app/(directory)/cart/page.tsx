@@ -43,6 +43,7 @@ import MiniCartHost, {
 import { MINI_CART_PREVIEW_ENABLED } from "@/app/modules/miniCart/featureFlag";
 import { useDirectoryMiniCartData } from "@/app/modules/miniCart/hooks/useDirectoryMiniCartData";
 import type { MiniCartDisplayMode } from "@/app/modules/miniCart/types";
+import { COPY_CLIPBOARD_ERROR_MESSAGE } from "../components/cartClipboard";
 
 type AppendixA3Table = {
   name: string | null;
@@ -166,6 +167,13 @@ export default function CartPreviewPage() {
       removeCustomItem: (id) => sideCartRef.current?.removeCustomItem(id),
       setGeneralRecommendation: (value) =>
         sideCartRef.current?.setGeneralComment(value),
+      copySelected: (targetDocument) => {
+        const copy = sideCartRef.current?.copySelectedToClipboard;
+        if (!copy) {
+          return Promise.reject(new Error(COPY_CLIPBOARD_ERROR_MESSAGE));
+        }
+        return copy(targetDocument);
+      },
     }),
     [],
   );

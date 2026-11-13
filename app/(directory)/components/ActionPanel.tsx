@@ -9,6 +9,11 @@ import type { SelectedPrescription } from "./PrescriptionChecklist";
 import type { CustomCartItem } from "./SideCart";
 import DocumentTemplateModal from "@/app/(directory)/components/DocumentTemplateModal";
 import CorporateContactPopup from "@/app/components/CorporateContactPopup";
+import {
+  COPY_NOTICE_DURATION_MS,
+  copyCartSelection,
+  formatCopySuccessNotice,
+} from "./cartClipboard";
 import styles from "./ActionPanel.module.css";
 
 const actions = [
@@ -36,213 +41,6 @@ type ActionPanelProps = {
   selectedItems?: SelectedPrescription[];
   customItems?: CustomCartItem[];
   generalComment?: string;
-};
-
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
-const getClipboardCategoryTitle = (item: SelectedPrescription) => {
-  const categoryId = item.categoryId ?? "";
-  const title = item.categoryTitle ?? item.groupTitle;
-
-  if (categoryId === "lifestyle") return "Общие рекомендации";
-
-  const normalizedTitle = title.toLocaleLowerCase("ru");
-  if (
-    categoryId === "required-diagnostics" ||
-    categoryId === "indicated-diagnostics" ||
-    categoryId === "scales" ||
-    normalizedTitle.includes("диагност")
-  ) {
-    return "Диагностические мероприятия";
-  }
-
-  if (
-    categoryId === "medications" ||
-    categoryId === "vaccination" ||
-    title === "Препараты" ||
-    title === "Лекарства"
-  ) {
-    return "Лекарственная терапия";
-  }
-
-  if (categoryId === "treatment" || title === "Лечение") {
-    return "Немедикаментозное лечение";
-  }
-
-  return title;
-};
-
-const groupSelectedItemsByClipboardCategory = (selectedItems: SelectedPrescription[]) =>
-  selectedItems.reduce<Record<string, SelectedPrescription[]>>((acc, item) => {
-    const categoryTitle = getClipboardCategoryTitle(item);
-    acc[categoryTitle] = [...(acc[categoryTitle] ?? []), item];
-    return acc;
-  }, {});
-
-const formatItemTextLines = ({
-  title,
-  comment,
-}: {
-  title: string;
-  comment: string;
-  }) => [comment ? `${title} - ${comment}` : title];
-
-const formatItemHtmlLines = ({
-  title,
-  comment,
-}: {
-  title: string;
-  comment: string;
-}) => [
-  comment
-    ? `${escapeHtml(title)} - ${escapeHtml(comment)}`
-    : escapeHtml(title),
-];
-
-const copyHtmlWithSelectionFallback = (html: string) => {
-  const clipboardContainer = document.createElement("div");
-  clipboardContainer.contentEditable = "true";
-  clipboardContainer.innerHTML = html;
-  clipboardContainer.style.position = "fixed";
-  clipboardContainer.style.top = "0";
-  clipboardContainer.style.left = "0";
-  clipboardContainer.style.width = "1px";
-  clipboardContainer.style.height = "1px";
-  clipboardContainer.style.overflow = "hidden";
-  clipboardContainer.style.opacity = "0";
-  clipboardContainer.style.textAlign = "left";
-
-  document.body.appendChild(clipboardContainer);
-
-  const selection = window.getSelection();
-  const range = document.createRange();
-  range.selectNodeContents(clipboardContainer);
-  selection?.removeAllRanges();
-  selection?.addRange(range);
-
-  try {
-    const isCopied = document.execCommand("copy");
-
-    if (!isCopied) {
-      throw new Error("Не удалось скопировать выбранное в буфер обмена");
-    }
-  } finally {
-    selection?.removeAllRanges();
-    document.body.removeChild(clipboardContainer);
-  }
-};
-
-const copyClipboardContent = async ({
-  plainText,
-  html,
-}: {
-  plainText: string;
-  html: string;
-}) => {
-  const ClipboardItemConstructor = window.ClipboardItem;
-
-  if (navigator.clipboard?.write && ClipboardItemConstructor) {
-    try {
-      await navigator.clipboard.write([
-        new ClipboardItemConstructor({
-          "text/html": new Blob([html], { type: "text/html" }),
-          "text/plain": new Blob([plainText], { type: "text/plain" }),
-        }),
-      ]);
-      return;
-    } catch (error) {
-      console.warn("Не удалось скопировать HTML, пробуем текстовый формат", error);
-    }
-  }
-
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(plainText);
-      return;
-    } catch (error) {
-      console.warn("Не удалось скопировать через Clipboard API, используем fallback", error);
-    }
-  }
-
-  copyHtmlWithSelectionFallback(html);
-};
-
-const buildClipboardContent = (
-  selectedItems: SelectedPrescription[],
-  customItems: CustomCartItem[],
-  generalComment: string,
-) => {
-  const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
-
-  if (customItems.length > 0) {
-    groupedItems["Дополнительно"] = [
-      ...(groupedItems["Дополнительно"] ?? []),
-      ...customItems.map((item) => ({
-        id: item.id,
-        groupTitle: "Лечение",
-        sectionTitle: "Лечение",
-        title: item.name,
-        comment: item.comment,
-      })),
-    ];
-  }
-
-  const trimmedGeneralComment = generalComment.trim();
-  const categoryGroups = Object.entries(groupedItems);
-
-  const textBlocks = categoryGroups.map(([categoryTitle, items]) => {
-    const itemLines = items.flatMap((item) =>
-      formatItemTextLines({
-        title: item.title,
-        comment: item.comment,
-      }),
-    );
-
-    return [categoryTitle, ...itemLines].join("\n");
-  });
-
-  if (trimmedGeneralComment) {
-    textBlocks.push(["Общая рекомендация:", trimmedGeneralComment].join("\n"));
-  }
-
-  const plainText = textBlocks.join("\n\n");
-
-  const htmlBlocks = categoryGroups.map(([categoryTitle, items]) => {
-    const itemLines = items.flatMap((item) =>
-      formatItemHtmlLines({
-        title: item.title,
-        comment: item.comment,
-      }),
-    );
-
-    return [
-      `<strong>${escapeHtml(categoryTitle)}</strong>`,
-      ...itemLines,
-    ].join("<br>");
-  });
-
-  if (trimmedGeneralComment) {
-    htmlBlocks.push(
-      [
-        "<strong>Общая рекомендация:</strong>",
-        escapeHtml(trimmedGeneralComment),
-      ].join("<br>"),
-    );
-  }
-
-  // The application body is centered, so make the alignment part of the copied
-  // fragment instead of allowing rich-text editors (and the DOM fallback) to
-  // inherit it. Otherwise wrapped lines appear centered while short lines can
-  // look deceptively left-aligned.
-  const html = `<div style="text-align: left;">${htmlBlocks.join("<br><br>")}</div>`;
-
-  return { plainText, html };
 };
 
 export default function ActionPanel({
@@ -280,7 +78,7 @@ export default function ActionPanel({
   );
 
   const showCopyNotice = (itemsCount: number) => {
-    setCopyNotice(`Скопировано ${itemsCount} услуг`);
+    setCopyNotice(formatCopySuccessNotice(itemsCount));
 
     if (copyNoticeTimerRef.current) {
       window.clearTimeout(copyNoticeTimerRef.current);
@@ -289,19 +87,18 @@ export default function ActionPanel({
     copyNoticeTimerRef.current = window.setTimeout(() => {
       setCopyNotice("");
       copyNoticeTimerRef.current = null;
-    }, 2400);
+    }, COPY_NOTICE_DURATION_MS);
   };
 
-  const copySelectedItems = async () => {
-    const { plainText, html } = buildClipboardContent(
+  const copySelectedItems = async (targetDocument: Document) => {
+    const result = await copyCartSelection({
       selectedItems,
       customItems,
       generalComment,
-    );
+      targetDocument,
+    });
 
-    await copyClipboardContent({ plainText, html });
-
-    showCopyNotice(selectedItems.length + customItems.length);
+    showCopyNotice(result.itemsCount);
   };
 
   return (
@@ -316,7 +113,10 @@ export default function ActionPanel({
               action.id === "chart"
                 ? () => setIsIntegrationModalOpen(true)
                 : action.id === "copy"
-                  ? copySelectedItems
+                  ? (event) => {
+                      const targetDocument = event.currentTarget.ownerDocument;
+                      void copySelectedItems(targetDocument);
+                    }
                   : action.id === "doc"
                     ? () => setIsTemplateModalOpen(true)
                     : undefined

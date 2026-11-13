@@ -32,6 +32,11 @@ import { MiniCartPortalProvider } from "./context/MiniCartPortalContext";
 import { useDocumentPip } from "./hooks/useDocumentPip";
 import { useMiniCartUiState } from "./hooks/useMiniCartUiState";
 import { isLivePortalTarget } from "./pip/documentPip";
+import {
+  COPY_CLIPBOARD_ERROR_MESSAGE,
+  COPY_NOTICE_DURATION_MS,
+  formatCopySuccessNotice,
+} from "@/app/(directory)/components/cartClipboard";
 import type {
   MiniCartCatalogItem,
   MiniCartDisplayMode,
@@ -135,6 +140,12 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     const closeOverlaysRef = useRef<() => void>(() => undefined);
     const [tradeAnchor, setTradeAnchor] = useState<HTMLElement | null>(null);
     const [fallbackRoot, setFallbackRoot] = useState<HTMLElement | null>(null);
+    const [copyNotice, setCopyNotice] = useState<{
+      text: string;
+      error: boolean;
+    } | null>(null);
+    const copyNoticeTimerRef = useRef<{ id: number; view: Window } | null>(null);
+    const copyRequestRef = useRef(0);
 
     const wantPip = mode === "compact";
 
@@ -263,6 +274,54 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
         await pip.openFromUserGesture();
       }
     }, [pip, setMode]);
+
+    useEffect(
+      () => () => {
+        if (!copyNoticeTimerRef.current) return;
+        copyNoticeTimerRef.current.view.clearTimeout(copyNoticeTimerRef.current.id);
+      },
+      [],
+    );
+
+    const showCopyNotice = (
+      text: string,
+      error: boolean,
+      view: Window,
+    ) => {
+      setCopyNotice({ text, error });
+      if (copyNoticeTimerRef.current) {
+        copyNoticeTimerRef.current.view.clearTimeout(
+          copyNoticeTimerRef.current.id,
+        );
+      }
+      const id = view.setTimeout(() => {
+        setCopyNotice(null);
+        copyNoticeTimerRef.current = null;
+      }, COPY_NOTICE_DURATION_MS);
+      copyNoticeTimerRef.current = { id, view };
+    };
+
+    const handleCopySelected = (targetDocument: Document) => {
+      const copySelected = assignmentOps?.copySelected;
+      if (!copySelected) return;
+
+      const requestId = ++copyRequestRef.current;
+      const view = targetDocument.defaultView ?? window;
+      void copySelected(targetDocument).then(
+        (result) => {
+          if (requestId !== copyRequestRef.current) return;
+          showCopyNotice(
+            formatCopySuccessNotice(result.itemsCount),
+            false,
+            view,
+          );
+        },
+        () => {
+          if (requestId !== copyRequestRef.current) return;
+          showCopyNotice(COPY_CLIPBOARD_ERROR_MESSAGE, true, view);
+        },
+      );
+    };
 
     const showCompactPanel = mode === "compact";
     const showDock = mode === "docked";
@@ -487,9 +546,23 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
               canEditRecommendation={
                 !ui.flags.isDirectoryBacked || ui.flags.canSetRecommendation
               }
+              onCopy={
+                assignmentOps?.copySelected ? handleCopySelected : undefined
+              }
             />
           </>
         )}
+        {copyNotice ? (
+          <div
+            className={`preparaty__mini-copy-notice${
+              copyNotice.error ? " is-error" : ""
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            {copyNotice.text}
+          </div>
+        ) : null}
       </aside>
     ) : null;
 

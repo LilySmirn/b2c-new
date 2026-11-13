@@ -69,6 +69,19 @@ describe("miniCartOpFlags", () => {
     assert.equal(flags.canUpdateCustomItem, true);
     assert.equal(flags.canRemoveCustomItem, true);
     assert.equal(flags.canSetRecommendation, true);
+    assert.equal(flags.canCopy, false);
     assert.equal(flags.isDirectoryBacked, true);
+  });
+
+  it("enables canCopy only when copySelected is provided", () => {
+    const flags = miniCartOpFlags({
+      toggleItem: () => undefined,
+      setComment: () => undefined,
+      applyMedsPick: () => undefined,
+      setMedicationField: () => undefined,
+      copySelected: () => Promise.resolve({ itemsCount: 0 }),
+    });
+
+    assert.equal(flags.canCopy, true);
   });
 });

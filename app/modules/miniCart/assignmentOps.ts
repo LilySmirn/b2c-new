@@ -74,6 +74,13 @@ export type MiniCartAssignmentOps = {
    * Как RecommendationField в SideCart — запись на каждый ввод.
    */
   setGeneralRecommendation?: (value: string) => void;
+  /**
+   * D4: копирование выбранных назначений тем же генератором, что и full.
+   * targetDocument — документ кнопки (вкладка /cart, fallback или Document PiP).
+   */
+  copySelected?: (
+    targetDocument: Document,
+  ) => Promise<{ itemsCount: number }>;
 };
 
 /** Какие действия доступны при частичном подключении ops. */
@@ -92,6 +99,7 @@ export const miniCartOpFlags = (ops?: MiniCartAssignmentOps | null) => ({
   canUpdateCustomItem: Boolean(ops?.updateCustomItem),
   canRemoveCustomItem: Boolean(ops?.removeCustomItem),
   canSetRecommendation: Boolean(ops?.setGeneralRecommendation),
+  canCopy: Boolean(ops?.copySelected),
   /** Внешнее управление назначениями (не demo local state). */
   isDirectoryBacked: Boolean(ops),
 });

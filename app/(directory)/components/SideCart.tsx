@@ -26,6 +26,7 @@ import {
   subscribeCartSync,
   type StoredCustomCartItem,
 } from "@/app/(directory)/shared/cart";
+import { copyCartSelection } from "./cartClipboard";
 import styles from "./SideCart.module.css";
 import trashIcon from "@/assets/images/delete-icon.svg";
 import deleteIcon from "@/assets/images/delete.svg";
@@ -40,6 +41,14 @@ export type SideCartHandle = {
   ) => void;
   removeCustomItem: (id: string) => void;
   setGeneralComment: (value: string) => void;
+  /**
+   * Актуальное состояние корзины (не storage snapshot) и та же запись,
+   * что у кнопки «Скопировать выбранное» в полноразмерной корзине.
+   * targetDocument — документ, в котором произошло нажатие (вкладка или PiP).
+   */
+  copySelectedToClipboard: (
+    targetDocument: Document,
+  ) => Promise<{ itemsCount: number }>;
 };
 
 type SideCartProps = {
@@ -118,12 +127,14 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const [saveTemplateError, setSaveTemplateError] = useState("");
+  const selectedItemsRef = useRef(selectedItems);
   const customItemsRef = useRef<CustomCartItem[]>([]);
   const generalCommentRef = useRef("");
   const cartItemsCount = selectedItems.length + customItems.length;
   const hasSelectedItems = cartItemsCount > 0;
   const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
 
+  selectedItemsRef.current = selectedItems;
   customItemsRef.current = customItems;
   generalCommentRef.current = generalComment;
 
@@ -153,6 +164,13 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
       setGeneralComment: (value) => {
         setGeneralComment(value);
       },
+      copySelectedToClipboard: (targetDocument) =>
+        copyCartSelection({
+          selectedItems: selectedItemsRef.current,
+          customItems: customItemsRef.current,
+          generalComment: generalCommentRef.current,
+          targetDocument,
+        }),
     }),
     [],
   );

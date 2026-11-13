@@ -5,7 +5,7 @@ type MiniCartFooterProps = {
   onOpenCustomItems: () => void;
   customItemsCount: number;
   onWrite?: () => void;
-  onCopy?: () => void;
+  onCopy?: (targetDocument: Document) => void;
   canAdd?: boolean;
   canEditRecommendation?: boolean;
 };
@@ -71,7 +71,12 @@ export default function MiniCartFooter({
             <span>в карту</span>
           </span>
         </button>
-        <button type="button" className="preparaty__cart-btn" onClick={onCopy} disabled>
+        <button
+          type="button"
+          className="preparaty__cart-btn"
+          onClick={(event) => onCopy?.(event.currentTarget.ownerDocument)}
+          disabled={!onCopy}
+        >
           <svg
             className="preparaty__cart-btn-icon"
             width="20"
