@@ -2,18 +2,9 @@
 
 Изолированный React-модуль компактной мини-корзинки + Document Picture-in-Picture.
 
-## Feature flags
+## Доступность
 
-```bash
-NEXT_PUBLIC_MINI_CART=1
-```
-
-| Константа | Условие |
-|---|---|
-| `MINI_CART_ENABLED` | флаг = 1 |
-| `MINI_CART_PREVIEW_ENABLED` | флаг = 1 и `NODE_ENV !== "production"` |
-
-Кнопка «Свернуть» на `/cart` и PiP-интеграция активны только при `MINI_CART_PREVIEW_ENABLED` (dev).
+Мини-корзинка и кнопка «Свернуть» на `/cart` включены в development и production без feature flag и без переменных окружения. Открытие Document PiP по-прежнему зависит от поддержки API в браузере (`supportsDocumentPip`).
 
 ## Режимы
 

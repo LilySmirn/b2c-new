@@ -40,7 +40,6 @@ import {
 import MiniCartHost, {
   type MiniCartHostHandle,
 } from "@/app/modules/miniCart/MiniCartHost";
-import { MINI_CART_PREVIEW_ENABLED } from "@/app/modules/miniCart/featureFlag";
 import { useDirectoryMiniCartData } from "@/app/modules/miniCart/hooks/useDirectoryMiniCartData";
 import type { MiniCartDisplayMode } from "@/app/modules/miniCart/types";
 import { COPY_CLIPBOARD_ERROR_MESSAGE } from "../components/cartClipboard";
@@ -445,9 +444,7 @@ export default function CartPreviewPage() {
         diagnosisTitle={diagnosisTitle}
         recommendationId={recommendationId}
         recommendationSource={recommendationSource}
-        onCollapse={
-          MINI_CART_PREVIEW_ENABLED ? handleMiniCartCollapse : undefined
-        }
+        onCollapse={handleMiniCartCollapse}
         collapseHidden={!fullCartVisible}
       />
       <main
@@ -460,11 +457,7 @@ export default function CartPreviewPage() {
           ref={checklistRef}
           key={checklistSyncEpoch}
           onSelectionChange={handleSelectionChange}
-          onAssignmentSnapshotChange={
-            MINI_CART_PREVIEW_ENABLED
-              ? handleAssignmentSnapshotChange
-              : undefined
-          }
+          onAssignmentSnapshotChange={handleAssignmentSnapshotChange}
           uncheckItemId={uncheckItemId}
           onUncheckHandled={() => setUncheckItemId(null)}
           clearSelectionSignal={clearSelectionSignal}
@@ -487,24 +480,21 @@ export default function CartPreviewPage() {
         />
       </section>
       </main>
-      {MINI_CART_PREVIEW_ENABLED ? (
-        <MiniCartHost
-          ref={miniCartRef}
-          force
-          diagnosis={miniCartData.diagnosis}
-          tabs={miniCartData.tabs}
-          drugItems={miniCartData.drugItems}
-          shellTabs={miniCartData.shellTabs}
-          trades={miniCartData.trades}
-          recommendationText={miniCartData.recommendation}
-          customItems={miniCartData.customItems}
-          schemeByItemId={miniCartData.schemeByItemId}
-          assignmentOps={miniCartAssignmentOps}
-          hideMkbSearch
-          displayMode={miniCartMode}
-          onDisplayModeChange={setMiniCartMode}
-        />
-      ) : null}
+      <MiniCartHost
+        ref={miniCartRef}
+        diagnosis={miniCartData.diagnosis}
+        tabs={miniCartData.tabs}
+        drugItems={miniCartData.drugItems}
+        shellTabs={miniCartData.shellTabs}
+        trades={miniCartData.trades}
+        recommendationText={miniCartData.recommendation}
+        customItems={miniCartData.customItems}
+        schemeByItemId={miniCartData.schemeByItemId}
+        assignmentOps={miniCartAssignmentOps}
+        hideMkbSearch
+        displayMode={miniCartMode}
+        onDisplayModeChange={setMiniCartMode}
+      />
     </>
   );
 }

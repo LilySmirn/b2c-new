@@ -39,7 +39,7 @@ export default function MiniCartPreviewClient() {
         }}
       >
         <p style={{ margin: 0, fontSize: 13, opacity: 0.7 }}>
-          Dev preview · NEXT_PUBLIC_MINI_CART=1 · Document PiP
+          Dev preview · Document PiP
         </p>
         <h1 style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 600 }}>
           Мини-корзинка (компактный UI)
@@ -84,7 +84,6 @@ export default function MiniCartPreviewClient() {
 
       <MiniCartHost
         ref={hostRef}
-        force
         className="is-preview"
         diagnosis={MINI_CART_DEMO_CATALOG.diagnosis}
         tabs={MINI_CART_DEMO_CATALOG.tabs}

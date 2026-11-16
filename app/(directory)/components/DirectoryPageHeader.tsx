@@ -17,7 +17,7 @@ type DirectoryPageHeaderProps = {
   diagnosisTitle?: string;
   recommendationId?: string;
   recommendationSource?: string;
-  /** Кнопка «Свернуть» (мини-корзинка). Только cart + feature flag. */
+  /** Кнопка «Свернуть» (мини-корзинка). Только cart. */
   onCollapse?: () => void;
   collapseHidden?: boolean;
 };
