@@ -68,7 +68,10 @@ export function CatalogOption({
       translate="no"
       title={typeof children === "string" ? children : undefined}
       onMouseDown={(event) => event.preventDefault()}
-      onClick={onSelect}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+      }}
     >
       {children}
     </button>
@@ -162,6 +165,7 @@ export default function CatalogPopover({
         width: position.width,
         maxHeight: position.maxHeight,
       }}
+      onClick={(event) => event.stopPropagation()}
     >
       {header}
       <div className={styles.list} role="listbox" aria-label={label}>

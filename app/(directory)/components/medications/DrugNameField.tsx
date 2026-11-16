@@ -74,6 +74,13 @@ export default function DrugNameField({
     if (!hasMenu) setOpen(false);
   }, [hasMenu]);
 
+  // МНН без торговых имён — финальный шаг: закрываем меню после выбора.
+  useEffect(() => {
+    if (!open || step !== "trade" || !menu || menu.mode !== "group") return;
+    if (!menu.selectedInn || menu.trades.length > 0) return;
+    setOpen(false);
+  }, [menu, open, step]);
+
   const toggleRow = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onToggle();
@@ -97,7 +104,7 @@ export default function DrugNameField({
 
   if (!isScheme && !menu) {
     return (
-      <div className={styles.nameSlot}>
+      <div className={styles.nameSlot} onClick={(event) => event.stopPropagation()}>
         <button
           type="button"
           className={styles.namePlain}
@@ -224,9 +231,10 @@ export default function DrugNameField({
       </CatalogPopover>
     ) : null;
 
+  // Как в DoseField: клики портала каталога не должны всплывать до DrugRow.onToggle.
   if (!isScheme) {
     return (
-      <div className={styles.nameSlot}>
+      <div className={styles.nameSlot} onClick={(event) => event.stopPropagation()}>
         {nameButton}
         {menuLayer}
       </div>
@@ -234,7 +242,7 @@ export default function DrugNameField({
   }
 
   return (
-    <div className={styles.schemeBlock}>
+    <div className={styles.schemeBlock} onClick={(event) => event.stopPropagation()}>
       <span className={styles.schemeBadge}>{schemeBadgeText(schemeCount)}</span>
       {nameButton}
       {menuLayer}

@@ -38,7 +38,12 @@ import {
   type CombinationDraft,
 } from "./medications/combinationSelection";
 import { persistBrowserCombinationSelection, readBrowserCombinationSelections } from "./medications/combinationSelectionStorage";
-import { applyMedsSelection, buildMedsRowView, matchMedsDrugForItem } from "./medications/medsClient";
+import {
+  applyMedsSelection,
+  buildMedsRowView,
+  listMedsTrades,
+  matchMedsDrugForItem,
+} from "./medications/medsClient";
 import type { MedsCatalogComponent, MedsRowSelection } from "./medications/medsCatalogTypes";
 import medicationStyles from "./medications/medications.module.css";
 import { useMedsCatalog } from "./medications/useMedsCatalog";
@@ -262,6 +267,25 @@ const PrescriptionChecklist = forwardRef<
           if (!itemMatchesId(item, id)) return item;
 
           const checked = !item.checked;
+
+          return {
+            ...item,
+            checked,
+            comment: checked ? item.comment : "",
+          };
+        }),
+      })),
+    );
+  };
+
+  /** Явная установка чекбокса (финальный выбор препарата), без инверсии. */
+  const setItemChecked = (id: string, checked: boolean) => {
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        items: section.items.map((item) => {
+          if (!itemMatchesId(item, id)) return item;
+          if (item.checked === checked) return item;
 
           return {
             ...item,
@@ -1011,8 +1035,19 @@ const PrescriptionChecklist = forwardRef<
                       openInfo(item, { focusComment: true })
                     }
                     onChangeField={updateMedicationField}
-                    onSelectInn={(_id, inn) => commitMedsSelection(item, { inn })}
-                    onSelectTrade={(_id, trade) => commitMedsSelection(item, { trade })}
+                    onSelectInn={(_id, inn) => {
+                      // Промежуточный шаг: только draft. Чекбокс не трогаем.
+                      commitMedsSelection(item, { inn });
+                      // Если торговых имён нет — МНН является финальным выбором.
+                      if (listMedsTrades(drugForItem(item), inn).length === 0) {
+                        setItemChecked(item.id, true);
+                      }
+                    }}
+                    onSelectTrade={(_id, trade) => {
+                      // Финальный шаг: актуальный trade в draft + явный checked=true (не toggle).
+                      commitMedsSelection(item, { trade });
+                      setItemChecked(item.id, true);
+                    }}
                   />
                 ) : (
                 <article
