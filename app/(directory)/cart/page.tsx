@@ -510,6 +510,7 @@ export default function CartPreviewPage() {
         <SideCart
           ref={sideCartRef}
           selectedItems={selectedItems}
+          assignment={assignmentSnapshot}
           onDeleteItem={handleDeleteItem}
           onDeleteAll={handleDeleteAll}
           onApplyTemplate={handleApplyTemplate}

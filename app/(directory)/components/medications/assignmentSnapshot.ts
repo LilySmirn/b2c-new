@@ -3,9 +3,11 @@
  * для отображения в мини-корзинке (то же React-дерево, без второго store).
  */
 
-import type {
-  AssignmentCommentSource,
-  MedicationIntake,
+import {
+  assignmentFromDraft,
+  hasCustomAssignment,
+  type AssignmentCommentSource,
+  type MedicationIntake,
 } from "./assignmentScheme";
 import type { CombinationDraft } from "./combinationSelection";
 
@@ -40,4 +42,27 @@ export const EMPTY_ASSIGNMENT_SNAPSHOT: ChecklistAssignmentSnapshot = {
   combinations: {},
   itemStates: {},
   commentSources: {},
+};
+
+export type AssignmentClarificationLookup = Pick<
+  ChecklistAssignmentSnapshot,
+  "medicationDrafts" | "medicationIntake" | "commentSources"
+>;
+
+/**
+ * Есть ли у позиции КР ручные уточнения (доза/форма/приём/схема/курс/комментарий).
+ * Выбор МНН/торгового наименования сам по себе не считается.
+ */
+export const hasIndividualAssignmentClarifications = (
+  itemId: string,
+  assignment: AssignmentClarificationLookup,
+): boolean => {
+  const fields = assignmentFromDraft(
+    assignment.medicationDrafts[itemId],
+    assignment.medicationIntake[itemId],
+  );
+
+  if (hasCustomAssignment(fields)) return true;
+
+  return assignment.commentSources?.[itemId] === "user";
 };

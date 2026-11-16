@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import ActionPanel from "./ActionPanel";
 import CustomCartItemModal from "./CustomCartItemModal";
 import CartTemplateToggle from "./CartTemplateToggle";
@@ -26,10 +27,19 @@ import {
   subscribeCartSync,
   type StoredCustomCartItem,
 } from "@/app/(directory)/shared/cart";
+import {
+  EMPTY_ASSIGNMENT_SNAPSHOT,
+  hasIndividualAssignmentClarifications,
+  type ChecklistAssignmentSnapshot,
+} from "./medications/assignmentSnapshot";
 import { copyCartSelection } from "./cartClipboard";
 import styles from "./SideCart.module.css";
 import trashIcon from "@/assets/images/delete-icon.svg";
 import deleteIcon from "@/assets/images/delete.svg";
+import clarificationIcon from "@/assets/images/message-square-text.svg";
+
+const CLARIFICATION_TOOLTIP =
+  "Есть индивидуальные уточнения к назначению.";
 
 export type CustomCartItem = StoredCustomCartItem;
 
@@ -53,12 +63,75 @@ export type SideCartHandle = {
 
 type SideCartProps = {
   selectedItems?: SelectedPrescription[];
+  /** Живой снимок назначений (тот же, что пишет checklist / cartStorage). */
+  assignment?: ChecklistAssignmentSnapshot;
   onDeleteItem?: (id: string) => void;
   onDeleteAll?: () => void;
   onApplyTemplate?: (template: CartTemplate) => void;
   diagnosisCode?: string;
   recommendationTitle?: string;
   storageKey?: string;
+};
+
+type ClarificationTooltipState = {
+  left: number;
+  top: number;
+};
+
+const ClarificationIndicator = () => {
+  const [tooltip, setTooltip] = useState<ClarificationTooltipState | null>(null);
+  const anchorRef = useRef<HTMLSpanElement>(null);
+
+  const hideTooltip = () => setTooltip(null);
+
+  const showTooltip = () => {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setTooltip({
+      // Иконка у правого края SideCart — якорим тултип справа, чтобы он рос влево.
+      left: Math.max(12, rect.right),
+      top: Math.max(8, rect.top - 8),
+    });
+  };
+
+  return (
+    <>
+      <span
+        ref={anchorRef}
+        className={styles.clarificationIndicator}
+        role="img"
+        aria-label={CLARIFICATION_TOOLTIP}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+      >
+        <Image
+          src={clarificationIcon}
+          alt=""
+          width={14}
+          height={14}
+          className={styles.clarificationIndicatorImg}
+          aria-hidden="true"
+        />
+      </span>
+      {tooltip && typeof document !== "undefined"
+        ? createPortal(
+            <span
+              className={styles.clarificationTooltip}
+              style={{
+                left: tooltip.left,
+                top: tooltip.top,
+                transform: "translate(-100%, -100%)",
+              }}
+              role="tooltip"
+            >
+              {CLARIFICATION_TOOLTIP}
+            </span>,
+            document.body,
+          )
+        : null}
+    </>
+  );
 };
 
 const sameCustomItems = (left: CustomCartItem[], right: CustomCartItem[]) => {
@@ -109,6 +182,7 @@ const groupSelectedItemsByCartCategory = (selectedItems: SelectedPrescription[])
 const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   {
     selectedItems = [],
+    assignment = EMPTY_ASSIGNMENT_SNAPSHOT,
     onDeleteItem,
     onDeleteAll,
     onApplyTemplate,
@@ -332,22 +406,32 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
             <div className={styles.groupRow}>
               {groupTitle} ({items.length + (groupTitle === "Прочее" ? customItems.length : 0)})
             </div>
-            {items.map((item, index) => (
-              <div
-                key={item.id}
-                className={`${styles.itemRow} ${index % 2 === 1 ? styles.itemRowAlt : ""}`}
-              >
-                <span className={styles.itemTitle}>{item.title}</span>
-                <button
-                  type="button"
-                  className={styles.deleteButton}
-                  aria-label={`Удалить ${item.title}`}
-                  onClick={() => onDeleteItem?.(item.id)}
+            {items.map((item, index) => {
+              const showClarification = hasIndividualAssignmentClarifications(
+                item.id,
+                assignment,
+              );
+
+              return (
+                <div
+                  key={item.id}
+                  className={`${styles.itemRow} ${index % 2 === 1 ? styles.itemRowAlt : ""}`}
                 >
-                  <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
-                </button>
-              </div>
-            ))}
+                  <span className={styles.itemTitle}>{item.title}</span>
+                  <span className={styles.itemActions}>
+                    {showClarification ? <ClarificationIndicator /> : null}
+                    <button
+                      type="button"
+                      className={styles.deleteButton}
+                      aria-label={`Удалить ${item.title}`}
+                      onClick={() => onDeleteItem?.(item.id)}
+                    >
+                      <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
+                    </button>
+                  </span>
+                </div>
+              );
+            })}
             {groupTitle === "Прочее" ? renderCustomItems(items.length) : null}
           </div>
         ))}

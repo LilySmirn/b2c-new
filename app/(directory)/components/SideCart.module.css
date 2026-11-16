@@ -144,6 +144,45 @@
   color: #696969;
   font: 400 11px/1.25 Arial, sans-serif;
 }
+.itemActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.clarificationIndicator {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #707070;
+  pointer-events: auto;
+}
+
+.clarificationIndicatorImg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.clarificationTooltip {
+  position: fixed;
+  z-index: 1400;
+  max-width: min(260px, calc(100vw - 24px));
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #00182f;
+  color: #ffffff;
+  font: 400 12px/1.35 Arial, sans-serif;
+  box-shadow: 0 8px 24px rgba(0, 24, 47, 0.22);
+  pointer-events: none;
+  white-space: normal;
+}
+
 .customItemActions {
   display: inline-flex;
   align-items: center;
