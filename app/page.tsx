@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import FaqItem from "./components/FaqItem";
 import CorporateAccess from "./components/CorporateAccess";
+import NoTranslate from "./components/NoTranslate";
 import OtherSolutions from "./components/OtherSolutions";
 import VideoShowcase from "./components/VideoShowcase";
 import ReviewsCarousel from "./components/ReviewsCarousel";
@@ -333,7 +334,9 @@ export default async function Home() {
         </section>
         <VideoShowcase />
         <section id="capabilities" className="capabilities-section">
-          <h2>Возможности EasyMed</h2>
+          <h2>
+            Возможности <NoTranslate>EasyMed</NoTranslate>
+          </h2>
           <div className="capabilities-list">
             {[
               { icon: smartSearchIcon, title: "Умный поиск", text: <>По диагнозу, МКБ-10 или<br/>ключевым словам</> },
@@ -352,7 +355,9 @@ export default async function Home() {
           </div>
         </section>
         <section className="product-stats-section" aria-labelledby="product-stats-title">
-          <h2 id="product-stats-title" className="visually-hidden">EasyMed в цифрах</h2>
+          <h2 id="product-stats-title" className="visually-hidden">
+            <NoTranslate>EasyMed</NoTranslate> в цифрах
+          </h2>
           <div className="product-stats">
             {[
               { value: "1000+", text: <>клинических<br/>рекомендаций</> },
@@ -500,7 +505,9 @@ export default async function Home() {
           <div className="cta-container">
             <div className="cta-copy">
               <h2 className="cta-title">Начните пользоваться уже сегодня</h2>
-              <p>Попробуйте все возможности EasyMed бесплатно</p>
+              <p>
+                Попробуйте все возможности <NoTranslate>EasyMed</NoTranslate> бесплатно
+              </p>
             </div>
             <div className="cta-action">
               <Link href={recommendationsHref} className="btn-demo-cta">

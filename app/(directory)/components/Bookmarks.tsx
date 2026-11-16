@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image, { StaticImageData } from "next/image";
+import NoTranslate from "@/app/components/NoTranslate";
 import stethoscopeIcon from "@/assets/images/Stethoscope.svg";
 import injectionIcon from "@/assets/images/Injection.svg";
 import hospitalIcon from "@/assets/images/hospital.svg";
@@ -131,13 +132,13 @@ export default function Bookmarks({ items = initialBookmarks, onBookmarkSelect }
                 disabled={Boolean(loadingBookmarkId)}
                 onClick={() => handleBookmarkClick(bookmark)}
               >
-                <span className={styles.codeCircle}>
+                <span className={`${styles.codeCircle} notranslate`} translate="no">
                   {isLoading ? (
                     <LoadingSpinner className={styles.bookmarkLoader}>
                       <span className={styles.loaderText}>Загружаем корзину...</span>
                     </LoadingSpinner>
                   ) : (
-                    bookmark.code
+                    <NoTranslate>{bookmark.code}</NoTranslate>
                   )}
                 </span>
                 <span className={styles.bookmarkTitle}>{bookmark.title}</span>

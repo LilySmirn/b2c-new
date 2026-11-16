@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import NoTranslate from "@/app/components/NoTranslate";
 import styles from "./RecommendationCard.module.css";
 import eagleIcon from "@/assets/images/eagle.png";
 import LoadingSpinner from "./LoadingSpinner";
@@ -150,8 +151,12 @@ export default function RecommendationCard({
       <div className={styles.body}>
         <div className={styles.topRow}>
           <div className={styles.infoPair}>
-            <span className={styles.label}>{cardLabels.id}</span>
-            <span className={`${styles.value} ${styles.idValue}`}>{standardId}</span>
+            <span className={styles.label}>
+              <NoTranslate>{cardLabels.id}</NoTranslate>
+            </span>
+            <span className={`${styles.value} ${styles.idValue}`}>
+              <NoTranslate>{standardId}</NoTranslate>
+            </span>
           </div>
 
           <div className={styles.infoPair}>
@@ -177,7 +182,9 @@ export default function RecommendationCard({
 
         <div className={`${styles.infoPair} ${styles.classificationPair}`}>
           <span className={styles.label}>{cardLabels.classification}</span>
-          <span className={styles.value}>{classification}</span>
+          <span className={styles.value}>
+            <NoTranslate>{classification}</NoTranslate>
+          </span>
         </div>
       </div>
     </article>

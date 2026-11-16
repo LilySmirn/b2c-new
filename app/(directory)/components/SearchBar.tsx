@@ -39,7 +39,8 @@ export default function SearchBar({
           onSearch?.();
         }}
         placeholder={placeholder}
-        className={styles.input}
+        className={`${styles.input} notranslate`}
+        translate="no"
       />
       <button
         className={styles.iconButton}

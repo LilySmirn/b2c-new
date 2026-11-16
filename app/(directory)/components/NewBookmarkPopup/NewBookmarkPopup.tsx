@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import NoTranslate from "@/app/components/NoTranslate";
 import SearchBar from "../SearchBar";
 import Filters from "../Filters";
 import MatchesList from "../MatchesList";
@@ -425,7 +426,11 @@ export default function NewBookmarkPopup({
           ) : cardsError ? (
             <p style={fullWidthGridItemStyle}>{cardsError}</p>
           ) : hasNoRecommendationsForSubmittedCode ? (
-            <p style={fullWidthGridItemStyle}>По выбранному МКБ {submittedCode} рекомендации не найдены.<br />Введите другой код в строку поиска</p>
+            <p style={fullWidthGridItemStyle}>
+              По выбранному МКБ <NoTranslate>{submittedCode}</NoTranslate> рекомендации не найдены.
+              <br />
+              Введите другой код в строку поиска
+            </p>
           ) : !visitType || !ageGroup ? (
             <p style={fullWidthGridItemStyle}>Выберите фильтры, чтобы увидеть рекомендации.</p>
           ) : recommendationCards.length > 0 ? (

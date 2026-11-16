@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import NoTranslate from "@/app/components/NoTranslate";
 import styles from "./MatchesList.module.css";
 
 type MatchesListProps = {
@@ -10,6 +11,24 @@ type MatchesListProps = {
   footerText?: ReactNode | null;
   onItemSelect?: (item: string) => void;
 };
+
+/** Split `K26: Diagnosis` so only the MKB code is excluded from auto-translate. */
+function MatchLabel({ item }: { item: string }) {
+  const colon = item.indexOf(":");
+  if (colon <= 0) {
+    return <NoTranslate>{item}</NoTranslate>;
+  }
+
+  const code = item.slice(0, colon).trim();
+  const rest = item.slice(colon);
+
+  return (
+    <>
+      <NoTranslate>{code}</NoTranslate>
+      {rest}
+    </>
+  );
+}
 
 export default function MatchesList({
   items,
@@ -32,7 +51,7 @@ export default function MatchesList({
               type="button"
               onClick={() => onItemSelect?.(item)}
             >
-              {item}
+              <MatchLabel item={item} />
             </button>
           </li>
         ))

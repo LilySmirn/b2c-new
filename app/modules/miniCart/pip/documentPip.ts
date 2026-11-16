@@ -115,6 +115,9 @@ export function copyStylesToPip(
 
 export function preparePipDocument(pipWin: DocumentPipWindow): HTMLElement {
   const { document: pipDoc } = pipWin;
+  // PiP creates a separate document; inherit language so auto-translate
+  // treats it as Russian (same as the opener root layout).
+  pipDoc.documentElement.lang = "ru";
   pipDoc.documentElement.classList.add("preparaty-pip");
   pipDoc.body.className = "preparaty preparaty--pip-host is-collapsed";
   pipDoc.body.style.margin = "0";

@@ -27,7 +27,8 @@ export default function DoseField({ label = "Доза", value, options = [], onC
     >
       <input
         type="text"
-        className={styles.field}
+        className={`${styles.field} notranslate`}
+        translate="no"
         value={value}
         placeholder={label}
         aria-label={label}
@@ -67,7 +68,9 @@ export default function DoseField({ label = "Доза", value, options = [], onC
                 setOpen(false);
               }}
             >
-              {option}
+              <span translate="no" className="notranslate">
+                {option}
+              </span>
             </CatalogOption>
           ))}
         </CatalogPopover>

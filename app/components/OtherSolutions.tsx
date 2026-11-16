@@ -1,4 +1,5 @@
 import Image from "next/image";
+import NoTranslate from "@/app/components/NoTranslate";
 import analyticsIcon from "@/assets/images/about/product-analytics.png";
 import apiIcon from "@/assets/images/about/product-api.png";
 import analyticsArt from "@/assets/images/landing/posibilities1.png";
@@ -34,11 +35,14 @@ export default function OtherSolutions() {
     >
       <div className="other-solutions-container">
         <div className="other-solutions-header">
-          <p className="other-solutions-eyebrow">Возможности платформы KlinRec</p>
+          <p className="other-solutions-eyebrow">
+            Возможности платформы <NoTranslate>KlinRec</NoTranslate>
+          </p>
           <h2 id="other-solutions-title">Другие цифровые решения для медицины</h2>
           <p className="other-solutions-lead">
-            Помимо KlinRec, доступны другие цифровые решения компании EasyMed
-            для медицинских организаций и разработчиков медицинских систем.
+            Помимо <NoTranslate>KlinRec</NoTranslate>, доступны другие цифровые решения компании{" "}
+            <NoTranslate>EasyMed</NoTranslate> для медицинских организаций и разработчиков
+            медицинских систем.
           </p>
         </div>
 
@@ -79,7 +83,13 @@ export default function OtherSolutions() {
 
         <p className="other-solutions-credit">
           Разработчик решений —{" "}
-          <a href="https://easymed.pro/" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://easymed.pro/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="notranslate"
+            translate="no"
+          >
             EasyMed
           </a>
         </p>

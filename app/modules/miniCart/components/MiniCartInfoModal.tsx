@@ -1,3 +1,4 @@
+import NoTranslate from "@/app/components/NoTranslate";
 import { displayName } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartMedsField } from "../types";
 import MiniCartPortal from "./MiniCartPortal";
@@ -29,12 +30,15 @@ export default function MiniCartInfoModal({
     label: string,
     value: string,
   ) => {
+    // Доза/форма содержат единицы и каталожные коды; схема/курс — обычный текст назначения.
+    const protectValue = id === "dose" || id === "form";
+
     if (!editable || !onChangeField) {
       if (!value.trim()) return null;
       return (
         <div className="preparaty__card-block">
           <h4>{label}</h4>
-          <p>{value}</p>
+          <p>{protectValue ? <NoTranslate>{value}</NoTranslate> : value}</p>
         </div>
       );
     }
@@ -43,6 +47,8 @@ export default function MiniCartInfoModal({
       <label className="preparaty__card-field preparaty__card-field--wide">
         <span>{label}</span>
         <input
+          className={protectValue ? "notranslate" : undefined}
+          translate={protectValue ? "no" : undefined}
           value={value}
           aria-label={label}
           onChange={(event) => onChangeField(id, event.target.value)}
@@ -71,10 +77,14 @@ export default function MiniCartInfoModal({
               {showQc || showLevel ? (
                 <div className="preparaty__card-badges">
                   {showQc ? (
-                    <span className="preparaty__card-badge">{item.qc}</span>
+                    <span className="preparaty__card-badge notranslate" translate="no">
+                      {item.qc}
+                    </span>
                   ) : null}
                   {showLevel ? (
-                    <span className="preparaty__card-badge">{item.level}</span>
+                    <span className="preparaty__card-badge notranslate" translate="no">
+                      {item.level}
+                    </span>
                   ) : null}
                 </div>
               ) : null}
@@ -95,14 +105,20 @@ export default function MiniCartInfoModal({
             </div>
             {item.selectedInn ? (
               <div className="preparaty__card-block">
-                <h4>МНН</h4>
-                <p>{item.selectedInn}</p>
+                <h4>
+                  <NoTranslate>МНН</NoTranslate>
+                </h4>
+                <p>
+                  <NoTranslate>{item.selectedInn}</NoTranslate>
+                </p>
               </div>
             ) : null}
             {item.selectedTrade && item.kind !== "scheme" ? (
               <div className="preparaty__card-block">
                 <h4>Торговое наименование</h4>
-                <p>{item.selectedTrade}</p>
+                <p>
+                  <NoTranslate>{item.selectedTrade}</NoTranslate>
+                </p>
               </div>
             ) : null}
             {field("dose", "Доза", dose)}

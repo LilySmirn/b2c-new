@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import NoTranslate from "@/app/components/NoTranslate";
 import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
 import { deleteCartTemplate, readCartTemplates } from "@/app/(directory)/components/cartTemplatesStorage";
 import styles from "./SaveTemplateModal.module.css";
@@ -94,7 +95,11 @@ const currentDiagnosisCode = normalizeDiagnosisCode(diagnosisCode);
                 >
                   <span className={styles.templateMetaRow}>
                     <span className={styles.templateCode}>
-                      {template.diagnosisCode || "Код МКБ не указан"}
+                      {template.diagnosisCode ? (
+                        <NoTranslate>{template.diagnosisCode}</NoTranslate>
+                      ) : (
+                        "Код МКБ не указан"
+                      )}
                     </span>
                     {template.recommendationTitle ? (
                       <span

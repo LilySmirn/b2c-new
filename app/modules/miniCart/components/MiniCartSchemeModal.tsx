@@ -254,7 +254,8 @@ function DemoSchemeModal({
                     <button
                       key={alt.inn}
                       type="button"
-                      className="preparaty__option"
+                      className="preparaty__option notranslate"
+                      translate="no"
                       onClick={() => pickInn(alt.inn)}
                     >
                       {alt.label}
@@ -506,9 +507,10 @@ function ProductionSchemeModal({
                       <button
                         key={inn}
                         type="button"
-                        className={`preparaty__option${
+                        className={`preparaty__option notranslate${
                           pick?.inn === inn ? " is-selected" : ""
                         }`}
+                        translate="no"
                         onClick={() =>
                           setState((current) =>
                             chooseCombinationInn(current, components, inn),
@@ -537,9 +539,10 @@ function ProductionSchemeModal({
                             <button
                               key={`${tradeItem.name_trade}-${tradeItem.standard_dose}-${tradeItem.standard_form}-${tradeItem.SMNN_code}-${sourceIndex}`}
                               type="button"
-                              className={`preparaty__option${
+                              className={`preparaty__option notranslate${
                                 selected ? " is-selected" : ""
                               }`}
+                              translate="no"
                               aria-pressed={selected}
                               onClick={() =>
                                 setState((current) =>

@@ -64,7 +64,8 @@ export function CatalogOption({
       type="button"
       role="option"
       aria-selected={selected}
-      className={`${styles.option} ${selected ? styles.optionCurrent : ""}`}
+      className={`${styles.option} ${selected ? styles.optionCurrent : ""} notranslate`}
+      translate="no"
       title={typeof children === "string" ? children : undefined}
       onMouseDown={(event) => event.preventDefault()}
       onClick={onSelect}

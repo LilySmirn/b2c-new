@@ -132,7 +132,9 @@ export default function AuthClient() {
 
       <section className={styles.authHero}>
         <div className={styles.loginCard} aria-labelledby="auth-title">
-          <h1 id="auth-title" className={styles.logo}>EasyMed</h1>
+          <h1 id="auth-title" className={`${styles.logo} notranslate`} translate="no">
+            EasyMed
+          </h1>
 
           <form className={styles.loginForm} onSubmit={handleSubmit}>
             <label className={styles.field} htmlFor="username">

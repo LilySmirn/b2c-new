@@ -1,9 +1,27 @@
+import NoTranslate from "@/app/components/NoTranslate";
 import styles from "./SuggestedCodesList.module.css";
 
 type SuggestedCodesListProps = {
   items: string[];
   onItemSelect?: (item: string) => void;
 };
+
+function CodeLabel({ item }: { item: string }) {
+  const colon = item.indexOf(":");
+  if (colon <= 0) {
+    return <NoTranslate>{item}</NoTranslate>;
+  }
+
+  const code = item.slice(0, colon).trim();
+  const rest = item.slice(colon);
+
+  return (
+    <>
+      <NoTranslate>{code}</NoTranslate>
+      {rest}
+    </>
+  );
+}
 
 export default function SuggestedCodesList({ items, onItemSelect }: SuggestedCodesListProps) {
   return (
@@ -16,7 +34,7 @@ export default function SuggestedCodesList({ items, onItemSelect }: SuggestedCod
             disabled={!onItemSelect}
             onClick={() => onItemSelect?.(item)}
           >
-            {item}
+            <CodeLabel item={item} />
           </button>
         </li>
       ))}

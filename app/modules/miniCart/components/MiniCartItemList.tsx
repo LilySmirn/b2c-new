@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import NoTranslate from "@/app/components/NoTranslate";
 import { schemeBadgeText } from "@/app/(directory)/components/medications/combinationSelection";
 import { displayName, displaySub } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartShellTab } from "../types";
@@ -37,7 +38,8 @@ function MarkButton({
   return (
     <button
       type="button"
-      className={slotClass}
+      className={`${slotClass} notranslate`}
+      translate="no"
       aria-label={kind === "qc" ? "Критерий качества" : "Уровень достоверности"}
       onClick={onClick}
     >
@@ -156,7 +158,8 @@ function DrugRow({
       ) : item.kind === "combo" ? (
         <div className="preparaty__combo">
           <span className="preparaty__mark preparaty__mark--combo">
-            {`Комбинация · ${item.composition?.length || item.alternatives?.length || 0} ДВ`}
+            {`Комбинация · ${item.composition?.length || item.alternatives?.length || 0} `}
+            <NoTranslate>ДВ</NoTranslate>
           </span>
           {nameNode}
         </div>
@@ -166,7 +169,8 @@ function DrugRow({
       <div className="preparaty__classic-info">
         <button
           type="button"
-          className="preparaty__info"
+          className="preparaty__info notranslate"
+          translate="no"
           aria-label="Информация о назначении"
           onClick={() => onOpenInfo(item.id)}
         >
@@ -230,7 +234,8 @@ function ClassicRow({
       <div className="preparaty__classic-info">
         <button
           type="button"
-          className="preparaty__info"
+          className="preparaty__info notranslate"
+          translate="no"
           aria-label={`Информация о назначении ${item.name}`}
           onClick={() => onOpenInfo(item.id)}
         >

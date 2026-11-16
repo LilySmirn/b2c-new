@@ -1,8 +1,9 @@
+import NoTranslate from "@/app/components/NoTranslate";
 import type { MiniCartNav } from "../types";
 
-const NAV_ITEMS: Array<{ id: MiniCartNav; label: string }> = [
+const NAV_ITEMS: Array<{ id: MiniCartNav; label: string; brand?: boolean }> = [
   { id: "clinical-recs", label: "Клинические рекомендации" },
-  { id: "easymed-ai", label: "EasyMed AI" },
+  { id: "easymed-ai", label: "EasyMed AI", brand: true },
   { id: "interactions", label: "Лекарственные взаимодействия" },
 ];
 
@@ -20,12 +21,15 @@ export default function MiniCartNavTabs({ value, onChange }: MiniCartNavProps) {
           <button
             key={item.id}
             type="button"
-            className={`preparaty__mini-nav-btn${active ? " is-active" : ""}`}
+            className={`preparaty__mini-nav-btn${active ? " is-active" : ""}${
+              item.brand ? " notranslate" : ""
+            }`}
+            translate={item.brand ? "no" : undefined}
             role="tab"
             aria-selected={active}
             onClick={() => onChange(item.id)}
           >
-            {item.label}
+            {item.brand ? <NoTranslate>{item.label}</NoTranslate> : item.label}
           </button>
         );
       })}

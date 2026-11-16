@@ -165,7 +165,8 @@ function CatalogComboField({
       >
         <input
           type="text"
-          className={styles.control}
+          className={`${styles.control} notranslate`}
+          translate="no"
           value={value}
           placeholder={label}
           aria-label={label}
@@ -463,8 +464,16 @@ export default function DrugInfoModal({
             {heading.secondary ? <p className={styles.subtitle}>{heading.secondary}</p> : null}
             {qualityControl || recommendation ? (
               <div className={styles.badges}>
-                {qualityControl ? <span className={styles.badge}>КК</span> : null}
-                {recommendation ? <span className={styles.badge}>{recommendation}</span> : null}
+                {qualityControl ? (
+                  <span className={`${styles.badge} notranslate`} translate="no">
+                    КК
+                  </span>
+                ) : null}
+                {recommendation ? (
+                  <span className={`${styles.badge} notranslate`} translate="no">
+                    {recommendation}
+                  </span>
+                ) : null}
               </div>
             ) : null}
           </div>

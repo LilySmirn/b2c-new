@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import NoTranslate from "@/app/components/NoTranslate";
 import playIcon from "@/assets/images/landing/video-big.png";
 
 const videoUrl = "https://vkvideo.ru/video_ext.php?oid=-232253508&id=456239018&hd=2";
@@ -46,7 +47,11 @@ export default function VideoShowcase() {
 
         <div className="video-showcase-copy">
           <span className="video-showcase-duration">7 МИНУТ</span>
-          <h2>Посмотрите, как EasyMed<br />экономит ваше время</h2>
+          <h2>
+            Посмотрите, как <NoTranslate>EasyMed</NoTranslate>
+            <br />
+            экономит ваше время
+          </h2>
           <p>Короткая видео-инструкция покажет,<br />как быстро находить нужные рекомендации<br />и применять их в работе</p>
           <button className="video-showcase-button" type="button" onClick={playFullscreen}>
             Смотреть видео

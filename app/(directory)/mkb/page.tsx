@@ -24,6 +24,7 @@ import { normalizeMkbSearchInput } from "@/app/lib/normalizeMkbSearchInput";
 import { collectMedicationQuery } from "../components/medications/medicationQuery";
 import { medsCatalogSession } from "../components/medications/medsCatalogSession";
 import { cartStorage } from "@/app/(directory)/shared/cart";
+import NoTranslate from "@/app/components/NoTranslate";
 
 type MkbSearchResult = {
   code: string;
@@ -778,7 +779,9 @@ export default function SearchPreviewPage() {
       <DirectoryPageHeader variant="search" />
       <main className={styles.wrapper}>
         <section className={styles.content}>
-          <Image src={logoBig} alt="EasyMed" className={styles.logo} priority />
+          <span className="notranslate" translate="no">
+            <Image src={logoBig} alt="EasyMed" className={styles.logo} priority />
+          </span>
 
           {demoRemaining !== null ? (
             demoRemaining > 0 ? (
@@ -892,7 +895,11 @@ export default function SearchPreviewPage() {
               {recommendedMatches.length > 0 ? (
                 <>
                   <p className={styles.emptyStateText}>
-                    По выбранному МКБ <strong>{submittedCode}</strong> рекомендации не найдены.
+                    По выбранному МКБ{" "}
+                    <strong>
+                      <NoTranslate>{submittedCode}</NoTranslate>
+                    </strong>{" "}
+                    рекомендации не найдены.
                     <br />
                     Возможно, вам подойдут следующие коды:
                   </p>
@@ -903,8 +910,11 @@ export default function SearchPreviewPage() {
                 </>
               ) : (
                 <p className={styles.emptyStateText}>
-                  По выбранному МКБ <strong>{submittedCode}</strong> у Минздрава клинических
-                  рекомендаций и стандартов не предусмотрено
+                  По выбранному МКБ{" "}
+                  <strong>
+                    <NoTranslate>{submittedCode}</NoTranslate>
+                  </strong>{" "}
+                  у Минздрава клинических рекомендаций и стандартов не предусмотрено
                 </p>
               )}
             </section>

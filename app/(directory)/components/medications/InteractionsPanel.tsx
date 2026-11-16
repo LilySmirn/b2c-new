@@ -1,3 +1,4 @@
+import NoTranslate from "@/app/components/NoTranslate";
 import styles from "./InteractionsPanel.module.css";
 
 /**
@@ -22,8 +23,6 @@ const DEMO_INTERACTION = {
   rightName: "Тетрациклин",
   badge: "Нельзя",
   text: "Есть сведения о взаимодействии.",
-  source:
-    "Источник: ГРЛС / база взаимодействий. Результат справочный, решение принимает врач.",
 };
 
 export default function InteractionsPanel() {
@@ -97,10 +96,17 @@ export default function InteractionsPanel() {
       </div>
 
       <div className={styles.foot}>
-        <span className={styles.footMark} aria-hidden="true">
+        <span
+          className={`${styles.footMark} notranslate`}
+          translate="no"
+          aria-hidden="true"
+        >
           i
         </span>
-        <div>{DEMO_INTERACTION.source}</div>
+        <div>
+          Источник: <NoTranslate>ГРЛС</NoTranslate> / база взаимодействий.
+          Результат справочный, решение принимает врач.
+        </div>
       </div>
     </section>
   );

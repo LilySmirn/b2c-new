@@ -8,6 +8,7 @@ import AuthButtonsServer from './components/AuthButtonsServer';
 // import Header from "./components/Header";
 import ConditionalHeader from './components/ConditionalHeader';
 import ConditionalFooter from './components/ConditionalFooter';
+import NoTranslate from './components/NoTranslate';
 import RouteBodyClass from './components/RouteBodyClass';
 import UserBlockingGuard from './modules/userBlocking/components/UserBlockingGuard';
 import landingLogo from '@/assets/images/landing/logo.svg';
@@ -55,7 +56,7 @@ ym(113585722, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
                  <ConditionalHeader>
                     <header id="header" className="header-section">
                     <div className="header-container">
-                        <Link href="/" className="header-logo-link" aria-label="EasyMed — на главную">
+                        <Link href="/" className="header-logo-link notranslate" translate="no" aria-label="EasyMed — на главную">
                             <Image src={landingLogo}
                                    alt="EasyMed" width={90} height={58}
                                    priority />
@@ -126,7 +127,9 @@ ym(113585722, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLa
                                     Пользовательское соглашение
                                 </a>
                             </div>
-                            <div className="copyright">2026 easymed.pro</div>
+                            <div className="copyright">
+                              2026 <NoTranslate>easymed.pro</NoTranslate>
+                            </div>
                             <div className="inn">
                                 ИП Васильцов Давыд Юрьевич  <br />
                                 ОГРНИП 324784700301501  <br />

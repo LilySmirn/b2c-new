@@ -1007,13 +1007,14 @@ const PrescriptionChecklist = forwardRef<
                     >
                       {item.checked ? "✓" : ""}
                     </button>
-                    <span className={styles.qcValue}>
+                    <span className={styles.qcValue} translate="no">
                       {item.qualityControl ? "КК" : ""}
                     </span>
                     <span
                       className={`${styles.codeValue} ${
                         item.code ? "" : styles.codeValueEmpty
-                      }`}
+                      }${item.code ? " notranslate" : ""}`}
+                      translate={item.code ? "no" : undefined}
                       aria-hidden={!item.code}
                     >
                       {item.code}
@@ -1036,7 +1037,8 @@ const PrescriptionChecklist = forwardRef<
                   <div className={styles.thirdCol}>
                     <button
                       type="button"
-                      className={styles.infoButton}
+                      className={`${styles.infoButton} notranslate`}
+                      translate="no"
                       onClick={(event) => {
                         event.stopPropagation();
                         openInfo(item);
@@ -1175,7 +1177,8 @@ const PrescriptionChecklist = forwardRef<
                     type="button"
                     className={`${styles.infoTab} ${
                       isActive ? styles.infoTabActive : ""
-                    }`}
+                    } notranslate`}
+                    translate="no"
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => setActiveInfoItemId(item.id)}

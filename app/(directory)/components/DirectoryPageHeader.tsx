@@ -160,7 +160,7 @@ export default function DirectoryPageHeader({
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Link href="/" className={styles.logoLink}>
+        <Link href="/" className={`${styles.logoLink} notranslate`} translate="no">
           <Image
             src="/images/logo-white.png"
             alt="Клинические рекомендации Минздрава — логотип"

@@ -70,13 +70,14 @@ export default function DrugRow({
         >
           {item.checked ? "✓" : ""}
         </button>
-        <span className={checklistStyles.qcValue}>
+        <span className={checklistStyles.qcValue} translate="no">
           {item.qualityControl ? "КК" : ""}
         </span>
         <span
           className={`${checklistStyles.codeValue} ${
             item.code ? "" : checklistStyles.codeValueEmpty
-          }`}
+          }${item.code ? " notranslate" : ""}`}
+          translate={item.code ? "no" : undefined}
           aria-hidden={!item.code}
         >
           {item.code}
@@ -125,7 +126,8 @@ export default function DrugRow({
         <div className={checklistStyles.thirdCol}>
           <button
             type="button"
-            className={checklistStyles.infoButton}
+            className={`${checklistStyles.infoButton} notranslate`}
+            translate="no"
             onClick={(event) => {
               event.stopPropagation();
               onOpenInfo(item);

@@ -1,3 +1,5 @@
+import NoTranslate from "@/app/components/NoTranslate";
+
 type MiniCartAiPanelProps = {
   input: string;
   onInputChange: (value: string) => void;
@@ -22,7 +24,9 @@ export default function MiniCartAiPanel({
       <div className="preparaty__ai-thread" aria-live="polite">
         <div className="preparaty__ai-msg preparaty__ai-msg--ai">
           <div className="preparaty__ai-msg-meta">
-            <span className="preparaty__ai-msg-author">EasyMed AI</span>
+            <span className="preparaty__ai-msg-author notranslate" translate="no">
+              <NoTranslate>EasyMed AI</NoTranslate>
+            </span>
           </div>
           <div className="preparaty__ai-bubble">
             <p>

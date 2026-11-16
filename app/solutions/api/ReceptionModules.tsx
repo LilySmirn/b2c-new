@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import CorporateContactPopup from "@/app/components/CorporateContactPopup";
+import NoTranslate from "@/app/components/NoTranslate";
 import styles from "./ReceptionModules.module.css";
 
 type ModuleId = "clinical" | "ai" | "ix";
@@ -233,7 +234,10 @@ function FakeCheck({ on }: { on: boolean }) {
 
 function FakeSelect({ value, muted }: { value: string; muted?: boolean }) {
   return (
-    <span className={muted ? `${styles.select} ${styles.selectMuted}` : styles.select}>
+    <span
+      className={`${muted ? `${styles.select} ${styles.selectMuted}` : styles.select} notranslate`}
+      translate="no"
+    >
       <span>{value}</span>
       <Chevron />
     </span>
@@ -269,7 +273,9 @@ function ClinicalPane() {
     <div className={styles.clinical}>
       <div className={styles.field}>
         <IconSearch />
-        <span>Код МКБ, например K25</span>
+        <span>
+          Код МКБ, например <NoTranslate>K25</NoTranslate>
+        </span>
       </div>
       <div className={styles.subnav} aria-hidden="true">
         {clinicalSections.map((section) => (
@@ -288,8 +294,12 @@ function ClinicalPane() {
             className={drug.selected ? `${styles.drug} ${styles.drugOn}` : styles.drug}
           >
             <FakeCheck on={drug.selected} />
-            <span className={styles.kk}>КК</span>
-            <span className={styles.drugCode}>{drug.code}</span>
+            <span className={`${styles.kk} notranslate`} translate="no">
+              КК
+            </span>
+            <span className={`${styles.drugCode} notranslate`} translate="no">
+              {drug.code}
+            </span>
             <span className={styles.drugName}>{drug.name}</span>
             <FakeSelect value={drug.dose} muted={drug.pending} />
             <FakeSelect value={drug.form} muted={drug.pending} />
@@ -308,7 +318,9 @@ function AiPane() {
           <IconAi />
         </span>
         <span>
-          <span className={styles.aiName}>EasyMed AI</span>
+          <span className={`${styles.aiName} notranslate`} translate="no">
+            EasyMed AI
+          </span>
           <span className={styles.aiRole}>ИИ-ассистент</span>
         </span>
       </div>
@@ -428,7 +440,11 @@ function AssistantScreen({
             >
               {module.id === "ai" ? <span className={styles.aiMark} aria-hidden="true" /> : null}
               <span>
-                {module.tab[0]}
+                {module.id === "ai" ? (
+                  <NoTranslate>{module.tab[0]}</NoTranslate>
+                ) : (
+                  module.tab[0]
+                )}
                 {module.tab[1] ? (
                   <>
                     <br />
@@ -565,7 +581,9 @@ export default function ReceptionModules() {
             Три модуля, которые усиливают МИС на приёме
           </h2>
           <p className={styles.lead}>
-            Клинические рекомендации, EasyMed AI и проверка взаимодействий подключаются по одному. Все три — одна панель внутри вашей системы: врач не уходит из карты пациента.
+            Клинические рекомендации, <NoTranslate>EasyMed AI</NoTranslate> и проверка
+            взаимодействий подключаются по одному. Все три — одна панель внутри вашей системы:
+            врач не уходит из карты пациента.
           </p>
           <p className={styles.fine}>
             Подключение модуля или надстройки — без перестройки карты пациента.
@@ -588,7 +606,13 @@ export default function ReceptionModules() {
                   </span>
                   <span className={styles.cardBody}>
                     <span className={styles.kicker}>Модуль</span>
-                    <strong>{module.title}</strong>
+                    <strong>
+                      {module.id === "ai" ? (
+                        <NoTranslate>{module.title}</NoTranslate>
+                      ) : (
+                        module.title
+                      )}
+                    </strong>
                     <span>{module.text}</span>
                   </span>
                 </button>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import NoTranslate from "@/app/components/NoTranslate";
 import CatalogPopover, { CatalogOption } from "./CatalogPopover";
 import popoverStyles from "./CatalogPopover.module.css";
 import { ruNoun, schemeBadgeText } from "./combinationSelection";
@@ -146,7 +147,15 @@ export default function DrugNameField({
           </span>
         ) : menu ? (
           <span className={`${styles.nameSub} ${hintSelected ? styles.nameSubSelected : ""}`}>
-            {hint}
+            {hint === "Выберите МНН" ? (
+              <>
+                Выберите <NoTranslate>МНН</NoTranslate>
+              </>
+            ) : hintSelected ? (
+              <NoTranslate>{hint}</NoTranslate>
+            ) : (
+              hint
+            )}
           </span>
         ) : null}
       </span>
@@ -166,14 +175,22 @@ export default function DrugNameField({
           menu.mode === "group" && step === "trade" ? (
             <div className={popoverStyles.head}>
               <button type="button" className={popoverStyles.back} onClick={() => setStep("inn")}>
-                ← МНН
+                ← <NoTranslate>МНН</NoTranslate>
               </button>
-              <span className={popoverStyles.headText}>{menu.selectedInn}</span>
+              <span className={popoverStyles.headText}>
+                <NoTranslate>{menu.selectedInn}</NoTranslate>
+              </span>
             </div>
           ) : (
             <div className={popoverStyles.head}>
               <span className={popoverStyles.headText}>
-                {menu.mode === "group" ? "Выберите МНН" : "Торговое наименование"}
+                {menu.mode === "group" ? (
+                  <>
+                    Выберите <NoTranslate>МНН</NoTranslate>
+                  </>
+                ) : (
+                  "Торговое наименование"
+                )}
               </span>
             </div>
           )

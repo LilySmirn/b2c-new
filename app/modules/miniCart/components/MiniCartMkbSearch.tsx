@@ -36,7 +36,8 @@ export default function MiniCartMkbSearch({
     >
       <div className="preparaty__mkb-search-row">
         <input
-          className="preparaty__mkb-search-input"
+          className="preparaty__mkb-search-input notranslate"
+          translate="no"
           type="search"
           name="mkb-mini"
           value={query}

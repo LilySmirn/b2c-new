@@ -187,9 +187,10 @@ export default function SchemeWizard({
                     <button
                       key={inn}
                       type="button"
-                      className={`${styles.card} ${
+                      className={`${styles.card} notranslate ${
                         pick?.inn === inn ? styles.cardSelected : ""
                       }`}
+                      translate="no"
                       onClick={() =>
                         setState((current) => chooseCombinationInn(current, components, inn))
                       }
@@ -210,7 +211,8 @@ export default function SchemeWizard({
                         <button
                           key={`${item.name_trade}-${item.standard_dose}-${item.standard_form}-${item.SMNN_code}-${sourceIndex}`}
                           type="button"
-                          className={`${styles.card} ${selected ? styles.cardSelected : ""}`}
+                          className={`${styles.card} notranslate ${selected ? styles.cardSelected : ""}`}
+                          translate="no"
                           aria-pressed={selected}
                           onClick={() =>
                             setState((current) =>
