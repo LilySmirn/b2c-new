@@ -129,6 +129,14 @@ type PrescriptionChecklistProps = {
    * Не создаёт второй store — только зеркало в родителе.
    */
   onAssignmentSnapshotChange?: (snapshot: ChecklistAssignmentSnapshot) => void;
+  /**
+   * Сохранённые пользовательские параметры назначений (из cartStorage).
+   * Имеют приоритет над исходными значениями КР при гидратации.
+   */
+  initialAssignment?: Pick<
+    ChecklistAssignmentSnapshot,
+    "medicationDrafts" | "medicationIntake" | "commentSources"
+  > | null;
   uncheckItemId?: string | null;
   onUncheckHandled?: () => void;
   clearSelectionSignal?: number;
@@ -147,6 +155,7 @@ const PrescriptionChecklist = forwardRef<
   {
     onSelectionChange,
     onAssignmentSnapshotChange,
+    initialAssignment = null,
     uncheckItemId,
     onUncheckHandled,
     clearSelectionSignal = 0,
@@ -159,6 +168,9 @@ const PrescriptionChecklist = forwardRef<
   },
   ref,
 ) {
+  const initialAssignmentRef = useRef(initialAssignment);
+  initialAssignmentRef.current = initialAssignment;
+
   const [sections, setSections] = useState(() =>
     mergeChecklistSectionsByTitle(initialSections),
   );
@@ -205,6 +217,9 @@ const PrescriptionChecklist = forwardRef<
   );
   const [infoTarget, setInfoTarget] = useState<ChecklistItem | null>(null);
   const [activeInfoItemId, setActiveInfoItemId] = useState<string | null>(null);
+  const [infoInitialFocus, setInfoInitialFocus] = useState<"comment" | null>(
+    null,
+  );
   const [commentTarget, setCommentTarget] = useState<{
     id: string;
     value: string;
@@ -212,11 +227,13 @@ const PrescriptionChecklist = forwardRef<
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [medicationDrafts, setMedicationDrafts] = useState<
     Record<string, MedicationDraft>
-  >({});
+  >(() => ({ ...(initialAssignment?.medicationDrafts ?? {}) }));
   const [medicationIntake, setMedicationIntake] = useState<
     Record<string, MedicationIntake>
-  >({});
-  const [commentSources, setCommentSources] = useState<Record<string, AssignmentCommentSource>>({});
+  >(() => ({ ...(initialAssignment?.medicationIntake ?? {}) }));
+  const [commentSources, setCommentSources] = useState<
+    Record<string, AssignmentCommentSource>
+  >(() => ({ ...(initialAssignment?.commentSources ?? {}) }));
   const commentSourcesRef = useRef(commentSources);
   commentSourcesRef.current = commentSources;
   const [combinationByItemId, setCombinationByItemId] = useState<
@@ -256,25 +273,33 @@ const PrescriptionChecklist = forwardRef<
     );
   };
 
-  const openInfo = (item: ChecklistItem) => {
+  const openInfo = (
+    item: ChecklistItem,
+    options?: { focusComment?: boolean },
+  ) => {
     setInfoTarget(item);
     setActiveInfoItemId(getMergedItems(item)[0]?.id ?? item.id);
+    setInfoInitialFocus(options?.focusComment ? "comment" : null);
   };
 
   const closeInfo = () => {
     setInfoTarget(null);
     setActiveInfoItemId(null);
+    setInfoInitialFocus(null);
   };
 
   useEffect(() => {
     const mergedSections = mergeChecklistSectionsByTitle(initialSections);
+    const seed = initialAssignmentRef.current;
 
     setSections(mergedSections);
     setActiveCategoryId(getFirstAvailableCategoryId(mergedSections));
-    setMedicationDrafts({});
-    setMedicationIntake({});
-    commentSourcesRef.current = {};
-    setCommentSources({});
+    // Пользовательские drafts из хранилища, а не сброс к КР.
+    setMedicationDrafts({ ...(seed?.medicationDrafts ?? {}) });
+    setMedicationIntake({ ...(seed?.medicationIntake ?? {}) });
+    const nextSources = { ...(seed?.commentSources ?? {}) };
+    commentSourcesRef.current = nextSources;
+    setCommentSources(nextSources);
   }, [initialSections]);
 
   useEffect(() => {
@@ -982,8 +1007,8 @@ const PrescriptionChecklist = forwardRef<
                     }
                     onToggle={toggleChecked}
                     onOpenInfo={openInfo}
-                    onOpenComment={(id, comment) =>
-                      setCommentTarget({ id, value: comment })
+                    onOpenComment={() =>
+                      openInfo(item, { focusComment: true })
                     }
                     onChangeField={updateMedicationField}
                     onSelectInn={(_id, inn) => commitMedsSelection(item, { inn })}
@@ -1108,6 +1133,7 @@ const PrescriptionChecklist = forwardRef<
             },
             hasCustomAssignment(liveSchedule?.fields ?? assignmentFromDraft(undefined)),
           )}
+          initialFocus={infoInitialFocus}
           intake={medicationIntake[liveInfoItem.id] ?? EMPTY_MEDICATION_INTAKE}
           description={medicationDescriptionSource?.info || "Описание отсутствует"}
           infoComment={medicationDescriptionSource?.infoComment ?? ""}

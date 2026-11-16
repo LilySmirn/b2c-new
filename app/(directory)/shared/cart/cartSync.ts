@@ -8,6 +8,7 @@
  */
 
 import {
+  CART_DATA_STORAGE_KEYS,
   CART_SYNC_META_STORAGE_KEY,
   type CartDataStorageKey,
 } from "./cartStorageKeys";
@@ -17,6 +18,7 @@ export type CartSyncScope =
   | "selections"
   | "customItems"
   | "generalComments"
+  | "assignments"
   | "cleared";
 
 export type CartSyncMeta = {
@@ -61,6 +63,7 @@ const isScope = (value: unknown): value is CartSyncScope =>
   value === "selections" ||
   value === "customItems" ||
   value === "generalComments" ||
+  value === "assignments" ||
   value === "cleared";
 
 export const parseCartSyncMeta = (raw: string | null): CartSyncMeta | null => {
@@ -385,10 +388,12 @@ export const createCartSync = (options: CartSyncOptions) => {
 };
 
 const isCartDataKey = (key: string): key is CartDataStorageKey =>
-  key === "directoryCartRecommendation" ||
-  key === "directoryCartSelections" ||
-  key === "directoryCartCustomItems" ||
-  key === "directoryCartGeneralComments";
+  (CART_DATA_STORAGE_KEYS as readonly string[]).includes(key);
+
+const CART_MIRROR_KEYS = [
+  ...CART_DATA_STORAGE_KEYS,
+  CART_SYNC_META_STORAGE_KEY,
+] as const;
 
 export const mirrorLocalCartKeysIntoSession = (
   sessionStorage: StorageLike | null,
@@ -396,15 +401,7 @@ export const mirrorLocalCartKeysIntoSession = (
 ) => {
   if (!sessionStorage || !localStorage) return;
 
-  const keys = [
-    "directoryCartRecommendation",
-    "directoryCartSelections",
-    "directoryCartCustomItems",
-    "directoryCartGeneralComments",
-    CART_SYNC_META_STORAGE_KEY,
-  ] as const;
-
-  keys.forEach((key) => {
+  CART_MIRROR_KEYS.forEach((key) => {
     try {
       const value = localStorage.getItem(key);
       if (value === null) {
@@ -445,13 +442,7 @@ export const reconcileCartStorages = (
 
   if (sessionMeta && (!localMeta || sessionMeta.revision > localMeta.revision)) {
     // session новее (сбой записи в local) — восстановим shared-копию.
-    [
-      "directoryCartRecommendation",
-      "directoryCartSelections",
-      "directoryCartCustomItems",
-      "directoryCartGeneralComments",
-      CART_SYNC_META_STORAGE_KEY,
-    ].forEach((key) => {
+    CART_MIRROR_KEYS.forEach((key) => {
       try {
         const value = sessionStorage.getItem(key);
         if (value === null) localStorage.removeItem(key);

@@ -4,8 +4,15 @@
  */
 
 import type { SelectedPrescription } from "@/app/(directory)/components/PrescriptionChecklist";
+import type {
+  AssignmentCommentSource,
+  MedicationIntake,
+} from "@/app/(directory)/components/medications/assignmentScheme";
+import { EMPTY_MEDICATION_INTAKE } from "@/app/(directory)/components/medications/assignmentScheme";
+import type { MedicationFieldDraft } from "@/app/(directory)/components/medications/assignmentSnapshot";
 import { medsCatalogSession } from "@/app/(directory)/components/medications/medsCatalogSession";
 import {
+  CART_ASSIGNMENTS_STORAGE_KEY,
   CART_CUSTOM_ITEMS_STORAGE_KEY,
   CART_DATA_STORAGE_KEYS,
   CART_GENERAL_COMMENT_STORAGE_KEY,
@@ -45,6 +52,21 @@ export type StoredCustomCartItem = {
 
 export type StoredCustomCartItems = Record<string, StoredCustomCartItem[]>;
 export type StoredGeneralComments = Record<string, string>;
+
+/** Персистентный снимок пользовательских параметров назначений по recommendationKey. */
+export type StoredCartAssignmentBucket = {
+  medicationDrafts: Record<string, MedicationFieldDraft>;
+  medicationIntake: Record<string, MedicationIntake>;
+  commentSources: Record<string, AssignmentCommentSource>;
+};
+
+export type StoredCartAssignments = Record<string, StoredCartAssignmentBucket>;
+
+export const EMPTY_STORED_ASSIGNMENT_BUCKET: StoredCartAssignmentBucket = {
+  medicationDrafts: {},
+  medicationIntake: {},
+  commentSources: {},
+};
 
 type CartStorageOptions = {
   getSessionStorage: () => StorageLike | null;
@@ -189,6 +211,134 @@ export const normalizeStoredSelectionItems = (
     })
     .filter((item): item is SelectedPrescription => Boolean(item?.id));
 };
+
+const DRAFT_STRING_FIELDS = [
+  "dose",
+  "form",
+  "scheme",
+  "course",
+  "inn",
+  "trade",
+  "recordId",
+] as const;
+
+const COMMENT_SOURCES = new Set<AssignmentCommentSource>([
+  "clinical-recommendation",
+  "user",
+  "none",
+]);
+
+const RELATION_VALUES = new Set<MedicationIntake["relation"]>([
+  "",
+  "before",
+  "with",
+  "after",
+]);
+
+const normalizeMedicationDraft = (value: unknown): MedicationFieldDraft | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const row = value as Record<string, unknown>;
+  const draft: MedicationFieldDraft = {};
+
+  for (const field of DRAFT_STRING_FIELDS) {
+    if (!(field in row)) continue;
+    if (typeof row[field] !== "string") continue;
+    draft[field] = row[field];
+  }
+
+  return draft;
+};
+
+const normalizeMedicationIntake = (value: unknown): MedicationIntake | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const row = value as Record<string, unknown>;
+  const relation = row.relation;
+  if (typeof relation !== "string" || !RELATION_VALUES.has(relation as MedicationIntake["relation"])) {
+    return null;
+  }
+
+  return {
+    morning: Boolean(row.morning),
+    day: Boolean(row.day),
+    evening: Boolean(row.evening),
+    night: Boolean(row.night),
+    relation: relation as MedicationIntake["relation"],
+  };
+};
+
+const normalizeCommentSource = (value: unknown): AssignmentCommentSource | null => {
+  if (typeof value !== "string") return null;
+  return COMMENT_SOURCES.has(value as AssignmentCommentSource)
+    ? (value as AssignmentCommentSource)
+    : null;
+};
+
+export const normalizeStoredAssignmentBucket = (
+  value: unknown,
+): StoredCartAssignmentBucket => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ...EMPTY_STORED_ASSIGNMENT_BUCKET };
+  }
+
+  const row = value as Record<string, unknown>;
+  const medicationDrafts: Record<string, MedicationFieldDraft> = {};
+  const medicationIntake: Record<string, MedicationIntake> = {};
+  const commentSources: Record<string, AssignmentCommentSource> = {};
+
+  if (row.medicationDrafts && typeof row.medicationDrafts === "object" && !Array.isArray(row.medicationDrafts)) {
+    Object.entries(row.medicationDrafts as Record<string, unknown>).forEach(
+      ([itemId, draft]) => {
+        if (!itemId) return;
+        const normalized = normalizeMedicationDraft(draft);
+        if (normalized) medicationDrafts[itemId] = normalized;
+      },
+    );
+  }
+
+  if (
+    row.medicationIntake &&
+    typeof row.medicationIntake === "object" &&
+    !Array.isArray(row.medicationIntake)
+  ) {
+    Object.entries(row.medicationIntake as Record<string, unknown>).forEach(
+      ([itemId, intake]) => {
+        if (!itemId) return;
+        const normalized = normalizeMedicationIntake(intake);
+        if (!normalized) return;
+        // Не храним пустой intake — он совпадает с дефолтом КР.
+        if (
+          normalized.morning === EMPTY_MEDICATION_INTAKE.morning &&
+          normalized.day === EMPTY_MEDICATION_INTAKE.day &&
+          normalized.evening === EMPTY_MEDICATION_INTAKE.evening &&
+          normalized.night === EMPTY_MEDICATION_INTAKE.night &&
+          normalized.relation === EMPTY_MEDICATION_INTAKE.relation
+        ) {
+          return;
+        }
+        medicationIntake[itemId] = normalized;
+      },
+    );
+  }
+
+  if (row.commentSources && typeof row.commentSources === "object" && !Array.isArray(row.commentSources)) {
+    Object.entries(row.commentSources as Record<string, unknown>).forEach(
+      ([itemId, source]) => {
+        if (!itemId) return;
+        const normalized = normalizeCommentSource(source);
+        if (normalized) commentSources[itemId] = normalized;
+      },
+    );
+  }
+
+  return { medicationDrafts, medicationIntake, commentSources };
+};
+
+const assignmentBucketHasData = (bucket: StoredCartAssignmentBucket) =>
+  Object.keys(bucket.medicationDrafts).length > 0 ||
+  Object.keys(bucket.medicationIntake).length > 0 ||
+  Object.keys(bucket.commentSources).length > 0;
 
 export const createCartStorage = (options: CartStorageOptions) => {
   const publish = options.publish ?? publishCartSync;
@@ -412,6 +562,60 @@ export const createCartStorage = (options: CartStorageOptions) => {
         serialized,
       );
       if (changed) publish(["generalComments"]);
+      return changed;
+    },
+
+    readAssignmentsMap(): StoredCartAssignments {
+      const raw = readRawPreferred(CART_ASSIGNMENTS_STORAGE_KEY);
+      const parsed = parseObjectMap<unknown>(raw);
+      const result: StoredCartAssignments = {};
+
+      Object.entries(parsed).forEach(([key, value]) => {
+        const bucket = normalizeStoredAssignmentBucket(value);
+        if (assignmentBucketHasData(bucket)) result[key] = bucket;
+      });
+
+      return result;
+    },
+
+    readAssignmentsForKey(recommendationKey: string): StoredCartAssignmentBucket {
+      if (!recommendationKey) return { ...EMPTY_STORED_ASSIGNMENT_BUCKET };
+      return (
+        this.readAssignmentsMap()[recommendationKey] ?? {
+          ...EMPTY_STORED_ASSIGNMENT_BUCKET,
+        }
+      );
+    },
+
+    writeAssignments(
+      recommendationKey: string,
+      bucket: StoredCartAssignmentBucket,
+    ) {
+      if (!recommendationKey) return false;
+
+      const normalized = normalizeStoredAssignmentBucket(bucket);
+      const stored = this.readAssignmentsMap();
+
+      if (assignmentBucketHasData(normalized)) {
+        stored[recommendationKey] = normalized;
+      } else {
+        delete stored[recommendationKey];
+      }
+
+      const serialized = JSON.stringify(stored);
+      const { session, local } = storages();
+      const previous =
+        safeGet(session, CART_ASSIGNMENTS_STORAGE_KEY) ??
+        safeGet(local, CART_ASSIGNMENTS_STORAGE_KEY);
+      if (previous === serialized) return false;
+
+      const changed = dualWrite(
+        session,
+        local,
+        CART_ASSIGNMENTS_STORAGE_KEY,
+        serialized,
+      );
+      if (changed) publish(["assignments"]);
       return changed;
     },
 

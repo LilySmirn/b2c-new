@@ -102,24 +102,28 @@ export default function DrugRow({
         value={dose}
         options={doseOptions}
         onChange={(value) => onChangeField(item.id, "dose", value)}
+        onDoubleClick={() => onOpenInfo(item)}
       />
       <DoseField
         label="Форма"
         value={form}
         options={formOptions}
         onChange={(value) => onChangeField(item.id, "form", value)}
+        onDoubleClick={() => onOpenInfo(item)}
       />
       <DrugTextField
         field="scheme"
         placeholder="Схема"
         value={scheme}
         onChange={(value) => onChangeField(item.id, "scheme", value)}
+        onDoubleClick={() => onOpenInfo(item)}
       />
       <DrugTextField
         field="course"
         placeholder="Курс"
         value={course}
         onChange={(value) => onChangeField(item.id, "course", value)}
+        onDoubleClick={() => onOpenInfo(item)}
       />
 
       <div className={styles.rowEnd}>
@@ -145,6 +149,10 @@ export default function DrugRow({
           onClick={(event) => {
             event.stopPropagation();
             onOpenComment(item.id, item.comment);
+          }}
+          onDoubleClick={(event) => {
+            event.stopPropagation();
+            event.preventDefault();
           }}
         >
           {item.comment || "Комментарий..."}

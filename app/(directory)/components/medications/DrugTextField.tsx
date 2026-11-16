@@ -5,6 +5,7 @@ type DrugTextFieldProps = {
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
+  onDoubleClick?: () => void;
 };
 
 export default function DrugTextField({
@@ -12,6 +13,7 @@ export default function DrugTextField({
   placeholder,
   value,
   onChange,
+  onDoubleClick,
 }: DrugTextFieldProps) {
   return (
     <input
@@ -24,6 +26,10 @@ export default function DrugTextField({
       title={value || undefined}
       autoComplete="off"
       onClick={(event) => event.stopPropagation()}
+      onDoubleClick={(event) => {
+        event.stopPropagation();
+        onDoubleClick?.();
+      }}
       onChange={(event) => onChange(event.target.value)}
     />
   );

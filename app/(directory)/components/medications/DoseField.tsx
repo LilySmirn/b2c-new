@@ -7,9 +7,16 @@ type DoseFieldProps = {
   value: string;
   options?: readonly string[];
   onChange: (value: string) => void;
+  onDoubleClick?: () => void;
 };
 
-export default function DoseField({ label = "Доза", value, options = [], onChange }: DoseFieldProps) {
+export default function DoseField({
+  label = "Доза",
+  value,
+  options = [],
+  onChange,
+  onDoubleClick,
+}: DoseFieldProps) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const hasList = options.length > 0;
@@ -35,6 +42,10 @@ export default function DoseField({ label = "Доза", value, options = [], onC
         title={value || undefined}
         autoComplete="off"
         onChange={(event) => onChange(event.target.value)}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          onDoubleClick?.();
+        }}
       />
       {hasList ? (
         <button

@@ -56,6 +56,11 @@ type DrugInfoModalProps = {
   scheme: string;
   course: string;
   comment: string;
+  /**
+   * Опциональный начальный фокус после монтирования.
+   * `"comment"` — только при открытии карточки через поле «Комментарий» в таблице.
+   */
+  initialFocus?: "comment" | null;
   intake: MedicationIntake;
   description: string;
   /** Раздел «Комментарий» клинической рекомендации. Не поле «Комментарий» назначения. */
@@ -313,6 +318,7 @@ export default function DrugInfoModal({
   scheme,
   course,
   comment,
+  initialFocus = null,
   intake,
   description,
   infoComment = "",
@@ -336,6 +342,7 @@ export default function DrugInfoModal({
   const titleId = useId();
   const layoutRef = useRef<HTMLDivElement>(null);
   const schemeFieldRef = useRef<HTMLDivElement>(null);
+  const commentFieldRef = useRef<HTMLTextAreaElement>(null);
   const guideSectionRef = useRef<HTMLElement>(null);
   const guideBodyRef = useRef<HTMLDivElement>(null);
   const [guideOverflow, setGuideOverflow] = useState(false);
@@ -343,6 +350,8 @@ export default function DrugInfoModal({
   const krWasOpen = useRef(false);
   const [krOpen, setKrOpen] = useState(false);
   const krOpenRef = useRef(false);
+  /** Не закрывать по backdrop, пока не завершится возможный двойной клик, открывший карточку. */
+  const [backdropArmed, setBackdropArmed] = useState(false);
   const sourceScheme = originalScheme.trim();
   const sourceCourse = originalCourse.trim();
   const hasOriginalRecommendation = Boolean(sourceScheme || sourceCourse);
@@ -417,6 +426,22 @@ export default function DrugInfoModal({
   }, [krOpen]);
 
   useEffect(() => {
+    if (initialFocus !== "comment") return;
+
+    const field = commentFieldRef.current;
+    if (!field) return;
+
+    field.focus();
+    const end = field.value.length;
+    field.setSelectionRange(end, end);
+  }, [initialFocus]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setBackdropArmed(true), 350);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented || krOpenRef.current || dismissLocked) return;
 
@@ -447,7 +472,12 @@ export default function DrugInfoModal({
 
   return (
     <div className={styles.layer}>
-      <div className={styles.backdrop} onClick={krOpen || dismissLocked ? undefined : onClose} />
+      <div
+        className={styles.backdrop}
+        onClick={
+          krOpen || dismissLocked || !backdropArmed ? undefined : onClose
+        }
+      />
       <div
         className={styles.dialog}
         role="dialog"
@@ -647,6 +677,7 @@ export default function DrugInfoModal({
                 <label className={styles.field}>
                   <span className={styles.fieldLabel}>Комментарий</span>
                   <textarea
+                    ref={commentFieldRef}
                     className={styles.textarea}
                     rows={3}
                     value={comment}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createCartStorage } from "./cartStorage";
 import {
+  CART_ASSIGNMENTS_STORAGE_KEY,
   CART_CUSTOM_ITEMS_STORAGE_KEY,
   CART_GENERAL_COMMENT_STORAGE_KEY,
   CART_RECOMMENDATION_STORAGE_KEY,
@@ -140,6 +141,61 @@ describe("cartStorage", () => {
     assert.ok(local.getItem(CART_GENERAL_COMMENT_STORAGE_KEY));
   });
 
+  it("пишет assignments и сохраняет пустые пользовательские scheme/course", () => {
+    const session = createMemoryStorage();
+    const local = createMemoryStorage();
+    const published: string[][] = [];
+    const storage = createCartStorage({
+      getSessionStorage: () => session,
+      getLocalStorage: () => local,
+      publish: (scopes) => {
+        published.push([...scopes]);
+      },
+      clearMedsCatalog: () => {},
+      reconcile: false,
+    });
+
+    const bucket = {
+      medicationDrafts: {
+        "drug-1": {
+          inn: "Омепразол",
+          trade: "Омез",
+          dose: "20 мг",
+          form: "капс.",
+          scheme: "",
+          course: "",
+        },
+      },
+      medicationIntake: {
+        "drug-1": {
+          morning: true,
+          day: false,
+          evening: false,
+          night: false,
+          relation: "before" as const,
+        },
+      },
+      commentSources: {
+        "drug-1": "user" as const,
+      },
+    };
+
+    assert.equal(storage.writeAssignments("key-1", bucket), true);
+    assert.equal(storage.writeAssignments("key-1", bucket), false);
+    assert.deepEqual(published.at(-1), ["assignments"]);
+    assert.equal(
+      session.getItem(CART_ASSIGNMENTS_STORAGE_KEY),
+      local.getItem(CART_ASSIGNMENTS_STORAGE_KEY),
+    );
+
+    const restored = storage.readAssignmentsForKey("key-1");
+    assert.equal(restored.medicationDrafts["drug-1"]?.scheme, "");
+    assert.equal(restored.medicationDrafts["drug-1"]?.course, "");
+    assert.equal(restored.medicationDrafts["drug-1"]?.dose, "20 мг");
+    assert.equal(restored.medicationIntake["drug-1"]?.morning, true);
+    assert.equal(restored.commentSources["drug-1"], "user");
+  });
+
   it("clearCartState удаляет данные и вызывает clear meds", () => {
     const session = createMemoryStorage();
     const local = createMemoryStorage();
@@ -167,10 +223,16 @@ describe("cartStorage", () => {
         comment: "",
       },
     ]);
+    storage.writeAssignments("k", {
+      medicationDrafts: { "1": { dose: "10 мг", scheme: "1 р/д" } },
+      medicationIntake: {},
+      commentSources: {},
+    });
     storage.clearCartState();
 
     assert.equal(session.getItem(CART_RECOMMENDATION_STORAGE_KEY), null);
     assert.equal(local.getItem(CART_SELECTIONS_STORAGE_KEY), null);
+    assert.equal(local.getItem(CART_ASSIGNMENTS_STORAGE_KEY), null);
     assert.equal(medsCleared, 1);
     assert.deepEqual(published.at(-1), ["cleared"]);
   });
