@@ -161,6 +161,8 @@ export default function CartPreviewPage() {
   const miniCartAssignmentOps = useMemo<MiniCartAssignmentOps>(
     () => ({
       toggleItem: (itemId) => checklistRef.current?.toggleItem(itemId),
+      setItemChecked: (itemId, checked) =>
+        checklistRef.current?.setItemChecked(itemId, checked),
       setComment: (itemId, comment) =>
         checklistRef.current?.setItemComment(itemId, comment),
       applyMedsPick: (itemId, pick) =>

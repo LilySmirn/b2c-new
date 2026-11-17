@@ -18,11 +18,24 @@ describe("miniCartOpFlags", () => {
     const flags = miniCartOpFlags(ops);
     assert.equal(flags.isDirectoryBacked, true);
     assert.equal(flags.canToggle, true);
+    assert.equal(flags.canSetChecked, false);
     assert.equal(flags.canComment, true);
     assert.equal(flags.canTrade, true);
     assert.equal(flags.canEditFields, true);
     assert.equal(flags.canSelectAllRequired, true);
     assert.equal(flags.canScheme, false);
+  });
+
+  it("enables canSetChecked when setItemChecked is provided", () => {
+    const ops: MiniCartAssignmentOps = {
+      toggleItem: () => undefined,
+      setItemChecked: () => undefined,
+      setComment: () => undefined,
+      applyMedsPick: () => undefined,
+      setMedicationField: () => undefined,
+    };
+
+    assert.equal(miniCartOpFlags(ops).canSetChecked, true);
   });
 
   it("enables canScheme when applyCombination is provided", () => {

@@ -103,6 +103,8 @@ const readMedicationField = (
 
 export type PrescriptionChecklistHandle = {
   toggleItem: (itemId: string) => void;
+  /** Явная установка чекбокса без инверсии (финальный выбор препарата). */
+  setItemChecked: (itemId: string, checked: boolean) => void;
   setItemComment: (itemId: string, comment: string) => void;
   applyMedsPick: (
     itemId: string,
@@ -804,6 +806,7 @@ const PrescriptionChecklist = forwardRef<
 
   useImperativeHandle(ref, () => ({
     toggleItem: toggleChecked,
+    setItemChecked,
     setItemComment,
     applyMedsPick: applyMedsPickById,
     setMedicationField: updateMedicationField,

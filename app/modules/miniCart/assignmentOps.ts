@@ -26,6 +26,12 @@ export type MiniCartAssignmentOps = {
   /** D1: выбор / снятие выбора позиции по стабильному id. */
   toggleItem: (itemId: string) => void;
   /**
+   * D1: явная установка чекбокса без инверсии (как setItemChecked в таблице).
+   * Финальный выбор торгового наименования / МНН без trade → checked=true.
+   * Повторный вызов при уже установленном чекбоксе не снимает его.
+   */
+  setItemChecked?: (itemId: string, checked: boolean) => void;
+  /**
    * D1: комментарий к позиции (пустая строка = очистить).
    * Автоматически отмечает позицию выбранной при непустом комментарии
    * (как setItemComment в таблице).
@@ -34,6 +40,7 @@ export type MiniCartAssignmentOps = {
   /**
    * D1/D2: МНН / торговое / доза / форма через applyMedsSelection.
    * Для обычных препаратов (kind trade) и групп (kind alternatives).
+   * Сам по себе не меняет checked — финальный выбор вызывает setItemChecked.
    */
   applyMedsPick: (itemId: string, pick: MiniCartMedsPick) => void;
   /** D1/D2: текстовые поля назначения (dose/form через applyMedsSelection). */
@@ -85,6 +92,7 @@ export type MiniCartAssignmentOps = {
 /** Какие действия доступны при частичном подключении ops. */
 export const miniCartOpFlags = (ops?: MiniCartAssignmentOps | null) => ({
   canToggle: Boolean(ops?.toggleItem),
+  canSetChecked: Boolean(ops?.setItemChecked),
   canComment: Boolean(ops?.setComment),
   canTrade: Boolean(ops?.applyMedsPick),
   canEditFields: Boolean(ops?.setMedicationField),

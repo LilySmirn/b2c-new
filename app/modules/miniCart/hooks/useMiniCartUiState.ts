@@ -175,7 +175,11 @@ export function useMiniCartUiState({
   ) => {
     if (flags.isDirectoryBacked) {
       if (!flags.canTrade) return;
+      // Как в полноразмерной корзине: draft + явный checked=true (не toggle).
+      // MiniCartTradePopover вызывает onPick только на финальном выборе
+      // (торговое наименование или МНН без торговых имён).
       assignmentOps?.applyMedsPick(itemId, pick);
+      assignmentOps?.setItemChecked?.(itemId, true);
       return;
     }
     setDrugItems((prev) =>
