@@ -12,6 +12,10 @@ import { EMPTY_MEDICATION_INTAKE } from "@/app/(directory)/components/medication
 import type { MedicationFieldDraft } from "@/app/(directory)/components/medications/assignmentSnapshot";
 import { medsCatalogSession } from "@/app/(directory)/components/medications/medsCatalogSession";
 import {
+  normalizeStoredCustomCartItem,
+  type StoredCustomCartItem,
+} from "./customCartItem";
+import {
   CART_ASSIGNMENTS_STORAGE_KEY,
   CART_CUSTOM_ITEMS_STORAGE_KEY,
   CART_DATA_STORAGE_KEYS,
@@ -20,6 +24,8 @@ import {
   CART_SELECTIONS_STORAGE_KEY,
   CART_SYNC_META_STORAGE_KEY,
 } from "./cartStorageKeys";
+
+export type { StoredCustomCartItem } from "./customCartItem";
 import {
   getCartSync,
   publishCartSync,
@@ -43,12 +49,6 @@ export type StoredCartRecommendation = {
 };
 
 export type StoredCartSelections = Record<string, SelectedPrescription[]>;
-
-export type StoredCustomCartItem = {
-  id: string;
-  name: string;
-  comment: string;
-};
 
 export type StoredCustomCartItems = Record<string, StoredCustomCartItem[]>;
 export type StoredGeneralComments = Record<string, string>;
@@ -473,15 +473,9 @@ export const createCartStorage = (options: CartStorageOptions) => {
 
       Object.entries(parsed).forEach(([key, value]) => {
         if (!Array.isArray(value)) return;
-        const items = value.filter(
-          (item): item is StoredCustomCartItem =>
-            Boolean(
-              item &&
-                typeof item === "object" &&
-                typeof (item as StoredCustomCartItem).id === "string" &&
-                typeof (item as StoredCustomCartItem).name === "string",
-            ),
-        );
+        const items = value
+          .map(normalizeStoredCustomCartItem)
+          .filter((item): item is StoredCustomCartItem => item !== null);
         if (items.length > 0) result[key] = items;
       });
 

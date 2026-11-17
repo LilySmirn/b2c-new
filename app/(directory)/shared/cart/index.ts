@@ -29,6 +29,24 @@ export {
 } from "./cartStorage";
 
 export {
+  buildStoredCustomCartItem,
+  capitalizeCustomCartItemName,
+  CUSTOM_ITEM_COMMENT_MAX_LENGTH,
+  CUSTOM_ITEM_NAME_MAX_LENGTH,
+  getCustomCartItemKind,
+  isCustomDrugItem,
+  isCustomServiceItem,
+  mergeCustomCartItemValues,
+  normalizeStoredCustomCartItem,
+  sameCustomCartItems,
+  type CustomCartItemKind,
+  type CustomCartItemSource,
+  type CustomCartItemValues,
+  type DrugSearchHit,
+  type DrugTradeOption,
+} from "./customCartItem";
+
+export {
   CART_SYNC_CHANNEL_NAME,
   createCartSync,
   getCartSync,

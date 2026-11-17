@@ -5,6 +5,7 @@
 
 import type { MedicationIntake } from "@/app/(directory)/components/medications/assignmentScheme";
 import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
+import type { CustomCartItemValues } from "@/app/(directory)/shared/cart";
 
 export type MiniCartMedsField = "dose" | "form" | "scheme" | "course";
 
@@ -15,10 +16,8 @@ export type MiniCartMedsPick = {
   form?: string;
 };
 
-export type MiniCartCustomItemValues = {
-  name: string;
-  comment: string;
-};
+/** Мини-корзинка пока передаёт name/comment; SideCart merge сохраняет kind/inn/… */
+export type MiniCartCustomItemValues = CustomCartItemValues;
 
 export type { CombinationDraft as MiniCartCombinationDraft };
 export type { MedicationIntake as MiniCartMedicationIntake };

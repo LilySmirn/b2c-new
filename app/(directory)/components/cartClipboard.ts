@@ -26,6 +26,7 @@ export type ClipboardCustomItem = {
   id: string;
   name: string;
   comment: string;
+  kind?: "service" | "drug";
 };
 
 const escapeHtml = (value: string) =>
@@ -196,16 +197,34 @@ export const buildClipboardContent = (
   const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
 
   if (customItems.length > 0) {
-    groupedItems["Дополнительно"] = [
-      ...(groupedItems["Дополнительно"] ?? []),
-      ...customItems.map((item) => ({
-        id: item.id,
-        groupTitle: "Лечение",
-        sectionTitle: "Лечение",
-        title: item.name,
-        comment: item.comment,
-      })),
-    ];
+    const drugCustoms = customItems.filter((item) => item.kind === "drug");
+    const serviceCustoms = customItems.filter((item) => item.kind !== "drug");
+
+    if (drugCustoms.length > 0) {
+      groupedItems["Лекарственная терапия"] = [
+        ...(groupedItems["Лекарственная терапия"] ?? []),
+        ...drugCustoms.map((item) => ({
+          id: item.id,
+          groupTitle: "Лечение",
+          sectionTitle: "Лечение",
+          title: item.name,
+          comment: item.comment,
+        })),
+      ];
+    }
+
+    if (serviceCustoms.length > 0) {
+      groupedItems["Дополнительно"] = [
+        ...(groupedItems["Дополнительно"] ?? []),
+        ...serviceCustoms.map((item) => ({
+          id: item.id,
+          groupTitle: "Лечение",
+          sectionTitle: "Лечение",
+          title: item.name,
+          comment: item.comment,
+        })),
+      ];
+    }
   }
 
   const trimmedGeneralComment = generalComment.trim();

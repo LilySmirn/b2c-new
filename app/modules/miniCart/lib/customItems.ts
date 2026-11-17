@@ -3,24 +3,27 @@
  * Чистые функции для формы мини-корзинки и тестов.
  */
 
-export const CUSTOM_ITEM_NAME_MAX_LENGTH = 160;
-export const CUSTOM_ITEM_COMMENT_MAX_LENGTH = 500;
+import {
+  capitalizeCustomCartItemName,
+  CUSTOM_ITEM_COMMENT_MAX_LENGTH,
+  CUSTOM_ITEM_NAME_MAX_LENGTH,
+  mergeCustomCartItemValues,
+  type StoredCustomCartItem,
+} from "@/app/(directory)/shared/cart";
+
+export {
+  CUSTOM_ITEM_COMMENT_MAX_LENGTH,
+  CUSTOM_ITEM_NAME_MAX_LENGTH,
+};
 
 export type CustomItemValues = {
   name: string;
   comment: string;
 };
 
-export type StoredCustomItemLike = {
-  id: string;
-  name: string;
-  comment: string;
-};
+export type StoredCustomItemLike = StoredCustomCartItem;
 
-export const capitalizeCustomItemName = (value: string) => {
-  const [firstLetter = "", ...restLetters] = Array.from(value);
-  return `${firstLetter.toLocaleUpperCase("ru")}${restLetters.join("")}`;
-};
+export const capitalizeCustomItemName = capitalizeCustomCartItemName;
 
 export const validateCustomItemName = (name: string): string => {
   const trimmedName = name.trim();
@@ -50,13 +53,18 @@ export const addCustomItemToList = <T extends StoredCustomItemLike>(
   item: T,
 ): T[] => [...items, item];
 
+/**
+ * Обновляет name/comment, сохраняя kind/inn/trade и прочие поля модели.
+ */
 export const updateCustomItemInList = <T extends StoredCustomItemLike>(
   items: readonly T[],
   id: string,
   values: CustomItemValues,
 ): T[] =>
   items.map((item) =>
-    item.id === id ? { ...item, name: values.name, comment: values.comment } : item,
+    item.id === id
+      ? (mergeCustomCartItemValues(item, values) as T)
+      : item,
   );
 
 export const removeCustomItemFromList = <T extends StoredCustomItemLike>(

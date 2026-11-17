@@ -4,6 +4,7 @@ import type {
 } from "@/app/(directory)/components/medications/assignmentScheme";
 import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
 import type { MedsCatalogComponent } from "@/app/(directory)/components/medications/medsCatalogTypes";
+import type { StoredCustomCartItem } from "@/app/(directory)/shared/cart";
 import type { MiniCartAssignmentOps } from "./assignmentOps";
 
 export type {
@@ -36,11 +37,7 @@ export type MiniCartView =
   | { type: "custom-items" };
 
 /** Пользовательская позиция (как StoredCustomCartItem / SideCart). */
-export type MiniCartCustomItem = {
-  id: string;
-  name: string;
-  comment: string;
-};
+export type MiniCartCustomItem = StoredCustomCartItem;
 
 /** Production-источник мастера схемы для directory-backed режима. */
 export type MiniCartSchemeSource = {

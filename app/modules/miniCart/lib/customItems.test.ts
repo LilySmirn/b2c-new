@@ -71,4 +71,35 @@ describe("customItems helpers (D3)", () => {
     assert.equal(next.length, 1);
     assert.deepEqual(next[0], { id: "x", name: "New", comment: "note" });
   });
+
+  it("сохраняет kind/inn/trade при правке name/comment из мини-корзинки", () => {
+    const items = [
+      {
+        id: "drug-1",
+        name: "Омез",
+        comment: "было",
+        kind: "drug" as const,
+        inn: "ОМЕПРАЗОЛ",
+        trade: "Омез",
+        smnnCode: "smnn-1",
+        source: "catalog" as const,
+      },
+    ];
+
+    const next = updateCustomItemInList(items, "drug-1", {
+      name: "Омез Форте",
+      comment: "стало",
+    });
+
+    assert.deepEqual(next[0], {
+      id: "drug-1",
+      name: "Омез Форте",
+      comment: "стало",
+      kind: "drug",
+      inn: "ОМЕПРАЗОЛ",
+      trade: "Омез",
+      smnnCode: "smnn-1",
+      source: "catalog",
+    });
+  });
 });

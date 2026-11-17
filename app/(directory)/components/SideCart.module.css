@@ -240,13 +240,129 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .modalTitle {
   margin: 0;
   color: #00182f;
   font: 700 24px/1.2 Arial, sans-serif;
+}
+
+.modalTypeTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modalTypeTab {
+  height: 40px;
+  border: 1px solid #ccd6e6;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #595959;
+  font: 700 14px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.modalTypeTabActive {
+  border-color: #1182ee;
+  background: #eef6ff;
+  color: #0f73d1;
+}
+
+.modalLead {
+  margin: 0 0 14px;
+  color: #696969;
+  font: 400 13px/1.4 Arial, sans-serif;
+}
+
+.modalResults {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  margin-top: 10px;
+  overflow: auto;
+}
+
+.modalResult {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e4eaf2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #00182f;
+  text-align: left;
+  cursor: pointer;
+}
+
+.modalResult strong {
+  font: 700 14px/1.3 Arial, sans-serif;
+}
+
+.modalResult span {
+  color: #696969;
+  font: 400 12px/1.3 Arial, sans-serif;
+}
+
+.modalResult:hover,
+.modalResult:focus-visible {
+  border-color: #1182ee;
+  background: #f5f9ff;
+  outline: none;
+}
+
+.modalEmpty {
+  margin: 8px 0 0;
+  color: #8a8a8a;
+  font: 400 13px/1.4 Arial, sans-serif;
+}
+
+.modalPicked,
+.modalStep {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid #d7e8fb;
+  border-radius: 8px;
+  background: #f5f9ff;
+}
+
+.modalPicked strong,
+.modalStep strong {
+  color: #00182f;
+  font: 700 15px/1.3 Arial, sans-serif;
+}
+
+.modalPicked span,
+.modalStep p {
+  margin: 0;
+  color: #595959;
+  font: 400 13px/1.35 Arial, sans-serif;
+}
+
+.modalChangeLink {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: #1182ee;
+  font: 700 13px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.modalChangeLink:hover,
+.modalChangeLink:focus-visible {
+  text-decoration: underline;
+  outline: none;
 }
 
 .closeButton {

@@ -22,9 +22,15 @@ import SelectTemplateModal from "./SelectTemplateModal";
 import type { CartTemplate } from "@/app/(directory)/components/cartTemplatesStorage";
 import { createBrowserId } from "./createBrowserId";
 import {
+  buildStoredCustomCartItem,
   cartStorage,
   getCartSync,
+  isCustomDrugItem,
+  isCustomServiceItem,
+  mergeCustomCartItemValues,
+  sameCustomCartItems,
   subscribeCartSync,
+  type CustomCartItemValues,
   type StoredCustomCartItem,
 } from "@/app/(directory)/shared/cart";
 import {
@@ -44,11 +50,8 @@ const CLARIFICATION_TOOLTIP =
 export type CustomCartItem = StoredCustomCartItem;
 
 export type SideCartHandle = {
-  addCustomItem: (values: { name: string; comment: string }) => void;
-  updateCustomItem: (
-    id: string,
-    values: { name: string; comment: string },
-  ) => void;
+  addCustomItem: (values: CustomCartItemValues) => void;
+  updateCustomItem: (id: string, values: CustomCartItemValues) => void;
   removeCustomItem: (id: string) => void;
   setGeneralComment: (value: string) => void;
   /**
@@ -134,19 +137,6 @@ const ClarificationIndicator = () => {
   );
 };
 
-const sameCustomItems = (left: CustomCartItem[], right: CustomCartItem[]) => {
-  if (left.length !== right.length) return false;
-
-  return left.every((item, index) => {
-    const other = right[index];
-    return (
-      item.id === other.id &&
-      item.name === other.name &&
-      item.comment === other.comment
-    );
-  });
-};
-
 const getCartCategoryTitle = (item: SelectedPrescription) => {
   if (item.categoryId === "scales") return "Диагностика";
   if (item.categoryId === "vaccination") return "Лечение";
@@ -212,23 +202,22 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   customItemsRef.current = customItems;
   generalCommentRef.current = generalComment;
 
+  const customDrugItems = customItems.filter(isCustomDrugItem);
+  const customServiceItems = customItems.filter(isCustomServiceItem);
+
   useImperativeHandle(
     ref,
     () => ({
-      addCustomItem: ({ name, comment }) => {
+      addCustomItem: (values) => {
         setCustomItems((prev) => [
           ...prev,
-          {
-            id: createBrowserId(),
-            name,
-            comment,
-          },
+          buildStoredCustomCartItem(createBrowserId(), values),
         ]);
       },
-      updateCustomItem: (id, { name, comment }) => {
+      updateCustomItem: (id, values) => {
         setCustomItems((prev) =>
           prev.map((item) =>
-            item.id === id ? { ...item, name, comment } : item,
+            item.id === id ? mergeCustomCartItemValues(item, values) : item,
           ),
         );
       },
@@ -300,7 +289,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
 
       if (message.scopes.includes("customItems")) {
         const nextCustomItems = cartStorage.readCustomItems(storageKey);
-        if (!sameCustomItems(customItemsRef.current, nextCustomItems)) {
+        if (!sameCustomCartItems(customItemsRef.current, nextCustomItems)) {
           setCustomItems(nextCustomItems);
           customItemsRef.current = nextCustomItems;
         }
@@ -332,8 +321,11 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
     setIsSaveTemplateModalOpen(true);
   };
 
-  const renderCustomItems = (rowOffset = 0) =>
-    customItems.map((item, index) => (
+  const renderCustomItems = (
+    items: CustomCartItem[],
+    rowOffset = 0,
+  ) =>
+    items.map((item, index) => (
       <div
         key={item.id}
         className={`${styles.itemRow} ${
@@ -368,6 +360,12 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
         </span>
       </div>
     ));
+
+  const customCountForGroup = (groupTitle: string) => {
+    if (groupTitle === "Лечение") return customDrugItems.length;
+    if (groupTitle === "Прочее") return customServiceItems.length;
+    return 0;
+  };
 
   return (
     <aside className={styles.sideCart}>
@@ -404,7 +402,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
         {Object.entries(groupedItems).map(([groupTitle, items]) => (
           <div key={groupTitle}>
             <div className={styles.groupRow}>
-              {groupTitle} ({items.length + (groupTitle === "Прочее" ? customItems.length : 0)})
+              {groupTitle} ({items.length + customCountForGroup(groupTitle)})
             </div>
             {items.map((item, index) => {
               const showClarification = hasIndividualAssignmentClarifications(
@@ -432,14 +430,32 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
                 </div>
               );
             })}
-            {groupTitle === "Прочее" ? renderCustomItems(items.length) : null}
+            {groupTitle === "Лечение"
+              ? renderCustomItems(customDrugItems, items.length)
+              : null}
+            {groupTitle === "Прочее"
+              ? renderCustomItems(customServiceItems, items.length)
+              : null}
           </div>
         ))}
 
-        {!groupedItems["Прочее"] && customItems.length > 0 ? (
-          <div className={styles.groupRow}>Прочее ({customItems.length})</div>
+        {!groupedItems["Лечение"] && customDrugItems.length > 0 ? (
+          <>
+            <div className={styles.groupRow}>
+              Лечение ({customDrugItems.length})
+            </div>
+            {renderCustomItems(customDrugItems)}
+          </>
         ) : null}
-        {!groupedItems["Прочее"] ? renderCustomItems() : null}
+
+        {!groupedItems["Прочее"] && customServiceItems.length > 0 ? (
+          <>
+            <div className={styles.groupRow}>
+              Прочее ({customServiceItems.length})
+            </div>
+            {renderCustomItems(customServiceItems)}
+          </>
+        ) : null}
       </section>
 
       <button
@@ -472,24 +488,25 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
       {isCustomItemModalOpen ? (
         <CustomCartItemModal
           mode={editingCustomItem ? "edit" : "add"}
-          initialName={editingCustomItem?.name}
-          initialComment={editingCustomItem?.comment}
-          onClose={() => setIsCustomItemModalOpen(false)}
-          onSubmit={({ name, comment }) => {
+          initialItem={editingCustomItem}
+          initialKind="drug"
+          onClose={() => {
+            setEditingCustomItem(null);
+            setIsCustomItemModalOpen(false);
+          }}
+          onSubmit={(values) => {
             if (editingCustomItem) {
               setCustomItems((prev) =>
                 prev.map((item) =>
-                  item.id === editingCustomItem.id ? { ...item, name, comment } : item,
+                  item.id === editingCustomItem.id
+                    ? mergeCustomCartItemValues(item, values)
+                    : item,
                 ),
               );
             } else {
               setCustomItems((prev) => [
                 ...prev,
-                {
-                  id: createBrowserId(),
-                  name,
-                  comment,
-                },
+                buildStoredCustomCartItem(createBrowserId(), values),
               ]);
             }
 

@@ -1,12 +1,9 @@
 import type { SelectedPrescription } from "./PrescriptionChecklist";
+import type { StoredCustomCartItem } from "@/app/(directory)/shared/cart";
 
 export const CART_TEMPLATES_STORAGE_KEY = "directoryCartTemplatesDraft";
 
-export type CartTemplateCustomItem = {
-  id: string;
-  name: string;
-  comment: string;
-};
+export type CartTemplateCustomItem = StoredCustomCartItem;
 
 export type CartTemplate = {
   id: string;
