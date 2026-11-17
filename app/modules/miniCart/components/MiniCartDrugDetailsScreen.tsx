@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -42,6 +44,10 @@ const MISSING_USUAL_TEXT =
 
 const CAUTION_TEXT =
   "Информация о межлекарственных взаимодействиях будет доступна после подключения проверки совместимости препаратов.";
+
+const APPLY_ORIGINAL_IDLE_LABEL = "Подставить в назначение";
+const APPLY_ORIGINAL_DONE_LABEL = "Подставлено";
+const APPLY_ORIGINAL_FEEDBACK_MS = 2000;
 
 type DetailsTab = "assignment" | "info";
 
@@ -129,6 +135,28 @@ export default function MiniCartDrugDetailsScreen({
   const [tab, setTab] = useState<DetailsTab>("assignment");
   const [openSections, setOpenSections] = useState<Partial<Record<AccordionId, boolean>>>(
     {},
+  );
+  const [applyOriginalFeedback, setApplyOriginalFeedback] = useState(false);
+  const applyOriginalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const clearApplyOriginalFeedbackTimer = () => {
+    if (applyOriginalTimerRef.current == null) return;
+    clearTimeout(applyOriginalTimerRef.current);
+    applyOriginalTimerRef.current = null;
+  };
+
+  useEffect(() => {
+    clearApplyOriginalFeedbackTimer();
+    setApplyOriginalFeedback(false);
+  }, [item.id]);
+
+  useEffect(
+    () => () => {
+      clearApplyOriginalFeedbackTimer();
+    },
+    [],
   );
 
   const details = item.medicationDetails;
@@ -219,6 +247,17 @@ export default function MiniCartDrugDetailsScreen({
       ...current,
       [id]: !current[id],
     }));
+  };
+
+  const handleApplyOriginal = () => {
+    if (!hasOriginalRecommendation || !editable) return;
+    onApplyOriginal();
+    setApplyOriginalFeedback(true);
+    clearApplyOriginalFeedbackTimer();
+    applyOriginalTimerRef.current = setTimeout(() => {
+      setApplyOriginalFeedback(false);
+      applyOriginalTimerRef.current = null;
+    }, APPLY_ORIGINAL_FEEDBACK_MS);
   };
 
   const toggleIntake = (id: (typeof INTAKE_OPTIONS)[number]["id"]) => {
@@ -541,11 +580,38 @@ export default function MiniCartDrugDetailsScreen({
                 canApplyOriginal ? (
                   <button
                     type="button"
-                    className="preparaty__drug-card-action"
+                    className={`preparaty__drug-card-action${
+                      applyOriginalFeedback ? " is-applied" : ""
+                    }`}
                     disabled={!hasOriginalRecommendation || !editable}
-                    onClick={onApplyOriginal}
+                    aria-label={
+                      applyOriginalFeedback
+                        ? APPLY_ORIGINAL_DONE_LABEL
+                        : APPLY_ORIGINAL_IDLE_LABEL
+                    }
+                    aria-live="polite"
+                    onClick={handleApplyOriginal}
                   >
-                    Подставить в назначение
+                    <span className="preparaty__drug-card-action-stack">
+                      <span
+                        className="preparaty__drug-card-action-state preparaty__drug-card-action-state--idle"
+                        aria-hidden={applyOriginalFeedback}
+                      >
+                        {APPLY_ORIGINAL_IDLE_LABEL}
+                      </span>
+                      <span
+                        className="preparaty__drug-card-action-state preparaty__drug-card-action-state--done"
+                        aria-hidden={!applyOriginalFeedback}
+                      >
+                        <span
+                          className="preparaty__drug-card-action-check"
+                          aria-hidden="true"
+                        >
+                          ✓
+                        </span>
+                        {APPLY_ORIGINAL_DONE_LABEL}
+                      </span>
+                    </span>
                   </button>
                 ) : null
               }

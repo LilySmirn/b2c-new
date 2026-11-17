@@ -527,12 +527,54 @@
   color: var(--blue, #0085ff);
   font-size: 11px;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.emMiniCart .preparaty__drug-card-action.is-applied {
+  color: #16a34a;
 }
 
 .emMiniCart .preparaty__drug-card-action:disabled {
   color: #94a3b8;
   cursor: default;
+}
+
+/* Оба состояния в одной ячейке grid — размер кнопки не прыгает. */
+.emMiniCart .preparaty__drug-card-action-stack {
+  display: inline-grid;
+  justify-items: end;
+  align-items: center;
+}
+
+.emMiniCart .preparaty__drug-card-action-state {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.emMiniCart .preparaty__drug-card-action-state--idle {
+  opacity: 1;
+}
+
+.emMiniCart .preparaty__drug-card-action.is-applied .preparaty__drug-card-action-state--idle {
+  opacity: 0;
+}
+
+.emMiniCart .preparaty__drug-card-action.is-applied .preparaty__drug-card-action-state--done {
+  opacity: 1;
+}
+
+.emMiniCart .preparaty__drug-card-action-check {
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .emMiniCart .preparaty__drug-details-foot {
