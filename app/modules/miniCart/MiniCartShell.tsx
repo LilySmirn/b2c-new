@@ -101,6 +101,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       assignmentOps,
       schemeByItemId = {},
       hideMkbSearch = false,
+      getPipHeightSource,
     },
     ref,
   ) {
@@ -190,7 +191,10 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
     const pip = useDocumentPip({
       wantPip,
-      measureEl: panelMeasureRef.current,
+      getMeasureSource: () => ({
+        widthEl: panelMeasureRef.current,
+        heightEl: getPipHeightSource?.() ?? null,
+      }),
       onPipClosedByBrowser: () => {
         // Системный крестик PiP: сбросить модалки/экраны до fallback-рендера.
         closeOverlaysRef.current();

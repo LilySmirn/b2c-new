@@ -13,10 +13,22 @@ import {
   type DocumentPipWindow,
 } from "../pip/documentPip";
 
+export type PipMeasureSource = {
+  /** Источник ширины (мини-панель, если есть в DOM). */
+  widthEl?: HTMLElement | null;
+  /** SideCart (или аналог) для начальной высоты — читать до скрытия full-корзины. */
+  heightEl?: HTMLElement | null;
+};
+
 export type UseDocumentPipArgs = {
   /** Вызывать open только из user gesture; enabled означает «хотим PiP». */
   wantPip: boolean;
-  /** Измерить размер по fallback-панели в opener. */
+  /**
+   * Источники размера на момент открытия (вызывать синхронно из gesture).
+   * Getter — чтобы не застревать на stale `ref.current` с прошлого рендера.
+   */
+  getMeasureSource?: () => PipMeasureSource;
+  /** @deprecated Используйте getMeasureSource; оставлен для совместимости. */
   measureEl?: HTMLElement | null;
   onPipClosedByBrowser?: () => void;
   onPipError?: (message: string) => void;
@@ -38,6 +50,7 @@ export type UseDocumentPipResult = {
  */
 export function useDocumentPip({
   wantPip,
+  getMeasureSource,
   measureEl,
   onPipClosedByBrowser,
   onPipError,
@@ -55,6 +68,9 @@ export function useDocumentPip({
     null,
   );
   const tearingDownRef = useRef(false);
+  const cachedHeightRef = useRef<number | null>(null);
+  const getMeasureSourceRef = useRef(getMeasureSource);
+  getMeasureSourceRef.current = getMeasureSource;
   const onClosedRef = useRef(onPipClosedByBrowser);
   const onErrorRef = useRef(onPipError);
   onClosedRef.current = onPipClosedByBrowser;
@@ -147,7 +163,19 @@ export function useDocumentPip({
       return false;
     }
 
-    const size = resolvePipSize(measureEl ?? undefined);
+    const source = getMeasureSourceRef.current?.() ?? {};
+    const heightEl = source.heightEl ?? null;
+    const liveHeight = heightEl?.offsetHeight ?? 0;
+    if (liveHeight > 0) {
+      cachedHeightRef.current = liveHeight;
+    }
+
+    const size = resolvePipSize({
+      widthEl: source.widthEl ?? measureEl ?? null,
+      heightEl,
+      cachedHeight: cachedHeightRef.current,
+      opener: window,
+    });
     const pending = requestDocumentPipWindow(window, size);
     requestRef.current = pending;
 

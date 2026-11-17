@@ -534,6 +534,7 @@ export default function CartPreviewPage() {
         hideMkbSearch
         displayMode={miniCartMode}
         onDisplayModeChange={setMiniCartMode}
+        getPipHeightSource={() => sideCartRef.current?.getRootElement() ?? null}
       />
     </>
   );

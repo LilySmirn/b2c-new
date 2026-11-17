@@ -220,4 +220,9 @@ export type MiniCartProps = {
   schemeByItemId?: Record<string, MiniCartSchemeSource>;
   /** Скрыть поиск МКБ (реальный `/cart`: диагноз только для чтения). */
   hideMkbSearch?: boolean;
+  /**
+   * DOM SideCart (или аналог) для начальной высоты Document PiP.
+   * Вызывать синхронно из user-gesture до скрытия полноразмерной корзины.
+   */
+  getPipHeightSource?: () => HTMLElement | null;
 };

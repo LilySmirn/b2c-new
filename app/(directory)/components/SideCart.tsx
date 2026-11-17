@@ -54,6 +54,8 @@ export type SideCartHandle = {
   updateCustomItem: (id: string, values: CustomCartItemValues) => void;
   removeCustomItem: (id: string) => void;
   setGeneralComment: (value: string) => void;
+  /** Корневой DOM-узел панели — для измерения начальной высоты Document PiP. */
+  getRootElement: () => HTMLElement | null;
   /**
    * Актуальное состояние корзины (не storage snapshot) и та же запись,
    * что у кнопки «Скопировать выбранное» в полноразмерной корзине.
@@ -191,6 +193,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomCartItem | null>(null);
   const [saveTemplateError, setSaveTemplateError] = useState("");
+  const rootRef = useRef<HTMLElement | null>(null);
   const selectedItemsRef = useRef(selectedItems);
   const customItemsRef = useRef<CustomCartItem[]>([]);
   const generalCommentRef = useRef("");
@@ -229,6 +232,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
       setGeneralComment: (value) => {
         setGeneralComment(value);
       },
+      getRootElement: () => rootRef.current,
       copySelectedToClipboard: (targetDocument) =>
         copyCartSelection({
           selectedItems: selectedItemsRef.current,
@@ -371,7 +375,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   };
 
   return (
-    <aside className={styles.sideCart}>
+    <aside ref={rootRef} className={styles.sideCart}>
 
       <div className={styles.headerRow}>
         <h2 className={styles.title}>Корзина назначений ({cartItemsCount})</h2>

@@ -1,6 +1,132 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isLivePortalTarget, isPipWindowOpen } from "./documentPip";
+import {
+  DEFAULT_PIP_HEIGHT,
+  DEFAULT_PIP_WIDTH,
+  MIN_PIP_HEIGHT,
+  MIN_PIP_WIDTH,
+  PIP_TOP_CHROME_HEIGHT,
+  SITE_HEADER_HEIGHT,
+  isLivePortalTarget,
+  isPipWindowOpen,
+  resolvePipSize,
+} from "./documentPip";
+
+describe("resolvePipSize", () => {
+  it("falls back to defaults without a measured panel", () => {
+    assert.deepEqual(resolvePipSize(), {
+      width: DEFAULT_PIP_WIDTH,
+      height: DEFAULT_PIP_HEIGHT,
+    });
+    assert.deepEqual(resolvePipSize(null), {
+      width: DEFAULT_PIP_WIDTH,
+      height: DEFAULT_PIP_HEIGHT,
+    });
+  });
+
+  it("uses SideCart height and keeps width from widthEl / default", () => {
+    const heightEl = {
+      offsetHeight: 712,
+      offsetWidth: 380,
+      getBoundingClientRect() {
+        return { top: 108, left: 0, right: 0, bottom: 0, width: 0, height: 712 };
+      },
+    } as unknown as HTMLElement;
+    const opener = { innerHeight: 900 } as Window;
+
+    assert.deepEqual(
+      resolvePipSize({
+        heightEl,
+        opener,
+      }),
+      {
+        width: DEFAULT_PIP_WIDTH,
+        height: 712,
+      },
+    );
+
+    const widthEl = { offsetWidth: 390, offsetHeight: 100 } as HTMLElement;
+    assert.deepEqual(
+      resolvePipSize({
+        widthEl,
+        heightEl,
+        opener,
+      }),
+      {
+        width: 390,
+        height: 712,
+      },
+    );
+  });
+
+  it("uses cachedHeight when SideCart is hidden (offsetHeight 0)", () => {
+    const heightEl = {
+      offsetHeight: 0,
+      getBoundingClientRect() {
+        return { top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0 };
+      },
+    } as unknown as HTMLElement;
+    const opener = { innerHeight: 900 } as Window;
+
+    assert.deepEqual(
+      resolvePipSize({
+        heightEl,
+        cachedHeight: 640,
+        opener,
+      }),
+      {
+        width: DEFAULT_PIP_WIDTH,
+        height: 640,
+      },
+    );
+  });
+
+  it("clamps height so outer window clears the site header (PiP chrome)", () => {
+    const heightEl = {
+      offsetHeight: 800,
+      getBoundingClientRect() {
+        return { top: 108, left: 0, right: 0, bottom: 0, width: 0, height: 800 };
+      },
+    } as unknown as HTMLElement;
+    const opener = { innerHeight: 800 } as Window;
+    const maxInner = 800 - 108 - PIP_TOP_CHROME_HEIGHT;
+
+    assert.deepEqual(
+      resolvePipSize({
+        heightEl,
+        opener,
+      }),
+      {
+        width: DEFAULT_PIP_WIDTH,
+        height: Math.max(MIN_PIP_HEIGHT, maxInner),
+      },
+    );
+  });
+
+  it("uses SITE_HEADER_HEIGHT when source top is unavailable", () => {
+    const opener = { innerHeight: 700 } as Window;
+    const maxInner = 700 - SITE_HEADER_HEIGHT - PIP_TOP_CHROME_HEIGHT;
+
+    assert.deepEqual(
+      resolvePipSize({
+        cachedHeight: 900,
+        opener,
+      }),
+      {
+        width: DEFAULT_PIP_WIDTH,
+        height: Math.max(MIN_PIP_HEIGHT, maxInner),
+      },
+    );
+  });
+
+  it("still accepts a legacy HTMLElement argument", () => {
+    const panel = { offsetWidth: 400, offsetHeight: 500 } as HTMLElement;
+    assert.deepEqual(resolvePipSize(panel), {
+      width: Math.max(MIN_PIP_WIDTH, 400),
+      height: Math.max(MIN_PIP_HEIGHT, 500),
+    });
+  });
+});
 
 describe("isPipWindowOpen", () => {
   it("returns false for null/undefined", () => {

@@ -26,6 +26,23 @@ export const DEFAULT_PIP_WIDTH = 420;
 export const DEFAULT_PIP_HEIGHT = 640;
 export const MIN_PIP_WIDTH = 320;
 export const MIN_PIP_HEIGHT = 420;
+/** Chromium Document PiP top controls (`kTopControlsHeight`). */
+export const PIP_TOP_CHROME_HEIGHT = 34;
+/** Высота синей шапки `/cart` — запасной safe-top, если SideCart ещё не измерен. */
+export const SITE_HEADER_HEIGHT = 85;
+
+export type ResolvePipSizeInput = {
+  /** Источник ширины (мини-панель, если уже в DOM). */
+  widthEl?: HTMLElement | null;
+  /**
+   * Источник высоты — правая панель SideCart до сворачивания.
+   * Не использовать всю высоту экрана и не подставлять фиксированный px как основной.
+   */
+  heightEl?: HTMLElement | null;
+  /** Последняя измеренная высота SideCart (напр. при restore из дока, когда SideCart hidden). */
+  cachedHeight?: number | null;
+  opener?: Window;
+};
 
 export function supportsDocumentPip(
   win: Window = typeof window !== "undefined" ? window : (undefined as never),
@@ -73,18 +90,76 @@ export function isLivePortalTarget(
   }
 }
 
-export function resolvePipSize(panel?: HTMLElement | null): {
+/**
+ * Начальный размер Document PiP.
+ * Высота: фактическая высота SideCart (heightEl / cachedHeight), с учётом
+ * системного заголовка PiP и без перекрытия шапки сайта.
+ * Ширина: без изменений относительно прежней логики (widthEl → fallback).
+ */
+function isResolvePipSizeInput(
+  value: unknown,
+): value is ResolvePipSizeInput {
+  if (!value || typeof value !== "object") return false;
+  return (
+    "widthEl" in value ||
+    "heightEl" in value ||
+    "cachedHeight" in value ||
+    "opener" in value
+  );
+}
+
+export function resolvePipSize(
+  panelOrInput?: HTMLElement | null | ResolvePipSizeInput,
+): {
   width: number;
   height: number;
 } {
+  const input: ResolvePipSizeInput = isResolvePipSizeInput(panelOrInput)
+    ? panelOrInput
+    : panelOrInput
+      ? {
+          widthEl: panelOrInput as HTMLElement,
+          heightEl: panelOrInput as HTMLElement,
+        }
+      : {};
+
+  const opener =
+    input.opener ??
+    (typeof window !== "undefined" ? window : (undefined as Window | undefined));
+
   const width = Math.max(
     MIN_PIP_WIDTH,
-    Math.round(panel?.offsetWidth || DEFAULT_PIP_WIDTH),
+    Math.round(input.widthEl?.offsetWidth || DEFAULT_PIP_WIDTH),
   );
-  const height = Math.max(
+
+  const measuredFromEl = Math.round(input.heightEl?.offsetHeight || 0);
+  const measured =
+    measuredFromEl > 0
+      ? measuredFromEl
+      : Math.round(input.cachedHeight || 0) > 0
+        ? Math.round(input.cachedHeight || 0)
+        : 0;
+
+  let height = Math.max(
     MIN_PIP_HEIGHT,
-    Math.round(panel?.offsetHeight || DEFAULT_PIP_HEIGHT),
+    measured > 0 ? measured : DEFAULT_PIP_HEIGHT,
   );
+
+  if (opener && typeof opener.innerHeight === "number") {
+    const sourceTop = input.heightEl?.getBoundingClientRect?.().top;
+    const safeTop =
+      typeof sourceTop === "number" && Number.isFinite(sourceTop) && sourceTop > 0
+        ? sourceTop
+        : SITE_HEADER_HEIGHT;
+    // requestWindow height = viewport; Chrome добавляет title bar сверху.
+    const maxOuter = Math.max(0, opener.innerHeight - safeTop);
+    const maxInner = Math.max(
+      MIN_PIP_HEIGHT,
+      maxOuter - PIP_TOP_CHROME_HEIGHT,
+    );
+    height = Math.min(height, maxInner);
+  }
+
   return { width, height };
 }
 
