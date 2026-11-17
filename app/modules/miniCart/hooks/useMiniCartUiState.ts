@@ -10,6 +10,11 @@ import {
   miniCartOpFlags,
   type MiniCartAssignmentOps,
 } from "../assignmentOps";
+import {
+  DEFAULT_MINI_CART_NAV,
+  isMiniCartNavEnabled,
+  resolveMiniCartNav,
+} from "../navFlags";
 import type {
   MiniCartAge,
   MiniCartCatalogItem,
@@ -52,7 +57,7 @@ export function useMiniCartUiState({
 
   const [open, setOpen] = useState(initiallyOpen);
   const [docked, setDocked] = useState(false);
-  const [miniNav, setMiniNav] = useState<MiniCartNav>("clinical-recs");
+  const [miniNav, setMiniNavState] = useState<MiniCartNav>(DEFAULT_MINI_CART_NAV);
   const [activeTab, setActiveTab] = useState(activeFromTabs);
   const [miniTabPage, setMiniTabPage] = useState(
     initialTabs.findIndex((tab) => tab.id === activeFromTabs) >= 4 ? 1 : 0,
@@ -101,6 +106,17 @@ export function useMiniCartUiState({
     if (recommendationText === undefined) return;
     setRecommendation(recommendationText);
   }, [recommendationText]);
+
+  /** Если в сохранённом состоянии активна скрытая вкладка — переключаемся на КР. */
+  useEffect(() => {
+    if (!isMiniCartNavEnabled(miniNav)) {
+      setMiniNavState(DEFAULT_MINI_CART_NAV);
+    }
+  }, [miniNav]);
+
+  const setMiniNav = (nav: MiniCartNav) => {
+    setMiniNavState(resolveMiniCartNav(nav));
+  };
 
   const tabs = useMemo(
     () =>
@@ -555,7 +571,7 @@ export function useMiniCartUiState({
     setOpen,
     docked,
     setDocked,
-    miniNav,
+    miniNav: resolveMiniCartNav(miniNav),
     setMiniNav,
     activeTab,
     setActiveTab,
