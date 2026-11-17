@@ -170,6 +170,12 @@
   text-align: center;
   box-shadow: 0 12px 32px rgba(0, 24, 47, 0.22);
   pointer-events: none;
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+.emMiniCart .preparaty__mini-copy-notice.is-hiding {
+  opacity: 0;
 }
 
 .emMiniCart .preparaty__mini-copy-notice.is-error {

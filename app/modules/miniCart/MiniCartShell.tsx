@@ -38,7 +38,6 @@ import { useMiniCartUiState } from "./hooks/useMiniCartUiState";
 import { isLivePortalTarget } from "./pip/documentPip";
 import {
   COPY_CLIPBOARD_ERROR_MESSAGE,
-  COPY_NOTICE_DURATION_MS,
   formatCopySuccessNotice,
 } from "@/app/(directory)/components/cartClipboard";
 import type {
@@ -50,6 +49,11 @@ import "./styles/miniCartScope.css";
 import "./styles/miniCartDrugDetails.css";
 import "./styles/miniCartAddModal.css";
 import "./styles/miniCartCustomItems.css";
+
+/** Видимость уведомления о копировании в мини-корзинке (не PiP-window timers). */
+const MINI_COPY_NOTICE_VISIBLE_MS = 2000;
+/** Fade-out перед размонтированием. */
+const MINI_COPY_NOTICE_FADE_MS = 220;
 
 function flattenClassicItems(
   shellTabs: MiniCartProps["shellTabs"],
@@ -152,9 +156,22 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     const [copyNotice, setCopyNotice] = useState<{
       text: string;
       error: boolean;
+      hiding: boolean;
     } | null>(null);
-    const copyNoticeTimerRef = useRef<{ id: number; view: Window } | null>(null);
+    /** Таймеры всегда на opener window: React-дерево там, PiP setTimeout ненадёжен. */
+    const copyNoticeTimerRef = useRef<number | null>(null);
     const copyRequestRef = useRef(0);
+
+    const clearCopyNoticeTimer = useCallback(() => {
+      if (copyNoticeTimerRef.current == null) return;
+      window.clearTimeout(copyNoticeTimerRef.current);
+      copyNoticeTimerRef.current = null;
+    }, []);
+
+    const dismissCopyNotice = useCallback(() => {
+      clearCopyNoticeTimer();
+      setCopyNotice(null);
+    }, [clearCopyNoticeTimer]);
 
     const wantPip = mode === "compact";
 
@@ -197,6 +214,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       }),
       onPipClosedByBrowser: () => {
         // Системный крестик PiP: сбросить модалки/экраны до fallback-рендера.
+        dismissCopyNotice();
         closeOverlaysRef.current();
         setMode("compact");
       },
@@ -209,7 +227,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     useEffect(() => {
       if (mode === "compact") return;
       setChartStep("closed");
-    }, [mode]);
+      dismissCopyNotice();
+    }, [dismissCopyNotice, mode]);
 
     const readChartBox = useCallback((): MiniCartChartBox | null => {
       const panel = panelMeasureRef.current;
@@ -315,22 +334,25 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     );
 
     const handleMinimize = useCallback(() => {
+      dismissCopyNotice();
       closeOverlays();
       pip.close();
       setMode("docked");
-    }, [closeOverlays, pip, setMode]);
+    }, [closeOverlays, dismissCopyNotice, pip, setMode]);
 
     const handleExpand = useCallback(() => {
+      dismissCopyNotice();
       closeOverlays();
       pip.close();
       setMode("full");
-    }, [closeOverlays, pip, setMode]);
+    }, [closeOverlays, dismissCopyNotice, pip, setMode]);
 
     const handleClose = useCallback(() => {
+      dismissCopyNotice();
       closeOverlays();
       pip.close();
       setMode("full");
-    }, [closeOverlays, pip, setMode]);
+    }, [closeOverlays, dismissCopyNotice, pip, setMode]);
 
     const handleRestoreDock = useCallback(async () => {
       setMode("compact");
@@ -341,28 +363,24 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
     useEffect(
       () => () => {
-        if (!copyNoticeTimerRef.current) return;
-        copyNoticeTimerRef.current.view.clearTimeout(copyNoticeTimerRef.current.id);
+        clearCopyNoticeTimer();
       },
-      [],
+      [clearCopyNoticeTimer],
     );
 
-    const showCopyNotice = (
-      text: string,
-      error: boolean,
-      view: Window,
-    ) => {
-      setCopyNotice({ text, error });
-      if (copyNoticeTimerRef.current) {
-        copyNoticeTimerRef.current.view.clearTimeout(
-          copyNoticeTimerRef.current.id,
+    const showCopyNotice = (text: string, error: boolean) => {
+      clearCopyNoticeTimer();
+      // Один слой: повторный показ сбрасывает hiding и перезапускает таймер.
+      setCopyNotice({ text, error, hiding: false });
+      copyNoticeTimerRef.current = window.setTimeout(() => {
+        setCopyNotice((current) =>
+          current ? { ...current, hiding: true } : null,
         );
-      }
-      const id = view.setTimeout(() => {
-        setCopyNotice(null);
-        copyNoticeTimerRef.current = null;
-      }, COPY_NOTICE_DURATION_MS);
-      copyNoticeTimerRef.current = { id, view };
+        copyNoticeTimerRef.current = window.setTimeout(() => {
+          setCopyNotice(null);
+          copyNoticeTimerRef.current = null;
+        }, MINI_COPY_NOTICE_FADE_MS);
+      }, MINI_COPY_NOTICE_VISIBLE_MS);
     };
 
     const handleCopySelected = (targetDocument: Document) => {
@@ -370,19 +388,14 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       if (!copySelected) return;
 
       const requestId = ++copyRequestRef.current;
-      const view = targetDocument.defaultView ?? window;
       void copySelected(targetDocument).then(
         (result) => {
           if (requestId !== copyRequestRef.current) return;
-          showCopyNotice(
-            formatCopySuccessNotice(result.itemsCount),
-            false,
-            view,
-          );
+          showCopyNotice(formatCopySuccessNotice(result.itemsCount), false);
         },
         () => {
           if (requestId !== copyRequestRef.current) return;
-          showCopyNotice(COPY_CLIPBOARD_ERROR_MESSAGE, true, view);
+          showCopyNotice(COPY_CLIPBOARD_ERROR_MESSAGE, true);
         },
       );
     };
@@ -621,7 +634,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
           <div
             className={`preparaty__mini-copy-notice${
               copyNotice.error ? " is-error" : ""
-            }`}
+            }${copyNotice.hiding ? " is-hiding" : ""}`}
             role="status"
             aria-live="polite"
           >
