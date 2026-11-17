@@ -343,6 +343,27 @@ export const buildPatientComment = (input: PatientCommentInput): PatientCommentV
   };
 };
 
+/**
+ * Формат буфера: `название - параметры` (запятые), без разделителей превью ` · `.
+ * Комментарий врача добавляется после параметров.
+ */
+export const clipboardTextFromPatientComment = (
+  patient: PatientCommentView,
+): { title: string; comment: string } => {
+  const parts = patient.summary
+    .split(" · ")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  const title = parts[0] ?? "";
+  const detail = parts.slice(1).join(", ");
+  const note = patient.note.trim();
+
+  return {
+    title,
+    comment: [detail, note].filter((part) => part.length > 0).join(". "),
+  };
+};
+
 export type SchemeCompositionRow = {
   index: number;
   name: string;

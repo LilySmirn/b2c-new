@@ -194,6 +194,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   const selectedItemsRef = useRef(selectedItems);
   const customItemsRef = useRef<CustomCartItem[]>([]);
   const generalCommentRef = useRef("");
+  const assignmentRef = useRef(assignment);
   const cartItemsCount = selectedItems.length + customItems.length;
   const hasSelectedItems = cartItemsCount > 0;
   const groupedItems = groupSelectedItemsByCartCategory(selectedItems);
@@ -201,6 +202,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
   selectedItemsRef.current = selectedItems;
   customItemsRef.current = customItems;
   generalCommentRef.current = generalComment;
+  assignmentRef.current = assignment;
 
   const customDrugItems = customItems.filter(isCustomDrugItem);
   const customServiceItems = customItems.filter(isCustomServiceItem);
@@ -232,6 +234,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
           selectedItems: selectedItemsRef.current,
           customItems: customItemsRef.current,
           generalComment: generalCommentRef.current,
+          assignment: assignmentRef.current,
           targetDocument,
         }),
     }),
@@ -482,6 +485,7 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
           selectedItems={selectedItems}
           customItems={customItems}
           generalComment={generalComment}
+          assignment={assignment}
         />
       </div>
 

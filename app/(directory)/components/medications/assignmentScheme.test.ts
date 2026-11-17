@@ -19,6 +19,7 @@ import {
   assignmentFromDraft,
   buildPatientComment,
   clearedAssignmentDraft,
+  clipboardTextFromPatientComment,
   combinationAssignmentView,
   EMPTY_MEDICATION_INTAKE,
   hasCustomAssignment,
@@ -182,12 +183,40 @@ describe("схема назначения и комментарий для па�
     assert.doesNotMatch(comment.summary, /14 дней/);
     assert.equal(comment.note, "");
 
+    assert.deepEqual(clipboardTextFromPatientComment(comment), {
+      title: "Флемоксин Солютаб",
+      comment: "Амоксициллин, 1000 мг, таблетки",
+    });
+
     const withoutDose = removeSchemeChip(fields, "dose");
     const withoutForm = removeSchemeChip(withoutDose, "form");
 
     assert.equal(withoutForm.dose, "");
     assert.equal(withoutForm.form, "");
     assert.equal(hasCustomAssignment(withoutForm), false);
+  });
+
+  it("clipboardTextFromPatientComment сохраняет формат title - params и комментарий врача", () => {
+    const fields = emptyFields();
+    fields.dose = "500 мг";
+    fields.form = "таблетки";
+    fields.schemeText = "2 раза в сутки внутрь";
+    fields.courseText = "14 дней";
+
+    const patient = buildPatientComment(
+      kr(fields, {
+        title: "Левофлоксацин",
+        tradeName: "",
+        innName: "",
+        note: "При сыпи отменить",
+        noteCustom: true,
+      }),
+    );
+
+    assert.deepEqual(clipboardTextFromPatientComment(patient), {
+      title: "Левофлоксацин",
+      comment: "500 мг, таблетки, 2 раза в сутки внутрь, 14 дней. При сыпи отменить",
+    });
   });
 
   it("пользовательская схема исключает стандартную схему КР и автоматически скопированный комментарий", () => {

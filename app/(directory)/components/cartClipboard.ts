@@ -4,6 +4,16 @@
  * с одним и тем же состоянием SideCart.
  */
 
+import {
+  assignmentFromDraft,
+  buildPatientComment,
+  clipboardTextFromPatientComment,
+  formatCatalogName,
+  type CombinationAssignmentView,
+} from "./medications/assignmentScheme";
+import type { CombinationDraft } from "./medications/combinationSelection";
+import type { ChecklistAssignmentSnapshot } from "./medications/assignmentSnapshot";
+
 export const COPY_CLIPBOARD_ERROR_MESSAGE =
   "Не удалось скопировать выбранное в буфер обмена";
 
@@ -20,6 +30,8 @@ export type ClipboardSelectionItem = {
   sectionTitle?: string;
   title: string;
   comment: string;
+  treatmentPlan?: string;
+  treatmentDuration?: string;
 };
 
 export type ClipboardCustomItem = {
@@ -37,6 +49,18 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const isMedicationClipboardCategory = (item: ClipboardSelectionItem) => {
+  const categoryId = item.categoryId ?? "";
+  const title = item.categoryTitle ?? item.groupTitle;
+
+  return (
+    categoryId === "medications" ||
+    categoryId === "vaccination" ||
+    title === "Препараты" ||
+    title === "Лекарства"
+  );
+};
+
 const getClipboardCategoryTitle = (item: ClipboardSelectionItem) => {
   const categoryId = item.categoryId ?? "";
   const title = item.categoryTitle ?? item.groupTitle;
@@ -53,12 +77,7 @@ const getClipboardCategoryTitle = (item: ClipboardSelectionItem) => {
     return "Диагностические мероприятия";
   }
 
-  if (
-    categoryId === "medications" ||
-    categoryId === "vaccination" ||
-    title === "Препараты" ||
-    title === "Лекарства"
-  ) {
+  if (isMedicationClipboardCategory(item)) {
     return "Лекарственная терапия";
   }
 
@@ -67,6 +86,90 @@ const getClipboardCategoryTitle = (item: ClipboardSelectionItem) => {
   }
 
   return title;
+};
+
+const combinationViewFromDraft = (
+  title: string,
+  draft: CombinationDraft | undefined,
+): CombinationAssignmentView | null => {
+  if (!draft?.picks.length) return null;
+
+  const complete = draft.picks.every((pick) => pick.confirmed);
+  if (!complete) {
+    return {
+      complete: false,
+      primary: title.trim(),
+      secondary: "",
+      rows: [],
+    };
+  }
+
+  const trades = draft.picks.map((pick) => {
+    const trade = pick.item?.name_trade?.trim() ?? "";
+    if (trade) return trade;
+
+    const inn = pick.item?.standard_MNN?.trim() || pick.inn.trim();
+    return inn ? formatCatalogName(inn) : "";
+  });
+  const inns = draft.picks.map((pick) => {
+    const inn = pick.item?.standard_MNN?.trim() || pick.inn.trim();
+    return inn ? formatCatalogName(inn) : "";
+  });
+
+  return {
+    complete: true,
+    primary: trades.filter(Boolean).join(" + ") || title.trim(),
+    secondary: inns.filter(Boolean).join(" + "),
+    rows: [],
+  };
+};
+
+/**
+ * Для лекарств подставляет актуальные параметры из assignment
+ * (тот же смысл, что «Комментарий для пациента» в карточке препарата).
+ */
+export const enrichClipboardSelectionItem = (
+  item: ClipboardSelectionItem,
+  assignment: ChecklistAssignmentSnapshot,
+): ClipboardSelectionItem => {
+  if (!item.id || !isMedicationClipboardCategory(item)) return item;
+
+  const draft = assignment.medicationDrafts[item.id];
+  const intake = assignment.medicationIntake[item.id];
+  const fields = assignmentFromDraft(draft, intake);
+  const commentSource = assignment.commentSources?.[item.id];
+  const combination = combinationViewFromDraft(
+    item.title,
+    assignment.combinations[item.id],
+  );
+
+  const patient = buildPatientComment({
+    title: item.title,
+    tradeName: draft?.trade ?? "",
+    innName: draft?.inn ?? "",
+    dose: fields.dose,
+    form: fields.form,
+    schemeText: fields.schemeText,
+    courseText: fields.courseText,
+    intake: fields.intake,
+    originalScheme: item.treatmentPlan ?? "",
+    originalCourse: item.treatmentDuration ?? "",
+    note: item.comment,
+    noteCustom: commentSource === "user",
+    combination,
+  });
+
+  const resolved = clipboardTextFromPatientComment(patient);
+  const title = resolved.title || item.title;
+  const comment = resolved.comment;
+
+  // Нет ни актуальных параметров, ни исходной схемы КР — оставляем comment как есть
+  // (например, пользовательский текст без treatmentPlan в SelectedPrescription).
+  if (!comment && item.comment.trim()) {
+    return { ...item, title, comment: item.comment };
+  }
+
+  return { ...item, title, comment };
 };
 
 const groupSelectedItemsByClipboardCategory = (
@@ -193,8 +296,12 @@ export const buildClipboardContent = (
   selectedItems: ClipboardSelectionItem[],
   customItems: ClipboardCustomItem[],
   generalComment: string,
+  assignment?: ChecklistAssignmentSnapshot,
 ) => {
-  const groupedItems = groupSelectedItemsByClipboardCategory(selectedItems);
+  const resolvedItems = assignment
+    ? selectedItems.map((item) => enrichClipboardSelectionItem(item, assignment))
+    : selectedItems;
+  const groupedItems = groupSelectedItemsByClipboardCategory(resolvedItems);
 
   if (customItems.length > 0) {
     const drugCustoms = customItems.filter((item) => item.kind === "drug");
@@ -283,17 +390,20 @@ export const copyCartSelection = async ({
   selectedItems,
   customItems,
   generalComment,
+  assignment,
   targetDocument,
 }: {
   selectedItems: ClipboardSelectionItem[];
   customItems: ClipboardCustomItem[];
   generalComment: string;
+  assignment?: ChecklistAssignmentSnapshot;
   targetDocument: Document;
 }) => {
   const content = buildClipboardContent(
     selectedItems,
     customItems,
     generalComment,
+    assignment,
   );
 
   await copyClipboardContent({

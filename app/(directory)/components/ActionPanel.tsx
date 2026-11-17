@@ -11,6 +11,10 @@ import DocumentTemplateModal from "@/app/(directory)/components/DocumentTemplate
 import MisIntegrationModal from "@/app/(directory)/components/MisIntegrationModal";
 import CorporateContactPopup from "@/app/components/CorporateContactPopup";
 import {
+  EMPTY_ASSIGNMENT_SNAPSHOT,
+  type ChecklistAssignmentSnapshot,
+} from "./medications/assignmentSnapshot";
+import {
   COPY_NOTICE_DURATION_MS,
   copyCartSelection,
   formatCopySuccessNotice,
@@ -42,12 +46,14 @@ type ActionPanelProps = {
   selectedItems?: SelectedPrescription[];
   customItems?: CustomCartItem[];
   generalComment?: string;
+  assignment?: ChecklistAssignmentSnapshot;
 };
 
 export default function ActionPanel({
   selectedItems = [],
   customItems = [],
   generalComment = "",
+  assignment = EMPTY_ASSIGNMENT_SNAPSHOT,
 }: ActionPanelProps) {
   const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
   const [isContactPopupOpen, setIsContactPopupOpen] = useState(false);
@@ -96,6 +102,7 @@ export default function ActionPanel({
       selectedItems,
       customItems,
       generalComment,
+      assignment,
       targetDocument,
     });
 

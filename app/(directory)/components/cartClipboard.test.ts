@@ -5,10 +5,16 @@ import {
   COPY_NOTICE_DURATION_MS,
   buildClipboardContent,
   copyCartSelection,
+  enrichClipboardSelectionItem,
   formatCopySuccessNotice,
   type ClipboardCustomItem,
   type ClipboardSelectionItem,
 } from "./cartClipboard";
+import {
+  EMPTY_ASSIGNMENT_SNAPSHOT,
+  type ChecklistAssignmentSnapshot,
+} from "./medications/assignmentSnapshot";
+import { EMPTY_MEDICATION_INTAKE } from "./medications/assignmentScheme";
 
 /**
  * Full и mini вызывают один buildClipboardContent / copyCartSelection.
@@ -19,13 +25,15 @@ const copyAsFullCart = (
   selectedItems: ClipboardSelectionItem[],
   customItems: ClipboardCustomItem[],
   generalComment: string,
-) => buildClipboardContent(selectedItems, customItems, generalComment);
+  assignment?: ChecklistAssignmentSnapshot,
+) => buildClipboardContent(selectedItems, customItems, generalComment, assignment);
 
 const copyAsMiniCart = (
   selectedItems: ClipboardSelectionItem[],
   customItems: ClipboardCustomItem[],
   generalComment: string,
-) => buildClipboardContent(selectedItems, customItems, generalComment);
+  assignment?: ChecklistAssignmentSnapshot,
+) => buildClipboardContent(selectedItems, customItems, generalComment, assignment);
 
 const item = (
   partial: ClipboardSelectionItem & Record<string, unknown>,
@@ -170,7 +178,7 @@ describe("cart clipboard content", () => {
     assert.equal(full.html, mixedHtml);
   });
 
-  it("does not invent drug parameters that the full generator ignores", () => {
+  it("without assignment does not invent loose fields hanging on the item object", () => {
     const { plainText, html } = copyAsMiniCart(
       mixedSelection,
       mixedCustom,
@@ -194,6 +202,112 @@ describe("cart clipboard content", () => {
     assert.equal(/^\d+\./m.test(plainText), false);
     assert.equal(plainText.split("Массаж").length - 1, 1);
     assert.equal(plainText.split("Витамин D").length - 1, 1);
+  });
+
+  it("with assignment uses live medication params for full and mini the same way", () => {
+    const assignment: ChecklistAssignmentSnapshot = {
+      ...EMPTY_ASSIGNMENT_SNAPSHOT,
+      medicationDrafts: {
+        "omeprazole": {
+          trade: "Омез",
+          inn: "ОМЕПРАЗОЛ",
+          dose: "20 мг",
+          form: "капсулы",
+          scheme: "1 раз в день",
+          course: "7 дней",
+        },
+      },
+      medicationIntake: {
+        omeprazole: {
+          ...EMPTY_MEDICATION_INTAKE,
+          morning: true,
+          relation: "after",
+        },
+      },
+      commentSources: {
+        omeprazole: "user",
+      },
+    };
+
+    const selected: ClipboardSelectionItem[] = [
+      item({
+        id: "omeprazole",
+        categoryId: "medications",
+        categoryTitle: "Препараты",
+        groupTitle: "Препараты",
+        title: "Омепразол",
+        comment: "контроль через неделю",
+        treatmentPlan: "20 мг утром",
+        treatmentDuration: "14 дней",
+      }),
+    ];
+
+    const expected = [
+      "Лекарственная терапия",
+      "Омез - Омепразол, 20 мг, капсулы, утром, после еды, 1 раз в день, 7 дней. контроль через неделю",
+    ].join("\n");
+
+    const full = copyAsFullCart(selected, [], "", assignment);
+    const mini = copyAsMiniCart(selected, [], "", assignment);
+
+    assert.equal(full.plainText, expected);
+    assert.equal(mini.plainText, expected);
+    assert.equal(full.plainText.includes("14 дней"), false);
+    assert.equal(full.plainText.includes("20 мг утром"), false);
+  });
+
+  it("enrichClipboardSelectionItem prefers custom params over KR and keeps cleared fields empty", () => {
+    const assignment: ChecklistAssignmentSnapshot = {
+      ...EMPTY_ASSIGNMENT_SNAPSHOT,
+      medicationDrafts: {
+        "levo": {
+          dose: "500 мг",
+          form: "таблетки",
+          scheme: "2 раза в сутки внутрь",
+          course: "",
+        },
+      },
+      commentSources: { levo: "none" },
+    };
+
+    const enriched = enrichClipboardSelectionItem(
+      item({
+        id: "levo",
+        categoryId: "medications",
+        categoryTitle: "Препараты",
+        groupTitle: "Препараты",
+        title: "Левофлоксацин",
+        comment: "",
+        treatmentPlan: "500 мг 2 раза в сутки внутрь",
+        treatmentDuration: "14 дней",
+      }),
+      assignment,
+    );
+
+    assert.equal(enriched.title, "Левофлоксацин");
+    assert.equal(enriched.comment, "500 мг, таблетки, 2 раза в сутки внутрь");
+    assert.equal(enriched.comment.includes("14 дней"), false);
+  });
+
+  it("enrichClipboardSelectionItem keeps KR text when there are no custom params", () => {
+    const enriched = enrichClipboardSelectionItem(
+      item({
+        id: "levo",
+        categoryId: "medications",
+        categoryTitle: "Препараты",
+        groupTitle: "Препараты",
+        title: "Левофлоксацин",
+        comment: "500 мг 2 раза в сутки внутрь, 14 дней",
+        treatmentPlan: "500 мг 2 раза в сутки внутрь",
+        treatmentDuration: "14 дней",
+      }),
+      EMPTY_ASSIGNMENT_SNAPSHOT,
+    );
+
+    assert.equal(
+      enriched.comment,
+      "500 мг 2 раза в сутки внутрь, 14 дней",
+    );
   });
 
   it("keeps an unchecked drug out of the text", () => {
