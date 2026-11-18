@@ -1,16 +1,12 @@
+import { resolveMedicationDisplayTitle } from "@/app/(directory)/components/medications/assignmentScheme";
 import type { MiniCartCatalogItem } from "../types";
 
-export const displayName = (item: MiniCartCatalogItem) => {
-  if (item.selectedTrade) return item.selectedTrade;
-  if (item.selectedInn) {
-    return item.selectedInn
-      .toLowerCase()
-      .split(" ")
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-  }
-  return item.name || "";
-};
+/** То же правило, что у SideCart: торговое → МНН → исходное название КР. */
+export const displayName = (item: MiniCartCatalogItem) =>
+  resolveMedicationDisplayTitle(item.name || "", {
+    trade: item.selectedTrade,
+    inn: item.selectedInn,
+  });
 
 export const displaySub = (item: MiniCartCatalogItem) => {
   if (item.kind === "alternatives" && !item.selectedTrade) {

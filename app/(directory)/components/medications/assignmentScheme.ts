@@ -99,6 +99,43 @@ export const medicationHeading = (assignmentTitle: string, trade: string, inn: s
   return { primary, secondary };
 };
 
+/**
+ * Отображаемое название назначения в корзинах и при копировании:
+ * торговое наименование → МНН → исходное название позиции КР.
+ * Для завершённых схем/комбинаций — конечные выбранные названия компонентов.
+ * Исходный `assignmentTitle` в модели данных не меняется.
+ */
+export const resolveMedicationDisplayTitle = (
+  assignmentTitle: string,
+  options?: {
+    trade?: string;
+    inn?: string;
+    combination?: CombinationDraft | null;
+  },
+) => {
+  const combination = options?.combination;
+  if (combination?.picks.length) {
+    const complete = combination.picks.every((pick) => pick.confirmed);
+    if (complete) {
+      const labels = combination.picks.map((pick) => {
+        const trade = pick.item?.name_trade?.trim() ?? "";
+        if (trade) return trade;
+
+        const inn = pick.item?.standard_MNN?.trim() || pick.inn.trim();
+        return inn ? formatCatalogName(inn) : "";
+      });
+      const primary = labels.filter(Boolean).join(" + ");
+      if (primary) return primary;
+    }
+  }
+
+  return medicationHeading(
+    assignmentTitle,
+    options?.trade ?? "",
+    options?.inn ?? "",
+  ).primary;
+};
+
 export const formatIntake = (intake: MedicationIntake) => {
   const times = INTAKE_TIMES.filter((option) => intake[option.id]).map((option) => option.comment);
   const relation = intake.relation ? RELATION_COMMENTS[intake.relation] : "";

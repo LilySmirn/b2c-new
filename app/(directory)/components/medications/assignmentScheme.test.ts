@@ -24,6 +24,7 @@ import {
   EMPTY_MEDICATION_INTAKE,
   hasCustomAssignment,
   medicationHeading,
+  resolveMedicationDisplayTitle,
   removeSchemeChip,
   schemeChips,
   schemeInputPlaceholder,
@@ -326,6 +327,33 @@ describe("схема назначения и комментарий для па�
       primary: "Фамотидин",
       secondary: "",
     });
+  });
+
+  it("resolveMedicationDisplayTitle предпочитает конечное торговое наименование", () => {
+    assert.equal(
+      resolveMedicationDisplayTitle("Ребамипид", { trade: "Гастифор", inn: "РЕБАМИПИД" }),
+      "Гастифор",
+    );
+    assert.equal(
+      resolveMedicationDisplayTitle("Ингибиторы протонного насоса", {
+        trade: "Нольпаза",
+        inn: "ПАНТОПРАЗОЛ",
+      }),
+      "Нольпаза",
+    );
+    assert.equal(
+      resolveMedicationDisplayTitle("Ингибиторы протонного насоса", {
+        inn: "ПАНТОПРАЗОЛ",
+      }),
+      "Пантопразол",
+    );
+    assert.equal(resolveMedicationDisplayTitle("Ребамипид", {}), "Ребамипид");
+
+    const draft = selectTriple();
+    assert.equal(
+      resolveMedicationDisplayTitle("Стандартная тройная терапия", { combination: draft }),
+      "Нольпаза + Флемоксин Солютаб + Клацид",
+    );
   });
 
   it("заголовок combination содержит торговые названия и МНН в порядке combination_data", () => {

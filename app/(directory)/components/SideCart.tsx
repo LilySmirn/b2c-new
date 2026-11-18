@@ -38,6 +38,7 @@ import {
   hasIndividualAssignmentClarifications,
   type ChecklistAssignmentSnapshot,
 } from "./medications/assignmentSnapshot";
+import { resolveMedicationDisplayTitle } from "./medications/assignmentScheme";
 import { copyCartSelection } from "./cartClipboard";
 import styles from "./SideCart.module.css";
 import trashIcon from "@/assets/images/delete-icon.svg";
@@ -416,19 +417,25 @@ const SideCart = forwardRef<SideCartHandle, SideCartProps>(function SideCart(
                 item.id,
                 assignment,
               );
+              const draft = assignment.medicationDrafts[item.id];
+              const displayTitle = resolveMedicationDisplayTitle(item.title, {
+                trade: draft?.trade,
+                inn: draft?.inn,
+                combination: assignment.combinations[item.id],
+              });
 
               return (
                 <div
                   key={item.id}
                   className={`${styles.itemRow} ${index % 2 === 1 ? styles.itemRowAlt : ""}`}
                 >
-                  <span className={styles.itemTitle}>{item.title}</span>
+                  <span className={styles.itemTitle}>{displayTitle}</span>
                   <span className={styles.itemActions}>
                     {showClarification ? <ClarificationIndicator /> : null}
                     <button
                       type="button"
                       className={styles.deleteButton}
-                      aria-label={`Удалить ${item.title}`}
+                      aria-label={`Удалить ${displayTitle}`}
                       onClick={() => onDeleteItem?.(item.id)}
                     >
                       <Image src={deleteIcon} alt="" width={14} height={14} aria-hidden="true" />
