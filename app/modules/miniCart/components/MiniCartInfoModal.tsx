@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import NoTranslate from "@/app/components/NoTranslate";
 import { displayName } from "../lib/display";
 import type { MiniCartCatalogItem, MiniCartMedsField } from "../types";
@@ -8,22 +11,61 @@ type MiniCartInfoModalProps = {
   item: MiniCartCatalogItem;
   onClose: () => void;
   editable?: boolean;
+  canComment?: boolean;
+  /**
+   * `"comment"` — открытие через поле «Комментарий» в списке:
+   * фокус в textarea комментария врача.
+   */
+  initialFocus?: "comment" | null;
   onChangeField?: (field: MiniCartMedsField, value: string) => void;
+  onCommentChange?: (value: string) => void;
 };
 
 export default function MiniCartInfoModal({
   item,
   onClose,
   editable = false,
+  canComment = false,
+  initialFocus = null,
   onChangeField,
+  onCommentChange,
 }: MiniCartInfoModalProps) {
   const dose = item.selectedDose ?? "";
   const form = item.selectedForm ?? "";
   const scheme = item.scheme ?? "";
   const course = item.course ?? "";
+  const comment = item.commentText ?? item.commentShort ?? "";
   const componentEntries = Object.entries(item.componentPicks ?? {});
   const showQc = Boolean(item.qc?.trim());
   const showLevel = Boolean(item.level?.trim());
+  const commentFieldRef = useRef<HTMLTextAreaElement>(null);
+  const [backdropArmed, setBackdropArmed] = useState(false);
+
+  useEffect(() => {
+    const view = commentFieldRef.current?.ownerDocument.defaultView ?? window;
+    const timer = view.setTimeout(() => setBackdropArmed(true), 350);
+    return () => view.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (initialFocus !== "comment") return;
+    if (!canComment || !onCommentChange) return;
+
+    const field = commentFieldRef.current;
+    if (!field) return;
+
+    const view = field.ownerDocument.defaultView ?? window;
+    const frame = view.requestAnimationFrame(() => {
+      field.focus();
+      const end = field.value.length;
+      try {
+        field.setSelectionRange(end, end);
+      } catch {
+        /* ignore */
+      }
+    });
+    return () => view.cancelAnimationFrame(frame);
+  }, [canComment, initialFocus, item.id, onCommentChange]);
 
   const field = (
     id: MiniCartMedsField,
@@ -57,13 +99,36 @@ export default function MiniCartInfoModal({
     );
   };
 
+  const commentBlock =
+    canComment && onCommentChange ? (
+      <label className="preparaty__card-field preparaty__card-field--wide">
+        <span>Комментарий</span>
+        <textarea
+          ref={commentFieldRef}
+          rows={4}
+          value={comment}
+          placeholder="Комментарий к назначению..."
+          aria-label="Комментарий"
+          onChange={(event) => onCommentChange(event.target.value)}
+        />
+      </label>
+    ) : comment.trim() ? (
+      <div className="preparaty__card-block">
+        <h4>Комментарий</h4>
+        <p>{comment}</p>
+      </div>
+    ) : null;
+
   return (
     <MiniCartPortal>
       <div className="preparaty__info-layer" role="presentation">
         <div
           className="preparaty__info-backdrop"
           aria-hidden="true"
-          onClick={onClose}
+          onClick={() => {
+            if (!backdropArmed) return;
+            onClose();
+          }}
         />
         <div
           className="preparaty__info-dialog"
@@ -151,6 +216,7 @@ export default function MiniCartInfoModal({
                 </ul>
               </div>
             ) : null}
+            {commentBlock}
           </div>
         </div>
       </div>

@@ -7,6 +7,11 @@ import {
 } from "@/app/(directory)/components/medications/assignmentScheme";
 import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
 import {
+  buildStoredCustomCartItem,
+  mergeCustomCartItemValues,
+  type CustomCartItemValues,
+} from "@/app/(directory)/shared/cart";
+import {
   miniCartOpFlags,
   type MiniCartAssignmentOps,
 } from "../assignmentOps";
@@ -79,6 +84,13 @@ export function useMiniCartUiState({
   const [noteDraft, setNoteDraft] = useState("");
   /** Информационное окно для non-drug (диагностика / лечение). */
   const [infoTargetId, setInfoTargetId] = useState<string | null>(null);
+  /**
+   * Начальный фокус карточки назначения.
+   * `"comment"` — только при открытии через поле «Комментарий» в списке.
+   */
+  const [detailsInitialFocus, setDetailsInitialFocus] = useState<
+    "comment" | null
+  >(null);
   /** Внутренние экраны: list | drug-details | custom-items. */
   const [view, setView] = useState<MiniCartView>({ type: "list" });
   const [listScrollTop, setListScrollTop] = useState(0);
@@ -365,10 +377,16 @@ export function useMiniCartUiState({
     );
   };
 
-  const openDrugDetails = (itemId: string, scrollTop = 0) => {
+  const openDrugDetails = (
+    itemId: string,
+    scrollTop = 0,
+    options?: { focusComment?: boolean },
+  ) => {
     setListScrollTop(scrollTop);
+    setDetailsInitialFocus(options?.focusComment ? "comment" : null);
     setView({ type: "drug-details", itemId });
     setInfoTargetId(null);
+    setNoteTargetId(null);
   };
 
   const openCustomItemsScreen = (scrollTop = 0) => {
@@ -379,9 +397,15 @@ export function useMiniCartUiState({
   /** Закрыть любой внутренний экран и вернуться к основному списку. */
   const closeInnerView = () => {
     setView({ type: "list" });
+    setDetailsInitialFocus(null);
   };
 
   const closeDrugDetails = closeInnerView;
+
+  const closeInfoModal = () => {
+    setInfoTargetId(null);
+    setDetailsInitialFocus(null);
+  };
 
   const applySchemePicks = (
     itemId: string,
@@ -437,7 +461,11 @@ export function useMiniCartUiState({
   const findCustomItem = (itemId: string) =>
     customItems.find((item) => item.id === itemId) ?? null;
 
-  const openInfoForItem = (itemId: string, scrollTop = 0) => {
+  const openInfoForItem = (
+    itemId: string,
+    scrollTop = 0,
+    options?: { focusComment?: boolean },
+  ) => {
     const item = findItem(itemId);
     if (!item) return;
     // Лекарственные позиции — внутренний экран, не модалка на основной вкладке.
@@ -449,17 +477,21 @@ export function useMiniCartUiState({
       item.kind === "combo" ||
       item.kind === "extra-drug"
     ) {
-      openDrugDetails(itemId, scrollTop);
+      openDrugDetails(itemId, scrollTop, options);
       return;
     }
+    setDetailsInitialFocus(options?.focusComment ? "comment" : null);
+    setNoteTargetId(null);
     setInfoTargetId(itemId);
   };
 
-  const openComment = (itemId: string) => {
+  /**
+   * Клик по полю «Комментарий» в списке: та же карточка, что у «i»,
+   * с начальным фокусом в поле комментария.
+   */
+  const openComment = (itemId: string, scrollTop = 0) => {
     if (flags.isDirectoryBacked && !flags.canComment) return;
-    const item = findItem(itemId);
-    setNoteDraft(item?.commentShort || item?.commentText || "");
-    setNoteTargetId(itemId);
+    openInfoForItem(itemId, scrollTop, { focusComment: true });
   };
 
   const openAddCustomItem = () => {
@@ -481,7 +513,7 @@ export function useMiniCartUiState({
     setEditingCustomItemId(null);
   };
 
-  const saveCustomItem = (values: { name: string; comment: string }) => {
+  const saveCustomItem = (values: CustomCartItemValues) => {
     if (flags.isDirectoryBacked) {
       if (editingCustomItemId) {
         if (!flags.canUpdateCustomItem) return;
@@ -498,7 +530,7 @@ export function useMiniCartUiState({
       setLocalCustomItems((prev) =>
         prev.map((item) =>
           item.id === editingCustomItemId
-            ? { ...item, name: values.name, comment: values.comment }
+            ? mergeCustomCartItemValues(item, values)
             : item,
         ),
       );
@@ -507,7 +539,7 @@ export function useMiniCartUiState({
       setCustomSeq((value) => value + 1);
       setLocalCustomItems((prev) => [
         ...prev,
-        { id, name: values.name, comment: values.comment },
+        buildStoredCustomCartItem(id, values),
       ]);
     }
     closeCustomItemModal();
@@ -619,6 +651,8 @@ export function useMiniCartUiState({
     setNoteDraft,
     infoTargetId,
     setInfoTargetId,
+    closeInfoModal,
+    detailsInitialFocus,
     view,
     setView,
     listScrollTop,

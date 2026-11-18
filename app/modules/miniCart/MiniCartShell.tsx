@@ -180,18 +180,18 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
     const {
       setNoteTargetId,
-      setInfoTargetId,
       setTradeTargetId,
       setSchemeTargetId,
       setComboTargetId,
       closeCustomItemModal,
       closeInnerView,
+      closeInfoModal,
       applyOpeningTab,
     } = ui;
 
     const closeOverlays = useCallback(() => {
       setNoteTargetId(null);
-      setInfoTargetId(null);
+      closeInfoModal();
       setTradeTargetId(null);
       setSchemeTargetId(null);
       setComboTargetId(null);
@@ -201,9 +201,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setChartStep("closed");
     }, [
       closeCustomItemModal,
+      closeInfoModal,
       closeInnerView,
       setComboTargetId,
-      setInfoTargetId,
       setNoteTargetId,
       setSchemeTargetId,
       setTradeTargetId,
@@ -470,6 +470,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
             }
             canOpenScheme={ui.canOpenSchemePicker(drugDetailsItem)}
             schemeLocked={ui.schemeTargetId === drugDetailsItem.id}
+            initialFocus={ui.detailsInitialFocus}
             onBack={leaveDrugDetails}
             onDone={leaveDrugDetails}
             onToggleInclude={() => ui.toggleItem(drugDetailsItem.id)}
@@ -571,7 +572,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                       ui.flags.canSelectAllRequired
                     }
                     onToggle={ui.toggleItem}
-                    onOpenComment={ui.openComment}
+                    onOpenComment={(itemId) =>
+                      ui.openComment(itemId, captureListScroll())
+                    }
                     onOpenInfo={(itemId) =>
                       ui.openInfoForItem(itemId, captureListScroll())
                     }
@@ -716,10 +719,17 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                   <MiniCartInfoModal
                     item={infoItem}
                     editable={ui.canEditItemFields(infoItem)}
+                    canComment={
+                      !ui.flags.isDirectoryBacked || ui.flags.canComment
+                    }
+                    initialFocus={ui.detailsInitialFocus}
                     onChangeField={(field, value) =>
                       ui.setMedicationField(infoItem.id, field, value)
                     }
-                    onClose={() => ui.setInfoTargetId(null)}
+                    onCommentChange={(value) =>
+                      ui.updateComment(infoItem.id, value)
+                    }
+                    onClose={ui.closeInfoModal}
                   />
                 ) : null}
 
@@ -779,16 +789,10 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                   <MiniCartAddModal
                     key={ui.editingCustomItemId ?? "add"}
                     mode={ui.editingCustomItemId ? "edit" : "add"}
-                    initialName={
+                    initialItem={
                       ui.editingCustomItemId
-                        ? ui.findCustomItem(ui.editingCustomItemId)?.name || ""
-                        : ""
-                    }
-                    initialComment={
-                      ui.editingCustomItemId
-                        ? ui.findCustomItem(ui.editingCustomItemId)?.comment ||
-                          ""
-                        : ""
+                        ? ui.findCustomItem(ui.editingCustomItemId)
+                        : null
                     }
                     onClose={ui.closeCustomItemModal}
                     onSubmit={ui.saveCustomItem}

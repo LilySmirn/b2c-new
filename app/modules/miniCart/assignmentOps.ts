@@ -16,7 +16,7 @@ export type MiniCartMedsPick = {
   form?: string;
 };
 
-/** Мини-корзинка пока передаёт name/comment; SideCart merge сохраняет kind/inn/… */
+/** Те же значения, что у CustomCartItemModal / CustomCartItemForm. */
 export type MiniCartCustomItemValues = CustomCartItemValues;
 
 export type { CombinationDraft as MiniCartCombinationDraft };

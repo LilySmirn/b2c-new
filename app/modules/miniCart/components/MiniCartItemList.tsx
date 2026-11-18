@@ -182,6 +182,10 @@ function DrugRow({
         className={`preparaty__classic-comment${item.commentShort ? " is-filled" : ""}`}
         disabled={!canComment}
         onClick={() => onOpenComment(item.id)}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          event.preventDefault();
+        }}
       >
         {item.commentShort || "Комментарий..."}
       </button>
@@ -247,6 +251,10 @@ function ClassicRow({
         className={`preparaty__classic-comment${item.commentText ? " is-filled" : ""}`}
         disabled={!canComment}
         onClick={() => onOpenComment(item.id)}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          event.preventDefault();
+        }}
       >
         {item.commentText || "Комментарий..."}
       </button>

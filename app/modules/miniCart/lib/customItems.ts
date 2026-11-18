@@ -54,12 +54,14 @@ export const addCustomItemToList = <T extends StoredCustomItemLike>(
 ): T[] => [...items, item];
 
 /**
- * Обновляет name/comment, сохраняя kind/inn/trade и прочие поля модели.
+ * Обновляет поля позиции через mergeCustomCartItemValues
+ * (сохраняет kind/inn/trade, если kind не передан явно).
  */
 export const updateCustomItemInList = <T extends StoredCustomItemLike>(
   items: readonly T[],
   id: string,
-  values: CustomItemValues,
+  values: CustomItemValues &
+    Partial<Pick<StoredCustomItemLike, "kind" | "inn" | "trade" | "source">>,
 ): T[] =>
   items.map((item) =>
     item.id === id

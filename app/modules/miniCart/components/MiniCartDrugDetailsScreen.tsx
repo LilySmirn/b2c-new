@@ -61,6 +61,11 @@ type MiniCartDrugDetailsScreenProps = {
   canApplyOriginal: boolean;
   canOpenScheme: boolean;
   schemeLocked?: boolean;
+  /**
+   * `"comment"` — открытие через поле «Комментарий» в списке:
+   * вкладка «Назначение» + фокус в textarea комментария.
+   */
+  initialFocus?: "comment" | null;
   onBack: () => void;
   onDone: () => void;
   onToggleInclude: () => void;
@@ -121,6 +126,7 @@ export default function MiniCartDrugDetailsScreen({
   canApplyOriginal,
   canOpenScheme,
   schemeLocked = false,
+  initialFocus = null,
   onBack,
   onDone,
   onToggleInclude,
@@ -140,6 +146,7 @@ export default function MiniCartDrugDetailsScreen({
   const applyOriginalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const commentFieldRef = useRef<HTMLTextAreaElement>(null);
 
   const clearApplyOriginalFeedbackTimer = () => {
     if (applyOriginalTimerRef.current == null) return;
@@ -158,6 +165,32 @@ export default function MiniCartDrugDetailsScreen({
     },
     [],
   );
+
+  useEffect(() => {
+    if (initialFocus !== "comment") return;
+    setTab("assignment");
+  }, [initialFocus, item.id]);
+
+  useEffect(() => {
+    if (initialFocus !== "comment") return;
+    if (tab !== "assignment") return;
+
+    const field = commentFieldRef.current;
+    if (!field) return;
+
+    // PiP / portal: фокус после paint вкладки «Назначение».
+    const view = field.ownerDocument.defaultView ?? window;
+    const frame = view.requestAnimationFrame(() => {
+      field.focus();
+      const end = field.value.length;
+      try {
+        field.setSelectionRange(end, end);
+      } catch {
+        /* some environments reject setSelectionRange on disabled fields */
+      }
+    });
+    return () => view.cancelAnimationFrame(frame);
+  }, [initialFocus, item.id, tab]);
 
   const details = item.medicationDetails;
   const dose = item.selectedDose ?? "";
@@ -505,6 +538,7 @@ export default function MiniCartDrugDetailsScreen({
             <label className="preparaty__drug-field">
               <span className="preparaty__drug-field-label">Комментарий</span>
               <textarea
+                ref={commentFieldRef}
                 className="preparaty__drug-textarea"
                 rows={3}
                 value={comment}
