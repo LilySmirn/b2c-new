@@ -210,6 +210,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     ]);
     closeOverlaysRef.current = closeOverlays;
 
+    /** UI-часть «Развернуть»/«Закрыть» без pip.close() — для системного pagehide. */
+    const exitToFullRef = useRef<() => void>(() => undefined);
+
     const pip = useDocumentPip({
       wantPip,
       getMeasureSource: () => ({
@@ -217,10 +220,9 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
         heightEl: getPipHeightSource?.() ?? null,
       }),
       onPipClosedByBrowser: () => {
-        // Системный крестик PiP: сбросить модалки/экраны до fallback-рендера.
-        dismissCopyNotice();
-        closeOverlaysRef.current();
-        setMode("compact");
+        // Системный Close / Back to tab: тот же UI-путь, что handleExpand/handleClose.
+        // pip.close() здесь не вызывать — teardown уже идёт из pagehide.
+        exitToFullRef.current();
       },
     });
 
@@ -342,26 +344,30 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       [enterCompactFromGesture],
     );
 
+    const exitToFull = useCallback(() => {
+      dismissCopyNotice();
+      closeOverlays();
+      setMode("full");
+    }, [closeOverlays, dismissCopyNotice, setMode]);
+    exitToFullRef.current = exitToFull;
+
     const handleMinimize = useCallback(() => {
       dismissCopyNotice();
       closeOverlays();
+      // teardown(false): pagehide снят до close → onPipClosedByBrowser не вызовет exitToFull.
       pip.close();
       setMode("docked");
     }, [closeOverlays, dismissCopyNotice, pip, setMode]);
 
     const handleExpand = useCallback(() => {
-      dismissCopyNotice();
-      closeOverlays();
+      exitToFull();
       pip.close();
-      setMode("full");
-    }, [closeOverlays, dismissCopyNotice, pip, setMode]);
+    }, [exitToFull, pip]);
 
     const handleClose = useCallback(() => {
-      dismissCopyNotice();
-      closeOverlays();
+      exitToFull();
       pip.close();
-      setMode("full");
-    }, [closeOverlays, dismissCopyNotice, pip, setMode]);
+    }, [exitToFull, pip]);
 
     const handleRestoreDock = useCallback(async () => {
       setMode("compact");

@@ -10,6 +10,8 @@ export type DocumentPipRequestOptions = {
   width?: number;
   height?: number;
   preferInitialWindowPlacement?: boolean;
+  /** Chrome 124+: hide system "back to tab" control. Unknown engines ignore. */
+  disallowReturnToOpener?: boolean;
 };
 
 declare global {
@@ -230,6 +232,12 @@ export async function requestDocumentPipWindow(
   };
   try {
     options.preferInitialWindowPlacement = true;
+  } catch {
+    /* older engines */
+  }
+  try {
+    // Hide system "back to tab"; close (X) remains. Ignored if unsupported.
+    options.disallowReturnToOpener = true;
   } catch {
     /* older engines */
   }

@@ -950,7 +950,7 @@ h2 {
 .other-solutions-eyebrow {
   width: fit-content;
   height: clamp(28px, calc(26px + 0.25vw), 30px);
-  display: inline-flex;
+  display: none; /* temporary: restore to inline-flex when showing eyebrow again */
   align-items: center;
   justify-content: center;
   margin: 0;
@@ -963,7 +963,7 @@ h2 {
 }
 
 .other-solutions-header h2 {
-  margin: 14px 0 0;
+  margin: 0; /* temporary: restore to 14px 0 0 when showing eyebrow again */
   color: #001b4c;
   font-size: 30px;
   font-weight: 700;
