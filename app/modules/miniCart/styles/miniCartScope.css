@@ -991,6 +991,18 @@ body.preparaty--pip-host .preparaty__mini-panel-head{
   font-size: 11px;
 }
 
+.emMiniCart .preparaty__mini-appendix-notice{
+  margin: 8px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--blue-soft, #edf7ff);
+  color: var(--ink, #10253f);
+  font: 400 12px / 1.45 var(--font);
+  text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .emMiniCart .preparaty__mini-panel-note{
   margin: 0;
   padding: 14px 12px;

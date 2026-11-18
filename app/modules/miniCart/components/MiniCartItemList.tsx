@@ -305,6 +305,16 @@ export default function MiniCartItemList({
     );
   }
 
+  if (activeTab === "appendix-a3") {
+    return (
+      <div className="preparaty__mini-panel-list">
+        <p className="preparaty__mini-appendix-notice" role="status">
+          Просмотр в этой вкладке доступен только в полноразмерном отображении.
+        </p>
+      </div>
+    );
+  }
+
   const shell = shellTabs[activeTab];
   if (!shell || shell.enabled === false) {
     return (
