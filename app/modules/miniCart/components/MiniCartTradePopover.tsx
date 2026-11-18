@@ -171,10 +171,11 @@ export default function MiniCartTradePopover({
               }
 
               return tradeRows.map((trade) => {
-                const variant = trade.variants?.[0];
-                const meta = [variant?.dose, variant?.form]
-                  .filter(Boolean)
-                  .join(" · ");
+                const uniqueDose =
+                  trade.variants?.length === 1 ? trade.variants[0]?.dose : undefined;
+                const uniqueForm =
+                  trade.variants?.length === 1 ? trade.variants[0]?.form : undefined;
+                const meta = [uniqueDose, uniqueForm].filter(Boolean).join(" · ");
                 return (
                   <button
                     key={`${row.inn}-${trade.trade}`}
@@ -186,8 +187,6 @@ export default function MiniCartTradePopover({
                       onPick({
                         inn: row.inn,
                         trade: trade.trade,
-                        dose: variant?.dose,
-                        form: variant?.form,
                       })
                     }
                   >

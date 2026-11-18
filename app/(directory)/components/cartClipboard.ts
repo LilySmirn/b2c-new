@@ -149,6 +149,8 @@ export const enrichClipboardSelectionItem = (
     innName: draft?.inn ?? "",
     dose: fields.dose,
     form: fields.form,
+    doseSource: fields.doseSource,
+    formSource: fields.formSource,
     schemeText: fields.schemeText,
     courseText: fields.courseText,
     intake: fields.intake,

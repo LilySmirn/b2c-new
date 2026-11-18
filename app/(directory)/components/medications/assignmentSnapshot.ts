@@ -7,6 +7,7 @@ import {
   assignmentFromDraft,
   hasCustomAssignment,
   type AssignmentCommentSource,
+  type MedicationFieldSource,
   type MedicationIntake,
 } from "./assignmentScheme";
 import type { CombinationDraft } from "./combinationSelection";
@@ -19,6 +20,8 @@ export type MedicationFieldDraft = {
   inn?: string;
   trade?: string;
   recordId?: string;
+  doseSource?: MedicationFieldSource;
+  formSource?: MedicationFieldSource;
 };
 
 export type ChecklistItemUiState = {

@@ -6,7 +6,9 @@
 
 import { isComponentChosen } from "./combinationSelection";
 import type { CombinationDraft, CombinationPick } from "./combinationSelection";
-import type { MedsCatalogComponent } from "./medsCatalogTypes";
+import type { MedsCatalogComponent, MedicationFieldSource } from "./medsCatalogTypes";
+
+export type { MedicationFieldSource };
 
 export type MedicationIntake = {
   morning: boolean;
@@ -56,11 +58,16 @@ export type AssignmentFieldState = {
   schemeText: string;
   courseText: string;
   intake: MedicationIntake;
+  doseSource?: MedicationFieldSource;
+  formSource?: MedicationFieldSource;
 };
 
 export type ScheduleDraft = Partial<
   Record<"dose" | "form" | "scheme" | "course", string>
->;
+> & {
+  doseSource?: MedicationFieldSource;
+  formSource?: MedicationFieldSource;
+};
 
 const assignmentParts = (parts: Array<string | undefined>) =>
   parts
@@ -174,13 +181,18 @@ export const assignmentFromDraft = (
   schemeText: draft && "scheme" in draft ? (draft.scheme ?? "") : "",
   courseText: draft && "course" in draft ? (draft.course ?? "") : "",
   intake: intake ?? EMPTY_MEDICATION_INTAKE,
+  doseSource: draft?.doseSource,
+  formSource: draft?.formSource,
 });
 
-/** Есть ли собственный параметр назначения. Торговое имя и автотекст КР сюда не входят. */
+const isUserAssignmentField = (value: string, source?: MedicationFieldSource) =>
+  Boolean(value.trim()) && source !== "catalog-auto";
+
+/** Есть ли собственный параметр назначения. Торговое имя, автотекст КР и автоподстановка дозы/формы сюда не входят. */
 export const hasCustomAssignment = (fields: AssignmentFieldState) =>
   Boolean(
-    fields.dose.trim() ||
-      fields.form.trim() ||
+    isUserAssignmentField(fields.dose, fields.doseSource) ||
+      isUserAssignmentField(fields.form, fields.formSource) ||
       fields.schemeText.trim() ||
       fields.courseText.trim() ||
       isIntakeCustom(fields.intake),
@@ -313,6 +325,8 @@ export const clearedAssignmentDraft = (identity: {
   form: "",
   scheme: "",
   course: "",
+  doseSource: undefined,
+  formSource: undefined,
 });
 
 export type PatientCommentInput = AssignmentFieldState & {
@@ -369,6 +383,9 @@ export const buildPatientComment = (input: PatientCommentInput): PatientCommentV
     : buildAssignmentPreview({
         title: heading.primary,
         selection: heading.secondary,
+        // Автоподставленные доза/форма участвуют в копировании, не делая назначение «своим».
+        dose: input.dose,
+        form: input.form,
         scheme: input.originalScheme,
         course: input.originalCourse,
       });

@@ -193,6 +193,8 @@ export default function MiniCartDrugDetailsScreen({
     schemeText: schemeDraft,
     courseText: courseDraft,
     intake,
+    doseSource: details?.doseSource,
+    formSource: details?.formSource,
   });
   const schemeValue = tableScheduleValue(
     schemeDraft,
@@ -216,6 +218,8 @@ export default function MiniCartDrugDetailsScreen({
         innName,
         dose,
         form,
+        doseSource: details?.doseSource,
+        formSource: details?.formSource,
         schemeText: schemeDraft,
         courseText: courseDraft,
         intake,
@@ -229,6 +233,8 @@ export default function MiniCartDrugDetailsScreen({
       comment,
       combination,
       courseDraft,
+      details?.doseSource,
+      details?.formSource,
       dose,
       form,
       innName,

@@ -75,6 +75,9 @@ export type MedsCatalogFieldOptions = {
   forms: readonly string[];
 };
 
+/** Происхождение дозы/формы: авто из каталога не считается индивидуальным уточнением. */
+export type MedicationFieldSource = "catalog-auto" | "user";
+
 /** Выбор пользователя по одной строке таблицы. Не меняет название клинической рекомендации. */
 export type MedsRowSelection = {
   inn: string;
@@ -82,6 +85,8 @@ export type MedsRowSelection = {
   dose: string;
   form: string;
   recordId: string;
+  doseSource?: MedicationFieldSource;
+  formSource?: MedicationFieldSource;
 };
 
 export type MedsNameMenu =

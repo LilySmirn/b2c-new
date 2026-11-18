@@ -1,5 +1,6 @@
 import type {
   CombinationAssignmentView,
+  MedicationFieldSource,
   MedicationIntake,
 } from "@/app/(directory)/components/medications/assignmentScheme";
 import type { CombinationDraft } from "@/app/(directory)/components/medications/combinationSelection";
@@ -27,6 +28,8 @@ export type MiniCartMedicationDetails = {
   noteCustom: boolean;
   doseOptions: readonly string[];
   formOptions: readonly string[];
+  doseSource?: MedicationFieldSource;
+  formSource?: MedicationFieldSource;
   combination: CombinationAssignmentView | null;
 };
 

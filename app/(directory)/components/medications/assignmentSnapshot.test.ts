@@ -42,6 +42,24 @@ describe("hasIndividualAssignmentClarifications", () => {
     );
   });
 
+  it("не считает автоподстановку дозы и формы индивидуальным уточнением", () => {
+    assert.equal(
+      hasIndividualAssignmentClarifications("item-1", {
+        ...EMPTY_ASSIGNMENT_SNAPSHOT,
+        medicationDrafts: {
+          "item-1": {
+            trade: "Ребагит",
+            dose: "100 мг",
+            form: "ТАБЛЕТКИ",
+            doseSource: "catalog-auto",
+            formSource: "catalog-auto",
+          },
+        },
+      }),
+      false,
+    );
+  });
+
   it("появляется после изменения параметров приёма", () => {
     assert.equal(
       hasIndividualAssignmentClarifications("item-1", {

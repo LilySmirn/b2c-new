@@ -421,9 +421,13 @@ export const applyMedsSelection = (
   let trade = patch.trade ?? current.trade;
   let dose = patch.dose ?? current.dose;
   let form = patch.form ?? current.form;
+  let doseSource = current.doseSource;
+  let formSource = current.formSource;
 
   if (!drug || drug.type === "other" || drug.type === "combination") {
-    return { inn, trade, dose, form, recordId: "" };
+    if (patch.dose !== undefined) doseSource = "user";
+    if (patch.form !== undefined) formSource = "user";
+    return { inn, trade, dose, form, recordId: "", doseSource, formSource };
   }
 
   if (drug.type === "drug" && patch.trade !== undefined) {
@@ -454,19 +458,53 @@ export const applyMedsSelection = (
       fieldValues(previousScope, "standard_form"),
       fieldValues(filterByField(nextScope, "standard_dose", dose), "standard_form"),
     );
+    if (!dose.trim()) doseSource = undefined;
+    if (!form.trim()) formSource = undefined;
   } else if (doseChanged) {
     form = clearIncompatible(
       form,
       fieldValues(nextScope, "standard_form"),
       fieldValues(filterByField(nextScope, "standard_dose", dose), "standard_form"),
     );
+    if (!form.trim()) formSource = undefined;
   } else if (formChanged) {
     dose = clearIncompatible(
       dose,
       fieldValues(nextScope, "standard_dose"),
       fieldValues(filterByField(nextScope, "standard_form", form), "standard_dose"),
     );
+    if (!dose.trim()) doseSource = undefined;
   }
+
+  if (patch.dose !== undefined) doseSource = "user";
+  if (patch.form !== undefined) formSource = "user";
+
+  const tryAutofillDose = () => {
+    if (dose.trim() || patch.dose !== undefined || doseSource === "user") return;
+    const doses = fieldValues(
+      filterByField(nextScope, "standard_form", form),
+      "standard_dose",
+    );
+    if (doses.length !== 1) return;
+    dose = doses[0] ?? "";
+    doseSource = "catalog-auto";
+  };
+
+  const tryAutofillForm = () => {
+    if (form.trim() || patch.form !== undefined || formSource === "user") return;
+    const forms = fieldValues(
+      filterByField(nextScope, "standard_dose", dose),
+      "standard_form",
+    );
+    if (forms.length !== 1) return;
+    form = forms[0] ?? "";
+    formSource = "catalog-auto";
+  };
+
+  tryAutofillDose();
+  tryAutofillForm();
+  tryAutofillDose();
+  tryAutofillForm();
 
   return {
     inn,
@@ -474,7 +512,90 @@ export const applyMedsSelection = (
     dose,
     form,
     recordId: resolveRecordId(drug, { inn, trade, dose, form }),
+    doseSource,
+    formSource,
   };
+};
+
+/** Черновик строки для автоподстановки после готовности каталога. */
+export type MedsAutofillDraft = {
+  inn?: string;
+  trade?: string;
+  dose?: string;
+  form?: string;
+  recordId?: string;
+  doseSource?: MedsRowSelection["doseSource"];
+  formSource?: MedsRowSelection["formSource"];
+  scheme?: string;
+  course?: string;
+};
+
+const draftToSelection = (draft: MedsAutofillDraft): MedsRowSelection => ({
+  inn: draft.inn ?? "",
+  trade: draft.trade ?? "",
+  dose: draft.dose ?? "",
+  form: draft.form ?? "",
+  recordId: draft.recordId ?? "",
+  doseSource: draft.doseSource,
+  formSource: draft.formSource,
+});
+
+/**
+ * Повторно прогоняет `applyMedsSelection` без patch — подставляет единственные
+ * дозу/форму, не трогая МНН, trade, scheme/course и user-очищенные поля.
+ * @returns новый draft или `null`, если менять нечего.
+ */
+export const autofillUniqueMedsFields = (
+  drug: MedsCatalogDrug | null,
+  draft: MedsAutofillDraft,
+): MedsAutofillDraft | null => {
+  const current = draftToSelection(draft);
+  const next = applyMedsSelection(drug, current, {});
+
+  if (
+    next.dose === current.dose &&
+    next.form === current.form &&
+    next.doseSource === current.doseSource &&
+    next.formSource === current.formSource &&
+    next.recordId === current.recordId
+  ) {
+    return null;
+  }
+
+  return {
+    ...draft,
+    inn: draft.inn ?? next.inn,
+    trade: draft.trade ?? next.trade,
+    dose: next.dose,
+    form: next.form,
+    doseSource: next.doseSource,
+    formSource: next.formSource,
+    recordId: next.recordId,
+  };
+};
+
+/**
+ * Автоподстановка для набора строк после `catalog ready`.
+ * @returns новый map или `null`, если ничего не изменилось (тот же reference не нужен).
+ */
+export const autofillUniqueMedsFieldsInDrafts = (
+  drafts: Record<string, MedsAutofillDraft>,
+  itemIds: readonly string[],
+  drugForId: (itemId: string) => MedsCatalogDrug | null,
+): Record<string, MedsAutofillDraft> | null => {
+  let result: Record<string, MedsAutofillDraft> | null = null;
+
+  itemIds.forEach((itemId) => {
+    const source = result ?? drafts;
+    const draft = source[itemId] ?? {};
+    const updated = autofillUniqueMedsFields(drugForId(itemId), draft);
+    if (!updated) return;
+
+    if (!result) result = { ...drafts };
+    result[itemId] = updated;
+  });
+
+  return result;
 };
 
 const catalogLabelFor = (drug: MedsCatalogDrug | null, selection: MedsRowSelection) => {

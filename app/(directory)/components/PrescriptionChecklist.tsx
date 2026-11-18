@@ -40,6 +40,7 @@ import {
 import { persistBrowserCombinationSelection, readBrowserCombinationSelections } from "./medications/combinationSelectionStorage";
 import {
   applyMedsSelection,
+  autofillUniqueMedsFieldsInDrafts,
   buildMedsRowView,
   listMedsTrades,
   matchMedsDrugForItem,
@@ -328,6 +329,42 @@ const PrescriptionChecklist = forwardRef<
     setCommentSources(nextSources);
   }, [initialSections]);
 
+  /**
+   * После готовности каталога — единственные доза/форма через applyMedsSelection.
+   * Functional update: поверх уже восстановленных drafts (эффект выше объявлен раньше).
+   * Без смены checkbox / scheme / course / комментария.
+   */
+  useEffect(() => {
+    if (medsCatalogState.status !== "ready") return;
+
+    const medicationItems = sections
+      .filter((section) => section.categoryId === "medications")
+      .flatMap((section) => section.items);
+    if (medicationItems.length === 0) return;
+
+    const catalog = medsCatalogState.catalog;
+    const query = medsCatalogState.query;
+
+    setMedicationDrafts((current) => {
+      const next = autofillUniqueMedsFieldsInDrafts(
+        current,
+        medicationItems.map((item) => item.id),
+        (itemId) => {
+          const item = medicationItems.find((entry) => entry.id === itemId);
+          if (!item) return null;
+          return matchMedsDrugForItem(catalog, query, item);
+        },
+      );
+      return next ?? current;
+    });
+  }, [
+    medsCatalogState.catalog,
+    medsCatalogState.query,
+    medsCatalogState.status,
+    medsRecommendationKey,
+    sections,
+  ]);
+
   useEffect(() => {
     if (
       sections.length === 0 ||
@@ -585,6 +622,20 @@ const PrescriptionChecklist = forwardRef<
     dose: readMedicationField(medicationDrafts, item, "dose"),
     form: readMedicationField(medicationDrafts, item, "form"),
     recordId: medicationDrafts[item.id]?.recordId ?? "",
+    doseSource: medicationDrafts[item.id]?.doseSource,
+    formSource: medicationDrafts[item.id]?.formSource,
+  });
+
+  const selectionFromDraft = (
+    draft: (typeof medicationDrafts)[string] | undefined,
+  ): MedsRowSelection => ({
+    inn: draft?.inn ?? "",
+    trade: draft?.trade ?? "",
+    dose: draft?.dose ?? "",
+    form: draft?.form ?? "",
+    recordId: draft?.recordId ?? "",
+    doseSource: draft?.doseSource,
+    formSource: draft?.formSource,
   });
 
   const commitMedsSelection = (
@@ -595,17 +646,7 @@ const PrescriptionChecklist = forwardRef<
 
     setMedicationDrafts((current) => {
       const draft = current[item.id] ?? {};
-      const next = applyMedsSelection(
-        drug,
-        {
-          inn: draft.inn ?? "",
-          trade: draft.trade ?? "",
-          dose: draft.dose ?? "",
-          form: draft.form ?? "",
-          recordId: draft.recordId ?? "",
-        },
-        patch,
-      );
+      const next = applyMedsSelection(drug, selectionFromDraft(draft), patch);
 
       return {
         ...current,
@@ -617,17 +658,7 @@ const PrescriptionChecklist = forwardRef<
     });
 
     const draft = medicationDrafts[item.id] ?? {};
-    const next = applyMedsSelection(
-      drug,
-      {
-        inn: draft.inn ?? "",
-        trade: draft.trade ?? "",
-        dose: draft.dose ?? "",
-        form: draft.form ?? "",
-        recordId: draft.recordId ?? "",
-      },
-      patch,
-    );
+    const next = applyMedsSelection(drug, selectionFromDraft(draft), patch);
     dropAutoCommentIfCustom(item.id, assignmentFromDraft({ ...draft, ...next }, medicationIntake[item.id]));
   };
 
@@ -718,19 +749,26 @@ const PrescriptionChecklist = forwardRef<
       const draft = current[item.id] ?? {};
       const selection = applyMedsSelection(
         drugForItem(item),
-        {
-          inn: draft.inn ?? "",
-          trade: draft.trade ?? "",
-          dose: draft.dose ?? "",
-          form: draft.form ?? "",
-          recordId: draft.recordId ?? "",
-        },
-        { dose: "", form: "" },
+        selectionFromDraft({
+          ...draft,
+          dose: "",
+          form: "",
+          doseSource: undefined,
+          formSource: undefined,
+        }),
+        { inn: draft.inn ?? "", trade: draft.trade ?? "" },
       );
 
       return {
         ...current,
-        [item.id]: clearedAssignmentDraft(selection),
+        [item.id]: {
+          ...clearedAssignmentDraft(selection),
+          dose: selection.dose,
+          form: selection.form,
+          doseSource: selection.doseSource,
+          formSource: selection.formSource,
+          recordId: selection.recordId,
+        },
       };
     });
     setMedicationIntake((current) => {
@@ -1162,6 +1200,8 @@ const PrescriptionChecklist = forwardRef<
           checked={liveInfoItem.checked}
           dose={readMedicationField(medicationDrafts, liveInfoItem, "dose")}
           form={readMedicationField(medicationDrafts, liveInfoItem, "form")}
+          doseSource={medicationDrafts[liveInfoItem.id]?.doseSource}
+          formSource={medicationDrafts[liveInfoItem.id]?.formSource}
           scheme={liveSchedule?.fields.schemeText ?? ""}
           course={liveSchedule?.fields.courseText ?? ""}
           comment={displayedAssignmentComment(

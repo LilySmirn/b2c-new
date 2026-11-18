@@ -222,6 +222,9 @@ const DRAFT_STRING_FIELDS = [
   "recordId",
 ] as const;
 
+const DRAFT_SOURCE_FIELDS = ["doseSource", "formSource"] as const;
+const FIELD_SOURCES = new Set(["catalog-auto", "user"]);
+
 const COMMENT_SOURCES = new Set<AssignmentCommentSource>([
   "clinical-recommendation",
   "user",
@@ -245,6 +248,13 @@ const normalizeMedicationDraft = (value: unknown): MedicationFieldDraft | null =
     if (!(field in row)) continue;
     if (typeof row[field] !== "string") continue;
     draft[field] = row[field];
+  }
+
+  for (const field of DRAFT_SOURCE_FIELDS) {
+    if (!(field in row)) continue;
+    const source = row[field];
+    if (typeof source !== "string" || !FIELD_SOURCES.has(source)) continue;
+    draft[field] = source as MedicationFieldDraft[typeof field];
   }
 
   return draft;

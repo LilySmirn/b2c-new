@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import sourceCatalog from "../../../../design/cart/meds-mock-cart-v5.json";
 import {
   applyMedsSelection,
+  autofillUniqueMedsFields,
+  autofillUniqueMedsFieldsInDrafts,
   buildMedsRowView,
   listMedsDoses,
   listMedsForms,
@@ -83,7 +85,7 @@ describe("meds catalog mock", () => {
     assert.equal(spaced.drugs[0]?.type, "drug");
   });
 
-  it("для обычного препарата даёт торговые имена, дозы и формы без автовыбора", () => {
+  it("для обычного препарата даёт торговые имена и автоподставляет единственные дозу и форму", () => {
     const clarithromycin = drug("Кларитромицин");
     const view = buildMedsRowView(clarithromycin, EMPTY_MEDS_SELECTION);
 
@@ -99,8 +101,10 @@ describe("meds catalog mock", () => {
     const picked = applyMedsSelection(clarithromycin, EMPTY_MEDS_SELECTION, { trade: "Фромилид" });
     assert.equal(picked.trade, "Фромилид");
     assert.equal(picked.inn, "КЛАРИТРОМИЦИН");
-    assert.equal(picked.dose, "");
-    assert.equal(picked.form, "");
+    assert.equal(picked.dose, "500 мг");
+    assert.equal(picked.form, "ТАБЛЕТКИ");
+    assert.equal(picked.doseSource, "catalog-auto");
+    assert.equal(picked.formSource, "catalog-auto");
     assert.deepEqual(listMedsDoses(clarithromycin, picked), ["500 мг"]);
   });
 
@@ -128,8 +132,10 @@ describe("meds catalog mock", () => {
       }),
       { trade: "Амоксициллин" },
     );
-    assert.equal(switched.dose, "");
-    assert.equal(switched.form, "");
+    assert.equal(switched.form, "КАПСУЛЫ");
+    assert.equal(switched.dose, "500 мг");
+    assert.equal(switched.formSource, "catalog-auto");
+    assert.equal(switched.doseSource, "catalog-auto");
 
     const manual = applyMedsSelection(
       amoxicillin,
@@ -158,10 +164,14 @@ describe("meds catalog mock", () => {
     const omeprazole = applyMedsSelection(inhibitors, EMPTY_MEDS_SELECTION, { inn: "ОМЕПРАЗОЛ" });
     assert.equal(omeprazole.trade, "");
     assert.equal(omeprazole.dose, "");
+    assert.equal(omeprazole.form, "КАПСУЛЫ");
+    assert.equal(omeprazole.formSource, "catalog-auto");
     assert.deepEqual(listMedsTrades(inhibitors, omeprazole.inn), ["Омез", "Омепразол"]);
     assert.deepEqual(listMedsForms(inhibitors, omeprazole), ["КАПСУЛЫ"]);
 
     const withTrade = applyMedsSelection(inhibitors, omeprazole, { trade: "Омез" });
+    assert.equal(withTrade.dose, "20 мг");
+    assert.equal(withTrade.doseSource, "catalog-auto");
     assert.deepEqual(listMedsDoses(inhibitors, withTrade), ["20 мг"]);
     assert.equal(buildMedsRowView(inhibitors, withTrade).catalogLabel, "ОМЕПРАЗОЛ · Омез");
 
@@ -177,7 +187,8 @@ describe("meds catalog mock", () => {
     );
     assert.equal(moved.trade, "");
     assert.equal(moved.dose, "40 мг");
-    assert.equal(moved.form, "");
+    assert.equal(moved.form, "КАПСУЛЫ");
+    assert.equal(moved.formSource, "catalog-auto");
   });
 
   it("не показывает торговые имена для type other", () => {
@@ -258,10 +269,14 @@ describe("meds catalog mock", () => {
     };
 
     const partial = applyMedsSelection(sample, EMPTY_MEDS_SELECTION, { trade: "Бренд" });
+    assert.equal(partial.form, "ТАБЛЕТКИ");
+    assert.equal(partial.formSource, "catalog-auto");
+    assert.equal(partial.dose, "");
     assert.equal(partial.recordId, "");
 
     const exact = applyMedsSelection(sample, partial, { dose: "20 мг", form: "ТАБЛЕТКИ" });
     assert.equal(exact.recordId, "code-20");
+    assert.equal(exact.doseSource, "user");
 
     const fromMock = applyMedsSelection(drug("Кларитромицин"), selection({
       inn: "КЛАРИТРОМИЦИН",
@@ -365,5 +380,82 @@ describe("meds catalog mock", () => {
       [...(trades ?? [])].sort(),
       ["амоксициллин", "Борная", "Янтовин"],
     );
+  });
+
+  it("автоподставляет единственные дозу и форму и не возвращает очищенное поле без смены препарата", () => {
+    const rebamipide = drug("Ребамипид");
+    const filled = applyMedsSelection(rebamipide, EMPTY_MEDS_SELECTION, { trade: "Ребагит" });
+    assert.equal(filled.dose, "100 мг");
+    assert.equal(filled.form, "ТАБЛЕТКИ");
+    assert.equal(filled.doseSource, "catalog-auto");
+    assert.equal(filled.formSource, "catalog-auto");
+
+    const clearedDose = applyMedsSelection(rebamipide, filled, { dose: "" });
+    assert.equal(clearedDose.dose, "");
+    assert.equal(clearedDose.doseSource, "user");
+    assert.equal(clearedDose.form, "ТАБЛЕТКИ");
+
+    const unchanged = applyMedsSelection(rebamipide, clearedDose, {});
+    assert.equal(unchanged.dose, "");
+    assert.equal(unchanged.doseSource, "user");
+
+    const flemoxin = applyMedsSelection(drug("Амоксициллин"), EMPTY_MEDS_SELECTION, {
+      trade: "Флемоксин Солютаб",
+    });
+    assert.equal(flemoxin.form, "ТАБЛЕТКИ ДИСПЕРГИРУЕМЫЕ");
+    assert.equal(flemoxin.formSource, "catalog-auto");
+    assert.equal(flemoxin.dose, "");
+    assert.deepEqual(listMedsDoses(drug("Амоксициллин"), flemoxin), ["500 мг", "1000 мг"]);
+  });
+
+  it("autofillUniqueMedsFields заполняет restored draft после готовности каталога без смены trade", () => {
+    const rebamipide = drug("Ребамипид");
+    const restored = autofillUniqueMedsFields(rebamipide, {
+      trade: "Ребагит",
+      scheme: "3 раза в сутки",
+      course: "14 дней",
+    });
+    assert.ok(restored);
+    assert.equal(restored?.dose, "100 мг");
+    assert.equal(restored?.form, "ТАБЛЕТКИ");
+    assert.equal(restored?.doseSource, "catalog-auto");
+    assert.equal(restored?.scheme, "3 раза в сутки");
+    assert.equal(restored?.course, "14 дней");
+    assert.equal(restored?.trade, "Ребагит");
+
+    assert.equal(
+      autofillUniqueMedsFields(rebamipide, {
+        trade: "Ребагит",
+        dose: "100 мг",
+        form: "ТАБЛЕТКИ",
+        doseSource: "catalog-auto",
+        formSource: "catalog-auto",
+      }),
+      null,
+    );
+
+    assert.equal(
+      autofillUniqueMedsFields(rebamipide, {
+        trade: "Ребагит",
+        dose: "",
+        doseSource: "user",
+        form: "ТАБЛЕТКИ",
+        formSource: "catalog-auto",
+      }),
+      null,
+    );
+
+    const batch = autofillUniqueMedsFieldsInDrafts(
+      {
+        "row-reb": { trade: "Ребагит" },
+        "row-manual": { dose: "50 мг", doseSource: "user" },
+      },
+      ["row-reb", "row-manual"],
+      (id) => (id === "row-reb" || id === "row-manual" ? rebamipide : null),
+    );
+    assert.ok(batch);
+    assert.equal(batch?.["row-reb"]?.dose, "100 мг");
+    assert.equal(batch?.["row-manual"]?.dose, "50 мг");
+    assert.equal(batch?.["row-manual"]?.doseSource, "user");
   });
 });

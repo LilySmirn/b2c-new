@@ -71,6 +71,9 @@ type DrugInfoModalProps = {
   tradeName?: string;
   /** Выбранное МНН (`standard_MNN`). */
   innName?: string;
+  /** Автоподстановка дозы/формы из каталога не считается индивидуальным уточнением. */
+  doseSource?: "catalog-auto" | "user";
+  formSource?: "catalog-auto" | "user";
   /** Варианты `standard_dose` / `standard_form` для текущего МНН и торгового наименования. */
   catalogOptions?: MedsCatalogFieldOptions;
   /** Собственный текст комментария врача, а не автоматически скопированная схема КР. */
@@ -326,6 +329,8 @@ export default function DrugInfoModal({
   originalCourse,
   tradeName = "",
   innName = "",
+  doseSource,
+  formSource,
   catalogOptions,
   noteCustom = false,
   combination = null,
@@ -369,6 +374,8 @@ export default function DrugInfoModal({
     schemeText: scheme,
     courseText: course,
     intake,
+    doseSource,
+    formSource,
   });
   const schemeValue = tableScheduleValue(scheme, sourceScheme, customAssignment);
   const courseValue = tableScheduleValue(course, sourceCourse, customAssignment);
@@ -378,6 +385,8 @@ export default function DrugInfoModal({
     innName,
     dose,
     form,
+    doseSource,
+    formSource,
     schemeText: scheme,
     courseText: course,
     intake,

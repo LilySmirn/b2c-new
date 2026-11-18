@@ -244,6 +244,8 @@ const selectionFromDraft = (
   dose: draft?.dose ?? "",
   form: draft?.form ?? "",
   recordId: draft?.recordId ?? "",
+  doseSource: draft?.doseSource,
+  formSource: draft?.formSource,
 });
 
 const resolveCommentSource = (
@@ -289,6 +291,8 @@ const buildMedicationDetails = (
     noteCustom: commentSource === "user",
     doseOptions: medsView.doseOptions,
     formOptions: medsView.formOptions,
+    doseSource: fields.doseSource,
+    formSource: fields.formSource,
     combination,
   };
 };
