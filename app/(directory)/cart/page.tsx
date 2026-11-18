@@ -50,6 +50,7 @@ const snapshotFromStoredAssignments = (
 import MiniCartHost, {
   type MiniCartHostHandle,
 } from "@/app/modules/miniCart/MiniCartHost";
+import { categoryIdToMiniCartTabId } from "@/app/modules/miniCart/adapters/fromDirectoryCart";
 import { useDirectoryMiniCartData } from "@/app/modules/miniCart/hooks/useDirectoryMiniCartData";
 import type { MiniCartDisplayMode } from "@/app/modules/miniCart/types";
 import { COPY_CLIPBOARD_ERROR_MESSAGE } from "../components/cartClipboard";
@@ -138,7 +139,11 @@ export default function CartPreviewPage() {
   selectedItemsRef.current = selectedItems;
 
   const handleMiniCartCollapse = useCallback(() => {
-    void miniCartRef.current?.requestCompactFromGesture();
+    const categoryId = checklistRef.current?.getActiveCategoryId();
+    const activeTabId = categoryId
+      ? categoryIdToMiniCartTabId(categoryId)
+      : undefined;
+    void miniCartRef.current?.requestCompactFromGesture(activeTabId);
   }, []);
 
   const handleAssignmentSnapshotChange = useCallback(

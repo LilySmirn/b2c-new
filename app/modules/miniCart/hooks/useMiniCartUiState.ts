@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   EMPTY_MEDICATION_INTAKE,
   type MedicationIntake,
@@ -15,6 +15,10 @@ import {
   isMiniCartNavEnabled,
   resolveMiniCartNav,
 } from "../navFlags";
+import {
+  miniCartTabPageForId,
+  resolveMiniCartOpeningTabId,
+} from "../openingTab";
 import type {
   MiniCartAge,
   MiniCartCatalogItem,
@@ -131,6 +135,20 @@ export function useMiniCartUiState({
         return tab;
       }),
     [initialTabs, shellTabs],
+  );
+
+  /**
+   * Синхронно выставить вкладку при открытии мини-корзинки (до первого paint).
+   * Не двусторонняя синхронизация — только стартовое значение сеанса.
+   */
+  const applyOpeningTab = useCallback(
+    (preferredTabId?: string | null) => {
+      const resolved = resolveMiniCartOpeningTabId(tabs, preferredTabId);
+      setActiveTab(resolved);
+      setMiniTabPage(miniCartTabPageForId(tabs, resolved));
+      setMiniNavState(DEFAULT_MINI_CART_NAV);
+    },
+    [tabs],
   );
 
   const toggleItem = (itemId: string) => {
@@ -579,6 +597,7 @@ export function useMiniCartUiState({
     setMiniNav,
     activeTab,
     setActiveTab,
+    applyOpeningTab,
     miniTabPage,
     setMiniTabPage,
     tabs,

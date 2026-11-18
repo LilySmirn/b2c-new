@@ -84,8 +84,11 @@ function flattenClassicItems(
 }
 
 export type MiniCartShellHandle = {
-  /** Вызывать только из user-gesture (click). */
-  requestCompactFromGesture: () => Promise<boolean>;
+  /**
+   * Вызывать только из user-gesture (click).
+   * `activeTabId` — id вкладки КР мини-корзинки (не label / не index).
+   */
+  requestCompactFromGesture: (activeTabId?: string | null) => Promise<boolean>;
 };
 
 const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
@@ -183,6 +186,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setComboTargetId,
       closeCustomItemModal,
       closeInnerView,
+      applyOpeningTab,
     } = ui;
 
     const closeOverlays = useCallback(() => {
@@ -319,11 +323,16 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       }
     }, [closeInnerView, ui.findItem, ui.view]);
 
-    const enterCompactFromGesture = useCallback(async () => {
-      setMode("compact");
-      if (!pip.supported) return false;
-      return pip.openFromUserGesture();
-    }, [pip, setMode]);
+    const enterCompactFromGesture = useCallback(
+      async (activeTabId?: string | null) => {
+        // До смены mode / первого paint compact-панели.
+        applyOpeningTab(activeTabId);
+        setMode("compact");
+        if (!pip.supported) return false;
+        return pip.openFromUserGesture();
+      },
+      [applyOpeningTab, pip, setMode],
+    );
 
     useImperativeHandle(
       ref,

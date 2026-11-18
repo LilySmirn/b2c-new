@@ -128,6 +128,8 @@ export type PrescriptionChecklistHandle = {
   setMedicationInfoComment: (itemId: string, comment: string) => void;
   resetMedicationAssignment: (itemId: string) => void;
   applyOriginalRecommendation: (itemId: string) => void;
+  /** Текущая вкладка КР полноразмерной корзины (category id). */
+  getActiveCategoryId: () => string;
 };
 
 type PrescriptionChecklistProps = {
@@ -854,6 +856,7 @@ const PrescriptionChecklist = forwardRef<
     setMedicationInfoComment,
     resetMedicationAssignment: resetMedicationAssignmentById,
     applyOriginalRecommendation: applyOriginalRecommendationById,
+    getActiveCategoryId: () => activeCategoryId,
   }));
 
   const visibleSections = sortSectionsForDisplay(
