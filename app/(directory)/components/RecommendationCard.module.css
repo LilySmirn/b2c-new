@@ -14,6 +14,40 @@
   cursor: pointer;
 }
 
+.compact {
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  height: auto;
+}
+
+.compact .title {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 28px);
+}
+
+.compact .idValue {
+  min-width: 0;
+}
+
+.compact .topRow {
+  flex-wrap: wrap;
+}
+
+.compact .classificationPair .value {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.compact:hover {
+  transform: none;
+}
+
 .loadingOverlay {
   position: absolute;
   inset: 0;

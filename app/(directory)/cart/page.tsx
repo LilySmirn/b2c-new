@@ -53,6 +53,10 @@ import MiniCartHost, {
 import { categoryIdToMiniCartTabId } from "@/app/modules/miniCart/adapters/fromDirectoryCart";
 import { useDirectoryMiniCartData } from "@/app/modules/miniCart/hooks/useDirectoryMiniCartData";
 import type { MiniCartDisplayMode } from "@/app/modules/miniCart/types";
+import {
+  prepareSelectedRecommendation,
+  type RecommendationStandard,
+} from "@/app/(directory)/shared/mkb";
 import { COPY_CLIPBOARD_ERROR_MESSAGE } from "../components/cartClipboard";
 
 type AppendixA3Table = {
@@ -134,6 +138,10 @@ export default function CartPreviewPage() {
   const miniCartRef = useRef<MiniCartHostHandle>(null);
   const checklistRef = useRef<PrescriptionChecklistHandle>(null);
   const sideCartRef = useRef<SideCartHandle>(null);
+  const appendixRequestIdRef = useRef(0);
+  const switchRequestIdRef = useRef(0);
+  const [isSwitchingRecommendation, setIsSwitchingRecommendation] =
+    useState(false);
 
   recommendationKeyRef.current = recommendationKey;
   selectedItemsRef.current = selectedItems;
@@ -162,37 +170,76 @@ export default function CartPreviewPage() {
     [],
   );
 
+  const switchingRef = useRef(false);
+  switchingRef.current = isSwitchingRecommendation;
+
   /** Стабильные обёртки: делегируют в checklist / SideCart (единый store). */
   const miniCartAssignmentOps = useMemo<MiniCartAssignmentOps>(
     () => ({
-      toggleItem: (itemId) => checklistRef.current?.toggleItem(itemId),
-      setItemChecked: (itemId, checked) =>
-        checklistRef.current?.setItemChecked(itemId, checked),
-      setComment: (itemId, comment) =>
-        checklistRef.current?.setItemComment(itemId, comment),
-      applyMedsPick: (itemId, pick) =>
-        checklistRef.current?.applyMedsPick(itemId, pick),
-      setMedicationField: (itemId, field, value) =>
-        checklistRef.current?.setMedicationField(itemId, field, value),
-      selectAllRequiredDiagnostics: () =>
-        checklistRef.current?.selectAllRequiredDiagnostics(),
-      applyCombination: (itemId, draft) =>
-        checklistRef.current?.applyCombination(itemId, draft),
-      setMedicationIntake: (itemId, intake) =>
-        checklistRef.current?.setMedicationIntake(itemId, intake),
-      setMedicationInfoComment: (itemId, comment) =>
-        checklistRef.current?.setMedicationInfoComment(itemId, comment),
-      resetMedicationAssignment: (itemId) =>
-        checklistRef.current?.resetMedicationAssignment(itemId),
-      applyOriginalRecommendation: (itemId) =>
-        checklistRef.current?.applyOriginalRecommendation(itemId),
-      addCustomItem: (values) => sideCartRef.current?.addCustomItem(values),
-      updateCustomItem: (id, values) =>
-        sideCartRef.current?.updateCustomItem(id, values),
-      removeCustomItem: (id) => sideCartRef.current?.removeCustomItem(id),
-      setGeneralRecommendation: (value) =>
-        sideCartRef.current?.setGeneralComment(value),
+      toggleItem: (itemId) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.toggleItem(itemId);
+      },
+      setItemChecked: (itemId, checked) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.setItemChecked(itemId, checked);
+      },
+      setComment: (itemId, comment) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.setItemComment(itemId, comment);
+      },
+      applyMedsPick: (itemId, pick) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.applyMedsPick(itemId, pick);
+      },
+      setMedicationField: (itemId, field, value) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.setMedicationField(itemId, field, value);
+      },
+      selectAllRequiredDiagnostics: () => {
+        if (switchingRef.current) return;
+        checklistRef.current?.selectAllRequiredDiagnostics();
+      },
+      applyCombination: (itemId, draft) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.applyCombination(itemId, draft);
+      },
+      setMedicationIntake: (itemId, intake) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.setMedicationIntake(itemId, intake);
+      },
+      setMedicationInfoComment: (itemId, comment) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.setMedicationInfoComment(itemId, comment);
+      },
+      resetMedicationAssignment: (itemId) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.resetMedicationAssignment(itemId);
+      },
+      applyOriginalRecommendation: (itemId) => {
+        if (switchingRef.current) return;
+        checklistRef.current?.applyOriginalRecommendation(itemId);
+      },
+      addCustomItem: (values) => {
+        if (switchingRef.current) return;
+        sideCartRef.current?.addCustomItem(values);
+      },
+      updateCustomItem: (id, values) => {
+        if (switchingRef.current) return;
+        sideCartRef.current?.updateCustomItem(id, values);
+      },
+      removeCustomItem: (id) => {
+        if (switchingRef.current) return;
+        sideCartRef.current?.removeCustomItem(id);
+      },
+      setGeneralRecommendation: (value) => {
+        if (switchingRef.current) return;
+        sideCartRef.current?.setGeneralComment(value);
+      },
       copySelected: (targetDocument) => {
+        if (switchingRef.current) {
+          return Promise.reject(new Error(COPY_CLIPBOARD_ERROR_MESSAGE));
+        }
         const copy = sideCartRef.current?.copySelectedToClipboard;
         if (!copy) {
           return Promise.reject(new Error(COPY_CLIPBOARD_ERROR_MESSAGE));
@@ -204,9 +251,13 @@ export default function CartPreviewPage() {
   );
 
   const loadAppendixA3 = useCallback((crMId: string | undefined) => {
+    const requestId = ++appendixRequestIdRef.current;
+
     if (!crMId?.trim()) {
       setAppendixA3Tables([]);
-      setAppendixA3Error("Для выбранной рекомендации не найден идентификатор приложения А3.");
+      setAppendixA3Error(
+        "Для выбранной рекомендации не найден идентификатор приложения А3.",
+      );
       setIsAppendixA3Loading(false);
       return;
     }
@@ -217,6 +268,7 @@ export default function CartPreviewPage() {
       `/api/cr-tables?cr_m_id=${encodeURIComponent(crMId)}`,
     )
       .then(({ response, data }) => {
+        if (requestId !== appendixRequestIdRef.current) return null;
         if (!response.ok || !data) {
           throw new Error("Failed to load Appendix A3 tables");
         }
@@ -224,13 +276,20 @@ export default function CartPreviewPage() {
         return data;
       })
       .then((data) => {
+        if (requestId !== appendixRequestIdRef.current || !data) return;
         setAppendixA3Tables(Array.isArray(data.tables) ? data.tables : []);
       })
       .catch(() => {
+        if (requestId !== appendixRequestIdRef.current) return;
         setAppendixA3Tables([]);
-        setAppendixA3Error("Не удалось загрузить таблицы приложения А3. Попробуйте позже.");
+        setAppendixA3Error(
+          "Не удалось загрузить таблицы приложения А3. Попробуйте позже.",
+        );
       })
-      .finally(() => setIsAppendixA3Loading(false));
+      .finally(() => {
+        if (requestId !== appendixRequestIdRef.current) return;
+        setIsAppendixA3Loading(false);
+      });
   }, []);
 
   const hydrateFromStorage = useCallback(() => {
@@ -301,6 +360,57 @@ export default function CartPreviewPage() {
     }
   }, [loadAppendixA3]);
 
+  /**
+   * Применить КР из storage к React-state страницы и remount checklist.
+   * Используется remote-sync и in-place сменой из мини-корзинки.
+   */
+  const applyRecommendationFromStorage = useCallback(() => {
+    if (!hydrateFromStorage()) {
+      return false;
+    }
+    setChecklistSyncEpoch((value) => value + 1);
+    return true;
+  }, [hydrateFromStorage]);
+
+  const handleSelectRecommendation = useCallback(
+    async ({
+      diagnosisTitle: nextDiagnosisTitle,
+      card,
+    }: {
+      diagnosisTitle: string;
+      card: RecommendationStandard;
+    }) => {
+      const requestId = ++switchRequestIdRef.current;
+      const isCurrent = () => requestId === switchRequestIdRef.current;
+
+      setIsSwitchingRecommendation(true);
+      try {
+        const result = await prepareSelectedRecommendation(
+          nextDiagnosisTitle,
+          card,
+          { isCurrent, beginVisit: true },
+        );
+
+        if (!isCurrent()) return;
+        if (!result.ok) {
+          if (result.stale) return;
+          throw new Error(result.error);
+        }
+
+        if (!applyRecommendationFromStorage()) {
+          throw new Error(
+            "Не удалось применить выбранную рекомендацию. Попробуйте позже.",
+          );
+        }
+      } finally {
+        if (isCurrent()) {
+          setIsSwitchingRecommendation(false);
+        }
+      }
+    },
+    [applyRecommendationFromStorage],
+  );
+
   useEffect(() => {
     getCartSync().start();
   }, []);
@@ -365,10 +475,8 @@ export default function CartPreviewPage() {
       }
 
       if (message.scopes.includes("recommendation")) {
-        if (!hydrateFromStorage()) {
+        if (!applyRecommendationFromStorage()) {
           router.replace("/mkb");
-        } else {
-          setChecklistSyncEpoch((value) => value + 1);
         }
         return;
       }
@@ -422,7 +530,7 @@ export default function CartPreviewPage() {
         syncApplyingRef.current = false;
       });
     });
-  }, [hydrateFromStorage, router]);
+  }, [applyRecommendationFromStorage, hydrateFromStorage, router]);
 
   const handleSelectionChange = useCallback((items: SelectedPrescription[]) => {
     if (syncApplyingRef.current) {
@@ -538,7 +646,8 @@ export default function CartPreviewPage() {
         customItems={miniCartData.customItems}
         schemeByItemId={miniCartData.schemeByItemId}
         assignmentOps={miniCartAssignmentOps}
-        hideMkbSearch
+        contentKey={recommendationKey}
+        onSelectRecommendation={handleSelectRecommendation}
         displayMode={miniCartMode}
         onDisplayModeChange={setMiniCartMode}
         getPipHeightSource={() => sideCartRef.current?.getRootElement() ?? null}

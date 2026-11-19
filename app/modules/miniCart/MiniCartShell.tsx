@@ -27,6 +27,7 @@ import MiniCartInfoModal from "./components/MiniCartInfoModal";
 import MiniCartInteractionsPanel from "./components/MiniCartInteractionsPanel";
 import MiniCartItemList from "./components/MiniCartItemList";
 import MiniCartMkbSearch from "./components/MiniCartMkbSearch";
+import MiniCartMkbSearchResults from "./components/MiniCartMkbSearchResults";
 import MiniCartNavTabs from "./components/MiniCartNav";
 import MiniCartNoteModal from "./components/MiniCartNoteModal";
 import MiniCartSchemeModal from "./components/MiniCartSchemeModal";
@@ -46,6 +47,11 @@ import {
   COPY_CLIPBOARD_ERROR_MESSAGE,
   formatCopySuccessNotice,
 } from "@/app/(directory)/components/cartClipboard";
+import {
+  getCartRecommendationKey,
+  useMkbRecommendationSearch,
+  type RecommendationStandard,
+} from "@/app/(directory)/shared/mkb";
 import type {
   MiniCartCatalogItem,
   MiniCartDisplayMode,
@@ -56,6 +62,7 @@ import "./styles/miniCartDrugDetails.css";
 import "./styles/miniCartAddModal.css";
 import "./styles/miniCartCustomItems.css";
 import "./styles/miniCartPipMicro.css";
+import "./styles/miniCartMkbSearch.css";
 
 /** Видимость уведомления о копировании в мини-корзинке (не PiP-window timers). */
 const MINI_COPY_NOTICE_VISIBLE_MS = 2000;
@@ -115,6 +122,8 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       assignmentOps,
       schemeByItemId = {},
       hideMkbSearch = false,
+      contentKey,
+      onSelectRecommendation,
       getPipHeightSource,
     },
     ref,
@@ -151,7 +160,78 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       recommendationText,
       customItems: customItemsProp,
       assignmentOps,
+      contentKey,
     });
+
+    const mkbSearch = useMkbRecommendationSearch();
+    const [mkbSelectError, setMkbSelectError] = useState<string | null>(null);
+    const [mkbLoadingKey, setMkbLoadingKey] = useState<string | null>(null);
+    const mkbSelectRequestRef = useRef(0);
+    const mkbLoadingKeyRef = useRef<string | null>(null);
+
+    const showMkbSearch = !hideMkbSearch;
+    /** Режим карточек КР: после submit кода (не при одном только фокусе). */
+    const isMkbResultsMode = showMkbSearch && mkbSearch.isResultsMode;
+
+    /** Подсказки видны при фокусе/вводе до submit. */
+    const showMkbSuggestions =
+      showMkbSearch &&
+      ui.mkbSearchOpen &&
+      !mkbSearch.isResultsMode &&
+      (mkbSearch.query.trim().length > 0 ||
+        mkbSearch.isSearchLoading ||
+        Boolean(mkbSearch.searchError));
+
+    const contentKeySeenRef = useRef<string | undefined>(contentKey);
+
+    const handleMkbCancelSearch = useCallback(() => {
+      mkbSelectRequestRef.current += 1;
+      mkbSearch.cancelSearch();
+      setMkbSelectError(null);
+      setMkbLoadingKey(null);
+      mkbLoadingKeyRef.current = null;
+      ui.setMkbSearchOpen(false);
+    }, [mkbSearch, ui]);
+
+    const handleMkbCardSelect = useCallback(
+      async (card: RecommendationStandard) => {
+        if (!onSelectRecommendation) return;
+        if (mkbLoadingKeyRef.current) return;
+
+        const diagnosisTitle =
+          mkbSearch.cardDiagnosisTitle ?? card.title;
+        const recommendationKey = getCartRecommendationKey(
+          diagnosisTitle,
+          card,
+        );
+        const requestId = ++mkbSelectRequestRef.current;
+        const isCurrent = () => requestId === mkbSelectRequestRef.current;
+
+        mkbLoadingKeyRef.current = recommendationKey;
+        setMkbLoadingKey(recommendationKey);
+        setMkbSelectError(null);
+
+        try {
+          await onSelectRecommendation({ diagnosisTitle, card });
+          if (!isCurrent()) return;
+          mkbSearch.resetAll();
+          ui.setMkbSearchOpen(false);
+        } catch (error) {
+          if (!isCurrent()) return;
+          setMkbSelectError(
+            error instanceof Error
+              ? error.message
+              : "Не удалось открыть рекомендацию. Попробуйте позже.",
+          );
+        } finally {
+          if (isCurrent()) {
+            mkbLoadingKeyRef.current = null;
+            setMkbLoadingKey(null);
+          }
+        }
+      },
+      [mkbSearch, onSelectRecommendation, ui],
+    );
 
     const hostRef = useRef<HTMLDivElement>(null);
     const panelMeasureRef = useRef<HTMLElement | null>(null);
@@ -219,6 +299,29 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setTradeTargetId,
     ]);
     closeOverlaysRef.current = closeOverlays;
+
+    useEffect(() => {
+      if (contentKey === undefined) return;
+      if (contentKeySeenRef.current === contentKey) return;
+      contentKeySeenRef.current = contentKey;
+
+      mkbSearch.resetAll();
+      setMkbSelectError(null);
+      setMkbLoadingKey(null);
+      mkbLoadingKeyRef.current = null;
+      closeOverlaysRef.current();
+      setTradeAnchor(null);
+      setChartStep("closed");
+      dismissCopyNotice();
+      if (listScrollRef.current) {
+        const list = listScrollRef.current.querySelector(
+          ".preparaty__mini-panel-list",
+        );
+        if (list instanceof HTMLElement) list.scrollTop = 0;
+      }
+      // Не тащим весь search object / dismiss в deps — только смена КР.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [contentKey]);
 
     /** UI-часть «Развернуть»/«Закрыть» без pip.close() — для системного pagehide. */
     const exitToFullRef = useRef<() => void>(() => undefined);
@@ -594,80 +697,118 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
               />
 
               {ui.miniNav === "clinical-recs" ? (
-                <div className="preparaty__mini-recs">
-                  {hideMkbSearch ? null : (
+                <div
+                  className={`preparaty__mini-recs${
+                    isMkbResultsMode ? " is-mkb-results" : ""
+                  }`}
+                >
+                  {showMkbSearch ? (
                     <MiniCartMkbSearch
-                      query={ui.mkbQuery}
-                      open={ui.mkbSearchOpen}
-                      visit={ui.mkbVisit}
-                      age={ui.mkbAge}
-                      onQueryChange={ui.setMkbQuery}
+                      query={mkbSearch.query}
+                      open={ui.mkbSearchOpen || isMkbResultsMode}
+                      visit={mkbSearch.visitType}
+                      age={mkbSearch.ageGroup}
+                      disabledVisitIds={mkbSearch.disabledVisitIds}
+                      disabledAgeIds={mkbSearch.disabledAgeIds}
+                      onQueryChange={(value) => {
+                        mkbSearch.setQuery(value);
+                        ui.setMkbQuery(value);
+                      }}
                       onOpenChange={ui.setMkbSearchOpen}
-                      onVisitChange={ui.setMkbVisit}
-                      onAgeChange={ui.setMkbAge}
-                      onSearch={() => undefined}
+                      onVisitChange={(visit) => {
+                        mkbSearch.setVisitType(visit);
+                        ui.setMkbVisit(visit);
+                      }}
+                      onAgeChange={(age) => {
+                        mkbSearch.setAgeGroup(age);
+                        ui.setMkbAge(age);
+                      }}
+                      onSearch={() => {
+                        mkbSearch.submitSearch();
+                      }}
                     />
-                  )}
-                  <MiniCartSectionTabs
-                    tabs={ui.tabs}
-                    activeTab={ui.activeTab}
-                    page={ui.miniTabPage}
-                    onTabChange={(tabId) => {
-                      ui.setActiveTab(tabId);
-                      const index = ui.tabs.findIndex((tab) => tab.id === tabId);
-                      ui.setMiniTabPage(index >= 4 ? 1 : 0);
-                    }}
-                    onPageChange={ui.setMiniTabPage}
-                  />
-                  <MiniCartItemList
-                    activeTab={ui.activeTab}
-                    shellTabs={shellTabs}
-                    drugItems={ui.drugItems}
-                    classicItems={ui.classicItems}
-                    canToggle={
-                      !ui.flags.isDirectoryBacked || ui.flags.canToggle
-                    }
-                    canComment={
-                      !ui.flags.isDirectoryBacked || ui.flags.canComment
-                    }
-                    canOpenTrade={ui.canOpenTradePicker}
-                    canOpenScheme={ui.canOpenSchemePicker}
-                    canOpenCombo={ui.canOpenComboPicker}
-                    canSelectAll={
-                      !ui.flags.isDirectoryBacked ||
-                      ui.flags.canSelectAllRequired
-                    }
-                    onToggle={ui.toggleItem}
-                    onOpenComment={(itemId) =>
-                      ui.openComment(itemId, captureListScroll())
-                    }
-                    onOpenInfo={(itemId) =>
-                      ui.openInfoForItem(itemId, captureListScroll())
-                    }
-                    onOpenTrade={(itemId, anchor) => {
-                      const item = ui.findItem(itemId);
-                      if (!item || !ui.canOpenTradePicker(item)) return;
-                      ui.setTradeTargetId(itemId);
-                      setTradeAnchor(anchor);
-                    }}
-                    onOpenScheme={(itemId) => {
-                      const item = ui.findItem(itemId);
-                      if (!item || !ui.canOpenSchemePicker(item)) return;
-                      if (
-                        ui.flags.isDirectoryBacked &&
-                        !(schemeByItemId[itemId]?.components?.length > 0)
-                      ) {
-                        return;
-                      }
-                      ui.setSchemeTargetId(itemId);
-                    }}
-                    onOpenCombo={(itemId) => {
-                      const item = ui.findItem(itemId);
-                      if (!item || !ui.canOpenComboPicker(item)) return;
-                      ui.setComboTargetId(itemId);
-                    }}
-                    onSelectAll={ui.selectAllRequired}
-                  />
+                  ) : null}
+
+                  {isMkbResultsMode || showMkbSuggestions ? (
+                    <MiniCartMkbSearchResults
+                      search={mkbSearch}
+                      showSuggestions={showMkbSuggestions}
+                      showCancel={isMkbResultsMode}
+                      loadingKey={mkbLoadingKey}
+                      selectError={mkbSelectError}
+                      onSelectCard={(card) => {
+                        void handleMkbCardSelect(card);
+                      }}
+                      onCancel={handleMkbCancelSearch}
+                    />
+                  ) : null}
+
+                  {!isMkbResultsMode ? (
+                    <>
+                      <MiniCartSectionTabs
+                        tabs={ui.tabs}
+                        activeTab={ui.activeTab}
+                        page={ui.miniTabPage}
+                        onTabChange={(tabId) => {
+                          ui.setActiveTab(tabId);
+                          const index = ui.tabs.findIndex(
+                            (tab) => tab.id === tabId,
+                          );
+                          ui.setMiniTabPage(index >= 4 ? 1 : 0);
+                        }}
+                        onPageChange={ui.setMiniTabPage}
+                      />
+                      <MiniCartItemList
+                        activeTab={ui.activeTab}
+                        shellTabs={shellTabs}
+                        drugItems={ui.drugItems}
+                        classicItems={ui.classicItems}
+                        canToggle={
+                          !ui.flags.isDirectoryBacked || ui.flags.canToggle
+                        }
+                        canComment={
+                          !ui.flags.isDirectoryBacked || ui.flags.canComment
+                        }
+                        canOpenTrade={ui.canOpenTradePicker}
+                        canOpenScheme={ui.canOpenSchemePicker}
+                        canOpenCombo={ui.canOpenComboPicker}
+                        canSelectAll={
+                          !ui.flags.isDirectoryBacked ||
+                          ui.flags.canSelectAllRequired
+                        }
+                        onToggle={ui.toggleItem}
+                        onOpenComment={(itemId) =>
+                          ui.openComment(itemId, captureListScroll())
+                        }
+                        onOpenInfo={(itemId) =>
+                          ui.openInfoForItem(itemId, captureListScroll())
+                        }
+                        onOpenTrade={(itemId, anchor) => {
+                          const item = ui.findItem(itemId);
+                          if (!item || !ui.canOpenTradePicker(item)) return;
+                          ui.setTradeTargetId(itemId);
+                          setTradeAnchor(anchor);
+                        }}
+                        onOpenScheme={(itemId) => {
+                          const item = ui.findItem(itemId);
+                          if (!item || !ui.canOpenSchemePicker(item)) return;
+                          if (
+                            ui.flags.isDirectoryBacked &&
+                            !(schemeByItemId[itemId]?.components?.length > 0)
+                          ) {
+                            return;
+                          }
+                          ui.setSchemeTargetId(itemId);
+                        }}
+                        onOpenCombo={(itemId) => {
+                          const item = ui.findItem(itemId);
+                          if (!item || !ui.canOpenComboPicker(item)) return;
+                          ui.setComboTargetId(itemId);
+                        }}
+                        onSelectAll={ui.selectAllRequired}
+                      />
+                    </>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -687,25 +828,27 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
               ) : null}
             </div>
 
-            <MiniCartFooter
-              recommendation={ui.recommendation}
-              onRecommendationChange={ui.setRecommendation}
-              onAddClick={ui.openAddCustomItem}
-              onOpenCustomItems={() =>
-                ui.openCustomItemsScreen(captureListScroll())
-              }
-              customItemsCount={ui.customItems.length}
-              canAdd={
-                !ui.flags.isDirectoryBacked || ui.flags.canAddCustomItem
-              }
-              canEditRecommendation={
-                !ui.flags.isDirectoryBacked || ui.flags.canSetRecommendation
-              }
-              onWrite={openChartPrompt}
-              onCopy={
-                assignmentOps?.copySelected ? handleCopySelected : undefined
-              }
-            />
+            {!isMkbResultsMode ? (
+              <MiniCartFooter
+                recommendation={ui.recommendation}
+                onRecommendationChange={ui.setRecommendation}
+                onAddClick={ui.openAddCustomItem}
+                onOpenCustomItems={() =>
+                  ui.openCustomItemsScreen(captureListScroll())
+                }
+                customItemsCount={ui.customItems.length}
+                canAdd={
+                  !ui.flags.isDirectoryBacked || ui.flags.canAddCustomItem
+                }
+                canEditRecommendation={
+                  !ui.flags.isDirectoryBacked || ui.flags.canSetRecommendation
+                }
+                onWrite={openChartPrompt}
+                onCopy={
+                  assignmentOps?.copySelected ? handleCopySelected : undefined
+                }
+              />
+            ) : null}
           </>
         )}
         {copyNotice ? (

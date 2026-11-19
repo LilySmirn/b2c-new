@@ -1,0 +1,123 @@
+/* Поиск МКБ и карточки КР внутри мини-корзинки (не перезаписывается extract-скриптом). */
+
+/*
+ * Макет: visit + age в одной горизонтальной строке.
+ * Базовый `.preparaty__mini-nav` задаёт width:100% и 3 колонки — без этих
+ * оверрайдов второй фильтр уезжает вниз и обрезается max-height:44px.
+ */
+.emMiniCart .preparaty__mkb-filter-nav {
+  flex: 3 1 0;
+  width: auto;
+  min-width: 0;
+  min-height: 34px;
+}
+
+.emMiniCart .preparaty__mkb-filter-nav--age {
+  flex: 2 1 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.emMiniCart .preparaty__mkb-filter-nav .preparaty__mini-nav-btn {
+  min-height: 34px;
+  padding: 4px 2px 6px;
+  font: 600 10px / 1.15 Arial, sans-serif;
+}
+
+.emMiniCart .preparaty__mkb-filter-nav .preparaty__mini-nav-btn:disabled,
+.emMiniCart .preparaty__mkb-filter-nav .preparaty__mini-nav-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.emMiniCart .preparaty__mini-mkb-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.emMiniCart .preparaty__mini-mkb-results-toolbar {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.emMiniCart .preparaty__mini-mkb-results-cancel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0085ff;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left;
+}
+
+.emMiniCart .preparaty__mini-mkb-results-cancel:hover,
+.emMiniCart .preparaty__mini-mkb-results-cancel:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+.emMiniCart .preparaty__mini-mkb-status {
+  margin: 0;
+  padding: 0 2px;
+  color: #1b2733;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.emMiniCart .preparaty__mini-mkb-status.is-error {
+  color: #b42318;
+}
+
+.emMiniCart .preparaty__mini-mkb-suggestions {
+  min-width: 0;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.emMiniCart .preparaty__mini-mkb-matches {
+  max-height: 180px;
+  padding-bottom: 0;
+  overflow-x: hidden;
+}
+
+.emMiniCart .preparaty__mini-mkb-match {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.emMiniCart .preparaty__mini-mkb-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.emMiniCart .preparaty__mini-mkb-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.emMiniCart .preparaty__mini-recs.is-mkb-results .preparaty__mini-mkb-results {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.emMiniCart .preparaty__mini-panel-body:has(.preparaty__mini-recs.is-mkb-results) {
+  overflow-y: auto;
+}

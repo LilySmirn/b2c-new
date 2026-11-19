@@ -1,3 +1,9 @@
+import {
+  ageOptions,
+  visitOptions,
+  type AgeGroup,
+  type VisitType,
+} from "@/app/(directory)/shared/mkb";
 import type { MiniCartAge, MiniCartVisit } from "../types";
 
 type MiniCartMkbSearchProps = {
@@ -5,11 +11,14 @@ type MiniCartMkbSearchProps = {
   open: boolean;
   visit: MiniCartVisit;
   age: MiniCartAge;
+  disabledVisitIds?: readonly string[];
+  disabledAgeIds?: readonly string[];
   onQueryChange: (value: string) => void;
   onOpenChange: (open: boolean) => void;
   onVisitChange: (visit: MiniCartVisit) => void;
   onAgeChange: (age: MiniCartAge) => void;
   onSearch: () => void;
+  onInputFocus?: () => void;
 };
 
 export default function MiniCartMkbSearch({
@@ -17,11 +26,14 @@ export default function MiniCartMkbSearch({
   open,
   visit,
   age,
+  disabledVisitIds = [],
+  disabledAgeIds = [],
   onQueryChange,
   onOpenChange,
   onVisitChange,
   onAgeChange,
   onSearch,
+  onInputFocus,
 }: MiniCartMkbSearchProps) {
   return (
     <form
@@ -30,7 +42,7 @@ export default function MiniCartMkbSearch({
       autoComplete="off"
       onSubmit={(event) => {
         event.preventDefault();
-        onOpenChange(false);
+        onOpenChange(true);
         onSearch();
       }}
     >
@@ -44,8 +56,14 @@ export default function MiniCartMkbSearch({
           placeholder="Код МКБ, например K26"
           maxLength={32}
           aria-label="Код МКБ для открытия справочника"
-          onChange={(event) => onQueryChange(event.target.value)}
-          onFocus={() => onOpenChange(true)}
+          onChange={(event) => {
+            onQueryChange(event.target.value);
+            if (!open) onOpenChange(true);
+          }}
+          onFocus={() => {
+            onOpenChange(true);
+            onInputFocus?.();
+          }}
         />
         <button
           type="submit"
@@ -54,59 +72,73 @@ export default function MiniCartMkbSearch({
           aria-label="Найти и открыть справочник"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/mini-cart/search-mkb.svg" width={16} height={16} alt="" aria-hidden="true" />
+          <img
+            src="/mini-cart/search-mkb.svg"
+            width={16}
+            height={16}
+            alt=""
+            aria-hidden="true"
+          />
         </button>
       </div>
       <div
         className="preparaty__mkb-search-filters"
         aria-hidden={open ? "false" : "true"}
+        hidden={!open}
       >
         <div
           className="preparaty__mini-nav preparaty__mkb-filter-nav"
           role="tablist"
           aria-label="Тип обращения"
         >
-          {(
-            [
-              ["primary", "Первичный"],
-              ["repeat", "Повторный"],
-              ["inpatient", "Стационар"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`preparaty__mini-nav-btn${visit === id ? " is-active" : ""}`}
-              role="tab"
-              aria-selected={visit === id}
-              onClick={() => onVisitChange(id)}
-            >
-              {label}
-            </button>
-          ))}
+          {visitOptions.map((option) => {
+            const id = option.id as VisitType;
+            const disabled = disabledVisitIds.includes(id);
+            return (
+              <button
+                key={id}
+                type="button"
+                className={`preparaty__mini-nav-btn${visit === id ? " is-active" : ""}`}
+                role="tab"
+                aria-selected={visit === id}
+                disabled={disabled}
+                aria-disabled={disabled || undefined}
+                onClick={() => {
+                  if (disabled) return;
+                  onVisitChange(id);
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
         <div
           className="preparaty__mini-nav preparaty__mkb-filter-nav preparaty__mkb-filter-nav--age"
           role="tablist"
           aria-label="Возраст пациента"
         >
-          {(
-            [
-              ["adult", "Взрослый"],
-              ["child", "Ребенок"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`preparaty__mini-nav-btn${age === id ? " is-active" : ""}`}
-              role="tab"
-              aria-selected={age === id}
-              onClick={() => onAgeChange(id)}
-            >
-              {label}
-            </button>
-          ))}
+          {ageOptions.map((option) => {
+            const id = option.id as AgeGroup;
+            const disabled = disabledAgeIds.includes(id);
+            return (
+              <button
+                key={id}
+                type="button"
+                className={`preparaty__mini-nav-btn${age === id ? " is-active" : ""}`}
+                role="tab"
+                aria-selected={age === id}
+                disabled={disabled}
+                aria-disabled={disabled || undefined}
+                onClick={() => {
+                  if (disabled) return;
+                  onAgeChange(id);
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </form>

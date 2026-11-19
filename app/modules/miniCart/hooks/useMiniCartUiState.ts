@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   EMPTY_MEDICATION_INTAKE,
   type MedicationIntake,
@@ -46,6 +46,11 @@ export type MiniCartUiStateArgs = {
   /** Directory-backed: зеркало SideCart / cartStorage. */
   customItems?: readonly MiniCartCustomItem[];
   assignmentOps?: MiniCartAssignmentOps;
+  /**
+   * При смене ключа сбрасываем локальный UI (вкладки, оверлеи, scroll),
+   * не трогая режим PiP (он живёт снаружи).
+   */
+  contentKey?: string;
 };
 
 export function useMiniCartUiState({
@@ -57,6 +62,7 @@ export function useMiniCartUiState({
   recommendationText,
   customItems: customItemsProp,
   assignmentOps,
+  contentKey,
 }: MiniCartUiStateArgs) {
   const flags = miniCartOpFlags(assignmentOps);
   const activeFromTabs =
@@ -122,6 +128,41 @@ export function useMiniCartUiState({
     if (recommendationText === undefined) return;
     setRecommendation(recommendationText);
   }, [recommendationText]);
+
+  /** Сброс локального UI при смене КР (contentKey), без remount Host. */
+  const contentKeyRef = useRef<string | undefined>(contentKey);
+  useEffect(() => {
+    if (contentKey === undefined) return;
+    if (contentKeyRef.current === contentKey) return;
+    contentKeyRef.current = contentKey;
+
+    const nextActive =
+      initialTabs.find((tab) => tab.active)?.id ??
+      initialTabs.find((tab) => tab.enabled)?.id ??
+      "drugs";
+    setActiveTab(nextActive);
+    setMiniTabPage(
+      initialTabs.findIndex((tab) => tab.id === nextActive) >= 4 ? 1 : 0,
+    );
+    setMiniNavState(DEFAULT_MINI_CART_NAV);
+    setMkbQuery("");
+    setMkbSearchOpen(false);
+    setNoteTargetId(null);
+    setNoteDraft("");
+    setInfoTargetId(null);
+    setDetailsInitialFocus(null);
+    setView({ type: "list" });
+    setListScrollTop(0);
+    setTradeTargetId(null);
+    setSchemeTargetId(null);
+    setComboTargetId(null);
+    setAddModalOpen(false);
+    setEditingCustomItemId(null);
+    setAiInput("");
+    setIxQuery("");
+    // Только при смене contentKey — не при каждом обновлении tabs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentKey]);
 
   /** Если в сохранённом состоянии активна скрытая вкладка — переключаемся на КР. */
   useEffect(() => {

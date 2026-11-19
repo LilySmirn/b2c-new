@@ -13,7 +13,7 @@ type RecommendationCardProps = {
   busy?: boolean;
   onSelect?: () => void;
   externalUrl: string;
- standardId: string;
+  standardId: string;
   status: string;
   ageCategory: string;
   dateApprovement?: string;
@@ -21,6 +21,8 @@ type RecommendationCardProps = {
   classification: string;
   showBookmarkMenu?: boolean;
   onAddBookmark?: () => void;
+  /** Узкая колонка мини-корзинки: width 100%, без горизонтального переполнения. */
+  compact?: boolean;
 };
 
 const cardLabels = {
@@ -47,10 +49,17 @@ export default function RecommendationCard({
   onSelect,
   showBookmarkMenu = false,
   onAddBookmark,
+  compact = false,
 }: RecommendationCardProps) {
   const [isBookmarkMenuOpen, setIsBookmarkMenuOpen] = useState(false);
   const cardRef = useRef<HTMLElement | null>(null);
-  const cardClassName = selected ? `${styles.card} ${styles.selected}` : styles.card;
+  const cardClassName = [
+    styles.card,
+    selected ? styles.selected : "",
+    compact ? styles.compact : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   useEffect(() => {
     if (!isBookmarkMenuOpen) return;

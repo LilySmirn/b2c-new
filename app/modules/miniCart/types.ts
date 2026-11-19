@@ -221,8 +221,24 @@ export type MiniCartProps = {
    * Нужны компактному мастеру для combinationSelection (не demo trades).
    */
   schemeByItemId?: Record<string, MiniCartSchemeSource>;
-  /** Скрыть поиск МКБ (реальный `/cart`: диагноз только для чтения). */
+  /**
+   * Скрыть поиск МКБ.
+   * На `/cart` поиск включён (in-place смена КР); в preview можно скрыть.
+   */
   hideMkbSearch?: boolean;
+  /**
+   * Ключ текущей КР (или иной content revision).
+   * При смене сбрасывается локальный UI мини-корзинки без remount Host/PiP.
+   */
+  contentKey?: string;
+  /**
+   * Выбор карточки КР из поиска мини-корзинки.
+   * Вызывающая сторона: prepare + hydrateFromStorage (без навигации).
+   */
+  onSelectRecommendation?: (args: {
+    diagnosisTitle: string;
+    card: import("@/app/(directory)/shared/mkb").RecommendationStandard;
+  }) => Promise<void> | void;
   /**
    * DOM SideCart (или аналог) для начальной высоты Document PiP.
    * Вызывать синхронно из user-gesture до скрытия полноразмерной корзины.

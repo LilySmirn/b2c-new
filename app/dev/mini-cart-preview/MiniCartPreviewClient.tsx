@@ -92,6 +92,7 @@ export default function MiniCartPreviewClient() {
         trades={MINI_CART_DEMO_TRADES}
         displayMode={mode}
         onDisplayModeChange={setMode}
+        hideMkbSearch
       />
     </main>
   );

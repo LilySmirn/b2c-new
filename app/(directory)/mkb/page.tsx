@@ -17,66 +17,32 @@ import SuggestedCodesList from "../components/SuggestedCodesList";
 import { fetchEncryptedJson } from "@/app/lib/encryptedPayload/client";
 import { isMkbCodeAllowed, normalizeMkbCode } from "@/app/lib/mkbCodeAccess";
 import { USER_BLOCKING_REFRESH_EVENT } from "@/app/modules/userBlocking";
-import { beginCartVisit } from "@/app/modules/clinicalRecommendationOpening/client";
 import { handleInvalidB2cSession } from "@/app/lib/handleInvalidB2cSession";
 import { readSearchState, writeSearchState } from "@/app/lib/searchStateStorage";
 import { normalizeMkbSearchInput } from "@/app/lib/normalizeMkbSearchInput";
-import { collectMedicationQuery } from "../components/medications/medicationQuery";
-import { medsCatalogSession } from "../components/medications/medsCatalogSession";
-import { cartStorage } from "@/app/(directory)/shared/cart";
+import {
+  DEMO_LIMIT_MESSAGE,
+  ageOptions,
+  formatDemoRemaining,
+  formatMkbResult,
+  getAvailableFilters,
+  getCartRecommendationKey,
+  getCodeFromMatch,
+  getRecommendationExternalUrl,
+  hasDataForFilters,
+  isAgeGroup,
+  isDemoLimitResponse,
+  isVisitType,
+  prepareSelectedRecommendation,
+  visitOptions,
+  type AgeGroup,
+  type FilterAvailability,
+  type MkbDataResponse,
+  type MkbSearchResult,
+  type RecommendationStandard,
+  type VisitType,
+} from "@/app/(directory)/shared/mkb";
 import NoTranslate from "@/app/components/NoTranslate";
-
-type MkbSearchResult = {
-  code: string;
-  name: string;
-};
-
-type AgeGroup = "adult" | "child";
-type VisitType = "primary" | "repeat" | "inpatient";
-type FilterAvailability = Record<AgeGroup, Record<VisitType, boolean>>;
-
-type MkbRecommendationsResponse = {
-  child: MkbSearchResult[];
-  grownup: MkbSearchResult[];
-};
-
-type ChecklistSection = {
-  id: string;
-  title: string;
-  categoryId: string;
-  categoryTitle?: string;
-  groupTitle: string;
-  items: {
-    id: string;
-    checked: boolean;
-    qualityControl: boolean;
-    code: string;
-    title: string;
-    info: string;
-    comment: string;
-    infoComment?: string;
-  }[];
-};
-
-type RecommendationStandard = {
-  id: string;
-  title: string;
-  status: string;
-  source: string;
-  mkbCodes: string[];
-  dateApprovement: string;
-  dateReview: string;
-  ageCategory: string;
-  prescriptions: ChecklistSection[];
-};
-
-type StandardsByFilters = Record<AgeGroup, Record<VisitType, RecommendationStandard[]>>;
-
-type MkbDataResponse = {
-  availability: FilterAvailability;
-  recommendations: MkbRecommendationsResponse;
-  standards: StandardsByFilters;
-};
 
 type MkbAccessResponse = {
   allowedCodes: string[] | null;
@@ -89,70 +55,6 @@ type DemoAccessStatus = {
   remaining: number;
 };
 
-const DEMO_LIMIT_MESSAGE =
-  "Бесплатные 5 запросов на сегодня закончились. Для снятия ограничения приобретите подписку.";
-
-const isDemoLimitResponse = async (response: Response) => {
-  if (response.status !== 429) return false;
-
-  const body = await response.json().catch(() => null) as { error?: unknown } | null;
-  return body?.error === "demo_limit_reached";
-};
-
-const formatDemoRemaining = (remaining: number) => {
-  if (remaining === 1) return "Вам остался 1 запрос";
-  if (remaining >= 2 && remaining <= 4) return `Вам осталось ${remaining} запроса`;
-  return `Вам осталось ${remaining} запросов`;
-};
-
-const formatMkbResult = ({ code, name }: MkbSearchResult) => `${code}: ${name}`;
-const getCodeFromMatch = (item: string) => item.split(":")[0]?.trim() ?? item.trim();
-
-const visitOptions = [
-  { id: "primary", label: "Первичный" },
-  { id: "repeat", label: "Повторный" },
-  { id: "inpatient", label: "Стационар" },
-];
-
-const ageOptions = [
-  { id: "adult", label: "Взрослый" },
-  { id: "child", label: "Ребёнок" },
-];
-
-const hasDataForFilters = (
-  availability: FilterAvailability,
-  age: AgeGroup,
-  visit: VisitType,
-) => availability[age][visit];
-
-const getAvailableFilters = (
-  availability: FilterAvailability,
-  preferredAge: AgeGroup,
-  preferredVisit: VisitType,
-) => {
-  if (hasDataForFilters(availability, preferredAge, preferredVisit)) {
-    return { age: preferredAge, visit: preferredVisit };
-  }
-
-  const fallbackCandidates = [
-    { age: preferredAge === "adult" ? "child" : "adult", visit: preferredVisit },
-    ...visitOptions.map((visitOption) => ({
-      age: preferredAge,
-      visit: visitOption.id as VisitType,
-    })),
-    ...(ageOptions as { id: AgeGroup; label: string }[]).flatMap((ageOption) =>
-      (visitOptions as { id: VisitType; label: string }[]).map((visitOption) => ({
-        age: ageOption.id,
-        visit: visitOption.id,
-      })),
-    ),
-  ] as { age: AgeGroup; visit: VisitType }[];
-
-  return fallbackCandidates.find(({ age, visit }) =>
-    hasDataForFilters(availability, age, visit),
-  );
-};
-
 type StoredSearchState = {
   query?: string;
   visitType?: VisitType;
@@ -163,31 +65,6 @@ type StoredSearchState = {
   mkbData?: MkbDataResponse | null;
 };
 
-const getCartRecommendationKey = (
-  diagnosisTitle: string | null | undefined,
-  card: RecommendationStandard,
-) =>
-  [diagnosisTitle, card.id, card.title, card.mkbCodes.join(",")]
-    .filter(Boolean)
-    .join("|");
-
-const MEDS_LOAD_ERROR = "Не удалось загрузить справочник препаратов. Попробуйте ещё раз.";
-
-const persistSelectedRecommendation = (
-  diagnosisTitle: string,
-  card: RecommendationStandard,
-) => {
-  const recommendationKey = getCartRecommendationKey(diagnosisTitle, card);
-  cartStorage.writeRecommendation(diagnosisTitle, card, recommendationKey);
-  return recommendationKey;
-};
-
-    const isVisitType = (value: unknown): value is VisitType =>
-  typeof value === "string" && visitOptions.some((option) => option.id === value);
-
-const isAgeGroup = (value: unknown): value is AgeGroup =>
-  typeof value === "string" && ageOptions.some((option) => option.id === value);
-
 const readStoredSearchState = (): StoredSearchState | null => {
   if (typeof window === "undefined") return null;
 
@@ -196,14 +73,6 @@ const readStoredSearchState = (): StoredSearchState | null => {
 
 const writeStoredSearchState = (state: StoredSearchState) => {
   writeSearchState(window.sessionStorage, state);
-};
-
-const getRecommendationExternalUrl = (source: string, id: string) => {
-  if (source.toLowerCase() === "minzdrav" && id !== "—") {
-    return `https://cr.minzdrav.gov.ru/view-cr/${encodeURIComponent(id)}`;
-  }
-
-  return "https://cr.minzdrav.gov.ru/";
 };
 
 export default function SearchPreviewPage() {
@@ -651,53 +520,30 @@ export default function SearchPreviewPage() {
     const recommendationKey = getCartRecommendationKey(diagnosisTitle, card);
     if (medsLoadingKeyRef.current === recommendationKey) return;
 
-    const query = collectMedicationQuery(card.prescriptions);
     const requestId = ++medsRequestRef.current;
     const isCurrent = () => requestId === medsRequestRef.current;
     medsLoadingKeyRef.current = recommendationKey;
     medsRetryRef.current = { diagnosisTitle, card };
     setMedsError(null);
-    persistSelectedRecommendation(diagnosisTitle, card);
+    setMedsLoadingKey(recommendationKey);
 
-    const cached = medsCatalogSession.hasReady(recommendationKey, query.names, query.ids);
-    setMedsLoadingKey(cached ? null : recommendationKey);
+    const result = await prepareSelectedRecommendation(diagnosisTitle, card, {
+      isCurrent,
+      beginVisit: true,
+    });
 
-    let loadResult: Awaited<ReturnType<typeof medsCatalogSession.load>>;
-    try {
-      loadResult = await medsCatalogSession.load(recommendationKey, query.names, query.ids);
-    } catch {
-      if (!isCurrent()) return;
-      releaseMedsLoading(recommendationKey);
-      setMedsError(MEDS_LOAD_ERROR);
-      return;
-    }
-
-    if (!isCurrent()) return;
-    if (loadResult.status === "stale") {
+    if (!isCurrent()) {
       releaseMedsLoading(recommendationKey);
       return;
     }
-    if (loadResult.status !== "ready") {
+
+    if (!result.ok) {
       releaseMedsLoading(recommendationKey);
-      setMedsError(MEDS_LOAD_ERROR);
+      if (result.stale) return;
+      setMedsError(result.error);
       return;
     }
 
-    try {
-      const visit = await beginCartVisit(recommendationKey, isCurrent);
-      if (!isCurrent()) return;
-      if (!visit) {
-        releaseMedsLoading(recommendationKey);
-        return;
-      }
-    } catch {
-      if (!isCurrent()) return;
-      releaseMedsLoading(recommendationKey);
-      setMedsError("Не удалось открыть рекомендацию. Попробуйте позже.");
-      return;
-    }
-
-    if (!isCurrent()) return;
     medsNavigatingRef.current = true;
     releaseMedsLoading(recommendationKey);
     router.push("/cart");
