@@ -197,6 +197,7 @@ export function useDocumentPip({
   }, [adopt, measureEl, portalTarget, supported]);
 
   // Закрыть PiP, если режим больше не требует окна.
+  // compact и docked-микро держат одно и то же окно: вызывающий код оставляет wantPip true.
   useEffect(() => {
     if (!wantPip && !openingRef.current && isPipWindowOpen(pipRef.current)) {
       close();

@@ -3,13 +3,19 @@ import { describe, it } from "node:test";
 import {
   DEFAULT_PIP_HEIGHT,
   DEFAULT_PIP_WIDTH,
+  MICRO_PIP_HEIGHT,
+  MICRO_PIP_WIDTH,
   MIN_PIP_HEIGHT,
   MIN_PIP_WIDTH,
   PIP_TOP_CHROME_HEIGHT,
   SITE_HEADER_HEIGHT,
   isLivePortalTarget,
+  isNearPipSize,
   isPipWindowOpen,
+  readPipFrameSize,
+  resizeDocumentPipWindow,
   resolvePipSize,
+  shrinkPipToMicro,
 } from "./documentPip";
 
 describe("resolvePipSize", () => {
@@ -203,5 +209,91 @@ describe("isLivePortalTarget", () => {
     };
     Object.assign(mount, { ownerDocument: doc });
     assert.equal(isLivePortalTarget(mount as unknown as HTMLElement), true);
+  });
+});
+
+describe("resizeDocumentPipWindow", () => {
+  it("calls resizeTo with rounded outer size", () => {
+    const calls: Array<[number, number]> = [];
+    const win = {
+      closed: false,
+      resizeTo(width: number, height: number) {
+        calls.push([width, height]);
+      },
+    };
+    assert.equal(
+      resizeDocumentPipWindow(win as never, 240.2, 99.6),
+      true,
+    );
+    assert.deepEqual(calls, [[240, 100]]);
+  });
+
+  it("returns false when resizeTo throws", () => {
+    const win = {
+      closed: false,
+      resizeTo() {
+        throw new Error("NotAllowedError");
+      },
+    };
+    assert.equal(resizeDocumentPipWindow(win as never, 240, 100), false);
+  });
+
+  it("returns false when the window is closed or has no resizeTo", () => {
+    assert.equal(
+      resizeDocumentPipWindow({ closed: true, resizeTo() {} } as never, 240, 100),
+      false,
+    );
+    assert.equal(resizeDocumentPipWindow({ closed: false } as never, 240, 100), false);
+  });
+});
+
+describe("shrinkPipToMicro", () => {
+  it("returns the previous frame size when resize lands near the micro target", () => {
+    const win = {
+      closed: false,
+      outerWidth: 420,
+      outerHeight: 674,
+      resizeTo(width: number, height: number) {
+        win.outerWidth = width;
+        win.outerHeight = height;
+      },
+    };
+    assert.deepEqual(shrinkPipToMicro(win as never), { width: 420, height: 674 });
+    assert.deepEqual(readPipFrameSize(win as never), {
+      width: MICRO_PIP_WIDTH,
+      height: MICRO_PIP_HEIGHT,
+    });
+  });
+
+  it("returns null and does not pretend success when resizeTo throws", () => {
+    const win = {
+      closed: false,
+      outerWidth: 420,
+      outerHeight: 674,
+      resizeTo() {
+        throw new Error("NotAllowedError");
+      },
+    };
+    assert.equal(shrinkPipToMicro(win as never), null);
+    assert.deepEqual(readPipFrameSize(win as never), { width: 420, height: 674 });
+  });
+
+  it("returns null when the frame stays far from the micro size", () => {
+    const win = {
+      closed: false,
+      outerWidth: 420,
+      outerHeight: 674,
+      resizeTo() {
+        /* browser ignored the call */
+      },
+    };
+    assert.equal(shrinkPipToMicro(win as never), null);
+    assert.equal(
+      isNearPipSize(
+        { width: 420, height: 674 },
+        { width: MICRO_PIP_WIDTH, height: MICRO_PIP_HEIGHT },
+      ),
+      false,
+    );
   });
 });

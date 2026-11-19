@@ -35,7 +35,13 @@ import MiniCartTradePopover from "./components/MiniCartTradePopover";
 import { MiniCartPortalProvider } from "./context/MiniCartPortalContext";
 import { useDocumentPip } from "./hooks/useDocumentPip";
 import { useMiniCartUiState } from "./hooks/useMiniCartUiState";
-import { isLivePortalTarget } from "./pip/documentPip";
+import {
+  isLivePortalTarget,
+  isPipWindowOpen,
+  resizeDocumentPipWindow,
+  shrinkPipToMicro,
+  type PipFrameSize,
+} from "./pip/documentPip";
 import {
   COPY_CLIPBOARD_ERROR_MESSAGE,
   formatCopySuccessNotice,
@@ -49,6 +55,7 @@ import "./styles/miniCartScope.css";
 import "./styles/miniCartDrugDetails.css";
 import "./styles/miniCartAddModal.css";
 import "./styles/miniCartCustomItems.css";
+import "./styles/miniCartPipMicro.css";
 
 /** Видимость уведомления о копировании в мини-корзинке (не PiP-window timers). */
 const MINI_COPY_NOTICE_VISIBLE_MS = 2000;
@@ -176,7 +183,10 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       setCopyNotice(null);
     }, [clearCopyNoticeTimer]);
 
-    const wantPip = mode === "compact";
+    const [pipMicro, setPipMicro] = useState(false);
+    const compactPipSizeRef = useRef<PipFrameSize | null>(null);
+    /** Одно PiP-окно на compact и docked-микро. In-page док не держит окно. */
+    const wantPip = mode === "compact" || (mode === "docked" && pipMicro);
 
     const {
       setNoteTargetId,
@@ -287,6 +297,28 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
         ? pip.portalTarget
         : null;
     const isPip = Boolean(livePipTarget);
+
+    useEffect(() => {
+      if (mode === "full") setPipMicro(false);
+    }, [mode]);
+
+    useEffect(() => {
+      const body = pip.pipWindow?.document?.body;
+      if (!body) return;
+      const micro = mode === "docked" && pipMicro;
+      body.classList.toggle("is-pip-micro", micro);
+      // Inline background из preparePipDocument(#fff) иначе проступает белая полоса.
+      body.style.background = micro ? "#202124" : "#fff";
+      return () => {
+        try {
+          body.classList.remove("is-pip-micro");
+          body.style.background = "#fff";
+        } catch {
+          /* PiP document may already be gone */
+        }
+      };
+    }, [mode, pip.pipWindow, pipMicro]);
+
     const ownerDocument =
       (isPip && pip.pipWindow?.document) ||
       (typeof document !== "undefined"
@@ -347,15 +379,32 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
     const exitToFull = useCallback(() => {
       dismissCopyNotice();
       closeOverlays();
+      setPipMicro(false);
       setMode("full");
     }, [closeOverlays, dismissCopyNotice, setMode]);
     exitToFullRef.current = exitToFull;
 
     const handleMinimize = useCallback(() => {
+      const win = pip.pipWindow;
+      const pipOpen = Boolean(win && pip.active && isPipWindowOpen(win));
+      // resizeTo до любых await: жест клика должен быть ещё жив.
+      const saved = pipOpen && win ? shrinkPipToMicro(win) : null;
+
       dismissCopyNotice();
       closeOverlays();
-      // teardown(false): pagehide снят до close → onPipClosedByBrowser не вызовет exitToFull.
-      pip.close();
+
+      if (saved) {
+        compactPipSizeRef.current = saved;
+        setPipMicro(true);
+        setMode("docked");
+        return;
+      }
+
+      if (pipOpen) {
+        // teardown(false): pagehide снят до close → onPipClosedByBrowser не вызовет exitToFull.
+        pip.close();
+      }
+      setPipMicro(false);
       setMode("docked");
     }, [closeOverlays, dismissCopyNotice, pip, setMode]);
 
@@ -369,12 +418,22 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
       pip.close();
     }, [exitToFull, pip]);
 
-    const handleRestoreDock = useCallback(async () => {
+    const handleRestoreDock = useCallback(() => {
+      const win = pip.pipWindow;
+      const saved = compactPipSizeRef.current;
+      if (pipMicro && win && isPipWindowOpen(win)) {
+        if (saved) resizeDocumentPipWindow(win, saved.width, saved.height);
+        setPipMicro(false);
+        setMode("compact");
+        return;
+      }
+
+      setPipMicro(false);
       setMode("compact");
       if (pip.supported) {
-        await pip.openFromUserGesture();
+        void pip.openFromUserGesture();
       }
-    }, [pip, setMode]);
+    }, [pip, pipMicro, setMode]);
 
     useEffect(
       () => () => {
@@ -417,6 +476,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
 
     const showCompactPanel = mode === "compact";
     const showDock = mode === "docked";
+    const showPipMicro = Boolean(showDock && pipMicro && isPip && livePipTarget);
 
     const noteItem = ui.noteTargetId ? ui.findItem(ui.noteTargetId) : null;
     const infoItem = ui.infoTargetId ? ui.findItem(ui.infoTargetId) : null;
@@ -685,6 +745,7 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
         className={`emMiniCart${className ? ` ${className}` : ""}`}
         data-mini-cart-mode={mode}
         data-mini-cart-pip={isPip ? "1" : "0"}
+        data-mini-cart-pip-micro={showPipMicro ? "1" : "0"}
         data-mini-cart-pip-supported={pip.supported ? "1" : "0"}
       >
         <MiniCartPortalProvider value={portalContextValue}>
@@ -699,9 +760,31 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
                   ? createPortal(panel, livePipTarget)
                   : panel}
 
+                {showPipMicro && livePipTarget
+                  ? createPortal(
+                      <button
+                        type="button"
+                        className="preparaty__pip-micro"
+                        aria-label="Открыть миникорзинку EasyMed"
+                        onClick={handleRestoreDock}
+                      >
+                        <span className="preparaty__pip-micro-mark">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src="/mini-cart/logo-white.png"
+                            width={101}
+                            height={43}
+                            alt=""
+                          />
+                        </span>
+                      </button>,
+                      livePipTarget,
+                    )
+                  : null}
+
                 <MiniCartDock
-                  hidden={!showDock}
-                  onRestore={() => void handleRestoreDock()}
+                  hidden={!showDock || showPipMicro}
+                  onRestore={handleRestoreDock}
                 />
 
                 {noteItem ? (

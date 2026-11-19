@@ -1,0 +1,64 @@
+/* Микро-корзинка внутри уже открытого Document PiP. Не стили мини-панели / in-page dock. */
+
+html.preparaty-pip:has(body.is-pip-micro),
+html.preparaty-pip body.preparaty--pip-host.is-pip-micro,
+body.preparaty--pip-host.is-pip-micro,
+body.preparaty--pip-host.is-pip-micro #em-mini-cart-pip-root,
+body.preparaty--pip-host.is-pip-micro .emMiniCart.emMiniCart--pip {
+  margin: 0;
+  overflow: hidden;
+  /* Перебивает inline background:#fff из preparePipDocument и host-стили compact. */
+  background: #202124 !important;
+  color-scheme: dark;
+}
+
+.emMiniCart .preparaty__pip-micro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #202124;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Квадратная плашка 1:1: окно PiP шире минимума Chrome, плашка остаётся квадратной. */
+.emMiniCart .preparaty__pip-micro-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  aspect-ratio: 1 / 1;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 6px;
+  border: 0;
+  border-radius: 0;
+  background: #202124;
+}
+
+.emMiniCart .preparaty__pip-micro-mark img {
+  display: block;
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}

@@ -8,7 +8,8 @@
 
 ## Режимы
 
-`full` → `compact` (PiP или in-page fallback) → `docked` (логотип) → обратно.
+`full` → `compact` (PiP или in-page fallback) → `docked`.
+Если PiP уже открыт, `compact` и `docked` — одно окно: `resizeTo()` и смена портала (мини-панель ↔ логотип). Закрытие PiP на этом переходе не делается. In-page логотип остаётся fallback, если PiP или `resizeTo()` недоступны.
 
 Открытие PiP только из user gesture (`requestCompactFromGesture`).
 

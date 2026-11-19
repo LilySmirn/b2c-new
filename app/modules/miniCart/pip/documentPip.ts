@@ -28,6 +28,12 @@ export const DEFAULT_PIP_WIDTH = 420;
 export const DEFAULT_PIP_HEIGHT = 640;
 export const MIN_PIP_WIDTH = 320;
 export const MIN_PIP_HEIGHT = 420;
+/**
+ * Нижняя граница Document PiP при программном resizeTo в Chrome:
+ * около 240×100 (outer). Меньше браузер не даёт.
+ */
+export const MICRO_PIP_WIDTH = 240;
+export const MICRO_PIP_HEIGHT = 100;
 /** Chromium Document PiP top controls (`kTopControlsHeight`). */
 export const PIP_TOP_CHROME_HEIGHT = 34;
 /** Высота синей шапки `/cart` — запасной safe-top, если SideCart ещё не измерен. */
@@ -258,4 +264,78 @@ export function closeDocumentPipWindow(
   } catch {
     /* ignore */
   }
+}
+
+export type PipFrameSize = {
+  width: number;
+  height: number;
+};
+
+/** Outer size, потому что Window.resizeTo задаёт внешние размеры. */
+export function readPipFrameSize(
+  pipWin: DocumentPipWindow,
+): PipFrameSize | null {
+  try {
+    if (pipWin.closed) return null;
+    const width = Math.round(pipWin.outerWidth || pipWin.innerWidth || 0);
+    const height = Math.round(pipWin.outerHeight || pipWin.innerHeight || 0);
+    if (width <= 0 || height <= 0) return null;
+    return { width, height };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * resizeTo только из user gesture. Возвращает false при отсутствии API или исключении.
+ * Не двигает окно (moveTo/moveBy запрещены).
+ */
+export function resizeDocumentPipWindow(
+  pipWin: DocumentPipWindow,
+  width: number,
+  height: number,
+): boolean {
+  try {
+    if (pipWin.closed || typeof pipWin.resizeTo !== "function") return false;
+    pipWin.resizeTo(Math.round(width), Math.round(height));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function isNearPipSize(
+  actual: PipFrameSize,
+  target: PipFrameSize,
+  tolerance = 80,
+): boolean {
+  return (
+    Math.abs(actual.width - target.width) <= tolerance &&
+    Math.abs(actual.height - target.height) <= tolerance
+  );
+}
+
+/**
+ * Синхронно сжимает текущее PiP до микро-размера.
+ * Возвращает размер до сжатия (для восстановления) или null, если resize не удался.
+ */
+export function shrinkPipToMicro(
+  pipWin: DocumentPipWindow,
+): PipFrameSize | null {
+  const current = readPipFrameSize(pipWin);
+  if (!current) return null;
+  if (!resizeDocumentPipWindow(pipWin, MICRO_PIP_WIDTH, MICRO_PIP_HEIGHT)) {
+    return null;
+  }
+  const next = readPipFrameSize(pipWin);
+  if (!next) return null;
+  const shrunk =
+    next.width < current.width - 1 || next.height < current.height - 1;
+  const nearMin = isNearPipSize(
+    next,
+    { width: MICRO_PIP_WIDTH, height: MICRO_PIP_HEIGHT },
+    120,
+  );
+  if (!shrunk && !nearMin) return null;
+  return current;
 }
