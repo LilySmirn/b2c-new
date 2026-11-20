@@ -60,13 +60,17 @@ export type {
 export {
   defaultChecklistCategories,
   getChecklistCategoryPosition,
+  getFirstAvailableCategoryId,
   mergeChecklistSectionsByTitle,
+  resolveActiveCategoryId,
   shouldShowSectionTitle,
   sortSectionsForDisplay,
 } from "./checklistModel";
 import {
   defaultChecklistCategories,
+  getFirstAvailableCategoryId,
   mergeChecklistSectionsByTitle,
+  resolveActiveCategoryId,
   shouldShowSectionTitle,
   sortSectionsForDisplay,
   type AppendixA3Table,
@@ -81,18 +85,6 @@ const itemMatchesId = (item: ChecklistItem, id: string) =>
   getItemIds(item).includes(id);
 
 const getMergedItems = (item: ChecklistItem) => item.mergedItems ?? [item];
-
-const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
-  const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
-
-  return (
-    defaultChecklistCategories.find((category) =>
-      availableCategoryIds.has(category.id),
-    )?.id ??
-    sections[0]?.categoryId ??
-    defaultChecklistCategories[0].id
-  );
-};
 
 type MedicationDraft = MedicationFieldDraft;
 
@@ -147,6 +139,11 @@ type PrescriptionChecklistProps = {
     ChecklistAssignmentSnapshot,
     "medicationDrafts" | "medicationIntake" | "commentSources"
   > | null;
+  /**
+   * Инкремент только при внешней гидратации assignments (remote sync / смена КР),
+   * не при каждом локальном onAssignmentSnapshotChange — иначе цикл.
+   */
+  assignmentHydrateEpoch?: number;
   uncheckItemId?: string | null;
   onUncheckHandled?: () => void;
   clearSelectionSignal?: number;
@@ -166,6 +163,7 @@ const PrescriptionChecklist = forwardRef<
     onSelectionChange,
     onAssignmentSnapshotChange,
     initialAssignment = null,
+    assignmentHydrateEpoch = 0,
     uncheckItemId,
     onUncheckHandled,
     clearSelectionSignal = 0,
@@ -180,6 +178,7 @@ const PrescriptionChecklist = forwardRef<
 ) {
   const initialAssignmentRef = useRef(initialAssignment);
   initialAssignmentRef.current = initialAssignment;
+  const appliedAssignmentEpochRef = useRef(0);
 
   const [sections, setSections] = useState(() =>
     mergeChecklistSectionsByTitle(initialSections),
@@ -317,19 +316,41 @@ const PrescriptionChecklist = forwardRef<
     setInfoInitialFocus(null);
   };
 
+  /**
+   * Обновление секций (в т.ч. checked из selections) без remount и без сброса вкладки.
+   * Drafts здесь не трогаем — их гидратирует assignmentHydrateEpoch / mount / смена КР.
+   */
   useEffect(() => {
     const mergedSections = mergeChecklistSectionsByTitle(initialSections);
-    const seed = initialAssignmentRef.current;
+    const extraAvailableIds: string[] = [];
+    if (isAppendixA3Loading || appendixA3Error || appendixA3Tables.length > 0) {
+      extraAvailableIds.push("appendix-a3");
+    }
 
     setSections(mergedSections);
-    setActiveCategoryId(getFirstAvailableCategoryId(mergedSections));
-    // Пользовательские drafts из хранилища, а не сброс к КР.
+    setActiveCategoryId((current) =>
+      resolveActiveCategoryId(current, mergedSections, extraAvailableIds),
+    );
+  }, [
+    appendixA3Error,
+    appendixA3Tables.length,
+    initialSections,
+    isAppendixA3Loading,
+  ]);
+
+  /** Внешняя гидратация drafts/intake/commentSources (remote assignments / смена КР). */
+  useEffect(() => {
+    if (!assignmentHydrateEpoch) return;
+    if (assignmentHydrateEpoch === appliedAssignmentEpochRef.current) return;
+    appliedAssignmentEpochRef.current = assignmentHydrateEpoch;
+
+    const seed = initialAssignmentRef.current;
     setMedicationDrafts({ ...(seed?.medicationDrafts ?? {}) });
     setMedicationIntake({ ...(seed?.medicationIntake ?? {}) });
     const nextSources = { ...(seed?.commentSources ?? {}) };
     commentSourcesRef.current = nextSources;
     setCommentSources(nextSources);
-  }, [initialSections]);
+  }, [assignmentHydrateEpoch]);
 
   /**
    * После готовности каталога — единственные доза/форма через applyMedsSelection.

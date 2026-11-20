@@ -9,6 +9,7 @@ import type {
   ChecklistSection,
   SelectedPrescription,
 } from "../components/PrescriptionChecklist";
+import { applySelectionsToSections } from "../components/checklistModel";
 import SideCart, { type SideCartHandle } from "../components/SideCart";
 import type { MiniCartAssignmentOps } from "@/app/modules/miniCart/assignmentOps";
 import styles from "./cart.module.css";
@@ -38,15 +39,6 @@ import {
   EMPTY_ASSIGNMENT_SNAPSHOT,
   type ChecklistAssignmentSnapshot,
 } from "@/app/(directory)/components/medications/assignmentSnapshot";
-
-const snapshotFromStoredAssignments = (
-  bucket: StoredCartAssignmentBucket,
-): ChecklistAssignmentSnapshot => ({
-  ...EMPTY_ASSIGNMENT_SNAPSHOT,
-  medicationDrafts: bucket.medicationDrafts,
-  medicationIntake: bucket.medicationIntake,
-  commentSources: bucket.commentSources,
-});
 import MiniCartHost, {
   type MiniCartHostHandle,
 } from "@/app/modules/miniCart/MiniCartHost";
@@ -65,25 +57,14 @@ type AppendixA3Table = {
   comment: string | null;
 };
 
-const applyStoredSelections = (
-  sections: ChecklistSection[],
-  selectedItems: SelectedPrescription[],
-) => {
-  const selectedItemMap = new Map(selectedItems.map((item) => [item.id, item]));
-
-  return sections.map((section) => ({
-    ...section,
-    items: section.items.map((item) => {
-      const storedItem = selectedItemMap.get(item.id);
-
-      return {
-        ...item,
-        checked: Boolean(storedItem),
-        comment: storedItem?.comment ?? item.comment,
-      };
-    }),
-  }));
-};
+const snapshotFromStoredAssignments = (
+  bucket: StoredCartAssignmentBucket,
+): ChecklistAssignmentSnapshot => ({
+  ...EMPTY_ASSIGNMENT_SNAPSHOT,
+  medicationDrafts: bucket.medicationDrafts,
+  medicationIntake: bucket.medicationIntake,
+  commentSources: bucket.commentSources,
+});
 
 const getDiagnosisCodeFromTitle = (title: string) => {
   const trimmedTitle = title.trim();
@@ -108,6 +89,29 @@ const sameSelectionIds = (
   });
 };
 
+const sameBaseSectionIds = (
+  left: ChecklistSection[],
+  right: ChecklistSection[],
+) => {
+  if (left.length !== right.length) return false;
+
+  return left.every((section, index) => {
+    const other = right[index];
+    if (
+      !other ||
+      section.id !== other.id ||
+      section.categoryId !== other.categoryId ||
+      section.items.length !== other.items.length
+    ) {
+      return false;
+    }
+
+    return section.items.every(
+      (item, itemIndex) => item.id === other.items[itemIndex]?.id,
+    );
+  });
+};
+
 export default function CartPreviewPage() {
   const router = useRouter();
   const [selectedItems, setSelectedItems] = useState<SelectedPrescription[]>([]);
@@ -118,7 +122,8 @@ export default function CartPreviewPage() {
   const [recommendationId, setRecommendationId] = useState("");
   const [recommendationSource, setRecommendationSource] = useState("");
   const [recommendationTitle, setRecommendationTitle] = useState("");
-  const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
+  /** Базовые секции КР без пользовательского checked — шаблон. */
+  const [baseSections, setBaseSections] = useState<ChecklistSection[]>([]);
   const [recommendationKey, setRecommendationKey] = useState("");
   const [appliedTemplateItems, setAppliedTemplateItems] = useState<SelectedPrescription[] | null>(null);
   const [appendixA3Tables, setAppendixA3Tables] = useState<AppendixA3Table[]>([]);
@@ -130,11 +135,20 @@ export default function CartPreviewPage() {
   const baseSectionsRef = useRef<ChecklistSection[]>([]);
   const recommendationKeyRef = useRef("");
   const selectedItemsRef = useRef<SelectedPrescription[]>([]);
-  const [checklistSyncEpoch, setChecklistSyncEpoch] = useState(0);
+  /** Внешняя гидратация drafts в checklist без remount. */
+  const [assignmentHydrateEpoch, setAssignmentHydrateEpoch] = useState(0);
+  /** Снимает syncApplying после эффектов checklist (children-first). */
+  const [syncReleaseNonce, setSyncReleaseNonce] = useState(0);
   const [miniCartMode, setMiniCartMode] =
     useState<MiniCartDisplayMode>("full");
   const [assignmentSnapshot, setAssignmentSnapshot] =
     useState<ChecklistAssignmentSnapshot>(EMPTY_ASSIGNMENT_SNAPSHOT);
+
+  /** checked/comment из selections — авторитетный источник для таблицы. */
+  const checklistSections = useMemo(
+    () => applySelectionsToSections(baseSections, selectedItems),
+    [baseSections, selectedItems],
+  );
   const miniCartRef = useRef<MiniCartHostHandle>(null);
   const checklistRef = useRef<PrescriptionChecklistHandle>(null);
   const sideCartRef = useRef<SideCartHandle>(null);
@@ -327,9 +341,11 @@ export default function CartPreviewPage() {
           : "",
       );
       isRestoringStoredSelectionsRef.current = true;
+      syncApplyingRef.current = true;
       setRecommendationKey(currentRecommendationKey);
       recommendationKeyRef.current = currentRecommendationKey;
       baseSectionsRef.current = prescriptions;
+      setBaseSections(prescriptions);
 
       if (currentRecommendationKey && prescriptions.length > 0) {
         const query = collectMedicationQuery(prescriptions);
@@ -349,11 +365,9 @@ export default function CartPreviewPage() {
           cartStorage.readAssignmentsForKey(currentRecommendationKey),
         ),
       );
-      setChecklistSections(
-        applyStoredSelections(prescriptions, storedSelectedItems),
-      );
       setAppliedTemplateItems(null);
       setIsCartReady(true);
+      setSyncReleaseNonce((value) => value + 1);
       return true;
     } catch {
       return false;
@@ -361,14 +375,15 @@ export default function CartPreviewPage() {
   }, [loadAppendixA3]);
 
   /**
-   * Применить КР из storage к React-state страницы и remount checklist.
-   * Используется remote-sync и in-place сменой из мини-корзинки.
+   * Применить КР из storage к React-state страницы.
+   * Remount checklist — через key={recommendationKey} при смене КР.
+   * Drafts подтягиваются assignmentHydrateEpoch (в т.ч. если key не изменился).
    */
   const applyRecommendationFromStorage = useCallback(() => {
     if (!hydrateFromStorage()) {
       return false;
     }
-    setChecklistSyncEpoch((value) => value + 1);
+    setAssignmentHydrateEpoch((value) => value + 1);
     return true;
   }, [hydrateFromStorage]);
 
@@ -455,7 +470,8 @@ export default function CartPreviewPage() {
       setRecommendationId("");
       setRecommendationSource("");
       setRecommendationTitle("");
-      setChecklistSections([]);
+      setBaseSections([]);
+      baseSectionsRef.current = [];
       setRecommendationKey("");
       setAppendixA3Tables([]);
       setIsAppendixA3Loading(false);
@@ -463,6 +479,11 @@ export default function CartPreviewPage() {
       setIsCartReady(false);
     }
   }, [hydrateFromStorage, router]);
+
+  useEffect(() => {
+    if (syncReleaseNonce === 0) return;
+    syncApplyingRef.current = false;
+  }, [syncReleaseNonce]);
 
   useEffect(() => {
     return subscribeCartSync((message) => {
@@ -491,59 +512,57 @@ export default function CartPreviewPage() {
       const hasAssignments = message.scopes.includes("assignments");
       if (!hasSelections && !hasAssignments) return;
 
+      syncApplyingRef.current = true;
+      isRestoringStoredSelectionsRef.current = true;
+
       if (
         Array.isArray(storedRecommendation?.recommendation?.prescriptions)
       ) {
-        baseSectionsRef.current = storedRecommendation.recommendation
+        const prescriptions = storedRecommendation.recommendation
           .prescriptions as ChecklistSection[];
+        baseSectionsRef.current = prescriptions;
+        setBaseSections((prev) =>
+          sameBaseSectionIds(prev, prescriptions) ? prev : prescriptions,
+        );
       }
-
-      syncApplyingRef.current = true;
 
       if (hasAssignments) {
         setAssignmentSnapshot(
           snapshotFromStoredAssignments(cartStorage.readAssignmentsForKey(key)),
         );
+        setAssignmentHydrateEpoch((value) => value + 1);
       }
 
       if (hasSelections) {
         const nextItems = cartStorage.readSelectionsForKey(key);
         if (!sameSelectionIds(selectedItemsRef.current, nextItems)) {
-          isRestoringStoredSelectionsRef.current = true;
           setSelectedItems(nextItems);
           selectedItemsRef.current = nextItems;
-          setRecommendationKey(key);
-          recommendationKeyRef.current = key;
-          setChecklistSections(
-            applyStoredSelections(baseSectionsRef.current, nextItems),
-          );
           setAppliedTemplateItems(null);
-        } else if (!hasAssignments) {
-          syncApplyingRef.current = false;
-          return;
         }
       }
 
-      // Remount checklist, чтобы подтянуть remote selections/assignments.
-      setChecklistSyncEpoch((value) => value + 1);
-      queueMicrotask(() => {
-        syncApplyingRef.current = false;
-      });
+      if (key !== recommendationKeyRef.current) {
+        setRecommendationKey(key);
+        recommendationKeyRef.current = key;
+      }
+
+      // Снять suppress после эффектов checklist (не microtask — иначе гонка записи).
+      setSyncReleaseNonce((value) => value + 1);
     });
-  }, [applyRecommendationFromStorage, hydrateFromStorage, router]);
+  }, [applyRecommendationFromStorage, router]);
 
   const handleSelectionChange = useCallback((items: SelectedPrescription[]) => {
-    if (syncApplyingRef.current) {
+    if (syncApplyingRef.current || isRestoringStoredSelectionsRef.current) {
       selectedItemsRef.current = items;
-      return;
-    }
-
-    if (isRestoringStoredSelectionsRef.current && items.length === 0) {
       isRestoringStoredSelectionsRef.current = false;
       return;
     }
 
-    isRestoringStoredSelectionsRef.current = false;
+    if (sameSelectionIds(selectedItemsRef.current, items)) {
+      return;
+    }
+
     setSelectedItems(items);
     selectedItemsRef.current = items;
     writeStoredSelections(recommendationKey, items);
@@ -608,10 +627,11 @@ export default function CartPreviewPage() {
       <section className={styles.layout}>
         <PrescriptionChecklist
           ref={checklistRef}
-          key={checklistSyncEpoch}
+          key={recommendationKey || "cart-checklist"}
           onSelectionChange={handleSelectionChange}
           onAssignmentSnapshotChange={handleAssignmentSnapshotChange}
           initialAssignment={assignmentSnapshot}
+          assignmentHydrateEpoch={assignmentHydrateEpoch}
           uncheckItemId={uncheckItemId}
           onUncheckHandled={() => setUncheckItemId(null)}
           clearSelectionSignal={clearSelectionSignal}

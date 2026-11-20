@@ -146,6 +146,68 @@ export const defaultChecklistCategories = [
   { id: "appendix-a3", label: "Приложение А3" },
 ];
 
+/** Первая доступная категория по порядку вкладок КР. */
+export const getFirstAvailableCategoryId = (sections: ChecklistSection[]) => {
+  const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
+
+  return (
+    defaultChecklistCategories.find((category) =>
+      availableCategoryIds.has(category.id),
+    )?.id ??
+    sections[0]?.categoryId ??
+    defaultChecklistCategories[0].id
+  );
+};
+
+/**
+ * Сохраняет текущую вкладку, если категория ещё доступна.
+ * Сброс на первую — только когда текущей категории больше нет (смена КР / пустой набор).
+ */
+export const resolveActiveCategoryId = (
+  currentCategoryId: string,
+  sections: ChecklistSection[],
+  extraAvailableIds?: Iterable<string>,
+) => {
+  const availableCategoryIds = new Set(sections.map((section) => section.categoryId));
+
+  for (const id of extraAvailableIds ?? []) {
+    availableCategoryIds.add(id);
+  }
+
+  if (currentCategoryId && availableCategoryIds.has(currentCategoryId)) {
+    return currentCategoryId;
+  }
+
+  return getFirstAvailableCategoryId(sections);
+};
+
+/**
+ * Накладывает checked/comment из selections на базовые секции КР.
+ * Авторитетный источник checked — selections / selectedItems, не «сырой» шаблон секций.
+ */
+export const applySelectionsToSections = (
+  sections: ChecklistSection[],
+  selectedItems: readonly SelectedPrescription[],
+): ChecklistSection[] => {
+  const selectedItemMap = new Map(selectedItems.map((item) => [item.id, item]));
+
+  return sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => {
+      const sourceIds = item.sourceIds ?? [item.id];
+      const storedItem =
+        selectedItemMap.get(item.id) ??
+        sourceIds.map((id) => selectedItemMap.get(id)).find(Boolean);
+
+      return {
+        ...item,
+        checked: Boolean(storedItem),
+        comment: storedItem?.comment ?? item.comment,
+      };
+    }),
+  }));
+};
+
 export const getChecklistCategoryPosition = (categoryId?: string) => {
   const position = defaultChecklistCategories.findIndex(
     (category) => category.id === categoryId,
