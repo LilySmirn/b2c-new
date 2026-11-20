@@ -641,10 +641,17 @@ const MiniCartShell = forwardRef<MiniCartShellHandle, MiniCartProps>(
             schemeLocked={ui.schemeTargetId === drugDetailsItem.id}
             initialFocus={ui.detailsInitialFocus}
             onBack={leaveDrugDetails}
-            onDone={leaveDrugDetails}
+            onDone={(result) => {
+              if (result?.edited) {
+                ui.selectItem(drugDetailsItem.id);
+              }
+              leaveDrugDetails();
+            }}
             onToggleInclude={() => ui.toggleItem(drugDetailsItem.id)}
             onChangeField={(field, value) =>
-              ui.setMedicationField(drugDetailsItem.id, field, value)
+              ui.setMedicationField(drugDetailsItem.id, field, value, {
+                select: false,
+              })
             }
             onCommentChange={(value) =>
               ui.setMedicationInfoComment(drugDetailsItem.id, value)

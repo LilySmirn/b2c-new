@@ -107,6 +107,7 @@ export type PrescriptionChecklistHandle = {
     itemId: string,
     field: MedicationField,
     value: string,
+    options?: { select?: boolean },
   ) => void;
   selectAllRequiredDiagnostics: () => void;
   /** D2: сохранить подтверждённую схему/комбинацию (как SchemeWizard → confirmCombination). */
@@ -689,13 +690,19 @@ const PrescriptionChecklist = forwardRef<
     id: string,
     field: MedicationField,
     value: string,
+    options?: { select?: boolean },
   ) => {
+    const select = options?.select !== false;
     const item = sections
       .flatMap((section) => section.items)
       .find((entry) => entry.id === id);
 
+    const previous = medicationDrafts[id]?.[field] ?? "";
+    const changed = previous !== value;
+
     if (item && (field === "dose" || field === "form")) {
       commitMedsSelection(item, { [field]: value });
+      if (select && changed) setItemChecked(id, true);
       return;
     }
 
@@ -713,6 +720,7 @@ const PrescriptionChecklist = forwardRef<
         medicationIntake[id],
       ),
     );
+    if (select && changed) setItemChecked(id, true);
   };
 
   const updateMedicationComment = (id: string, value: string) => {
@@ -815,6 +823,7 @@ const PrescriptionChecklist = forwardRef<
     }));
     persistBrowserCombinationSelection(medsRecommendationKey, itemId, draft);
     setSchemeSession(null);
+    setItemChecked(itemId, true);
   };
 
   const applyCombinationById = (itemId: string, draft: CombinationDraft) => {
@@ -1262,9 +1271,14 @@ const PrescriptionChecklist = forwardRef<
               : undefined
           }
           onClose={closeMedicationInfo}
+          onConfirm={(edited) => {
+            if (edited) setItemChecked(liveInfoItem.id, true);
+          }}
           onToggleCart={() => toggleChecked(liveInfoItem.id)}
           onChangeField={(field, value) =>
-            updateMedicationField(liveInfoItem.id, field, value)
+            updateMedicationField(liveInfoItem.id, field, value, {
+              select: false,
+            })
           }
           onCommentChange={(value) => {
             updateMedicationComment(liveInfoItem.id, value);

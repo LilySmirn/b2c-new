@@ -206,9 +206,9 @@ export default function CartPreviewPage() {
         if (switchingRef.current) return;
         checklistRef.current?.applyMedsPick(itemId, pick);
       },
-      setMedicationField: (itemId, field, value) => {
+      setMedicationField: (itemId, field, value, options) => {
         if (switchingRef.current) return;
-        checklistRef.current?.setMedicationField(itemId, field, value);
+        checklistRef.current?.setMedicationField(itemId, field, value, options);
       },
       selectAllRequiredDiagnostics: () => {
         if (switchingRef.current) return;

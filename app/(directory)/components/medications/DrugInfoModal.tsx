@@ -84,6 +84,11 @@ type DrugInfoModalProps = {
   dismissLocked?: boolean;
   onOpenScheme?: () => void;
   onClose: () => void;
+  /**
+   * «Готово»: `edited=true`, если врач вручную менял дозу/форму/схему/курс/приём/комментарий.
+   * Backdrop / Escape вызывают только `onClose` без автовыбора.
+   */
+  onConfirm?: (edited: boolean) => void;
   onToggleCart: () => void;
   onChangeField: (field: MedicationField, value: string) => void;
   onCommentChange: (value: string) => void;
@@ -337,6 +342,7 @@ export default function DrugInfoModal({
   dismissLocked = false,
   onOpenScheme,
   onClose,
+  onConfirm,
   onToggleCart,
   onChangeField,
   onCommentChange,
@@ -355,6 +361,8 @@ export default function DrugInfoModal({
   const krWasOpen = useRef(false);
   const [krOpen, setKrOpen] = useState(false);
   const krOpenRef = useRef(false);
+  /** Ручные правки врача в этой сессии карточки (не КР/каталог/сброс). */
+  const editedRef = useRef(false);
   /** Не закрывать по backdrop, пока не завершится возможный двойной клик, открывший карточку. */
   const [backdropArmed, setBackdropArmed] = useState(false);
   const sourceScheme = originalScheme.trim();
@@ -462,8 +470,42 @@ export default function DrugInfoModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [dismissLocked, onClose]);
 
+  const markEdited = () => {
+    editedRef.current = true;
+  };
+
+  const changeField = (field: MedicationField, value: string) => {
+    markEdited();
+    onChangeField(field, value);
+  };
+
+  const changeComment = (value: string) => {
+    markEdited();
+    onCommentChange(value);
+  };
+
+  const changeIntake = (next: MedicationIntake) => {
+    markEdited();
+    onIntakeChange(next);
+  };
+
+  const handleReset = () => {
+    editedRef.current = false;
+    onReset();
+  };
+
+  const handleApplyOriginal = () => {
+    editedRef.current = false;
+    onApplyOriginal();
+  };
+
+  const handleConfirm = () => {
+    onConfirm?.(editedRef.current);
+    onClose();
+  };
+
   const toggleIntake = (id: (typeof INTAKE_OPTIONS)[number]["id"]) => {
-    onIntakeChange({ ...intake, [id]: !intake[id] });
+    changeIntake({ ...intake, [id]: !intake[id] });
   };
 
   const removeChip = (id: SchemeChipId) => {
@@ -472,9 +514,9 @@ export default function DrugInfoModal({
       id,
     );
 
-    if (next.dose !== dose) onChangeField("dose", next.dose);
-    if (next.form !== form) onChangeField("form", next.form);
-    if (next.intake !== intake) onIntakeChange(next.intake);
+    if (next.dose !== dose) changeField("dose", next.dose);
+    if (next.form !== form) changeField("form", next.form);
+    if (next.intake !== intake) changeIntake(next.intake);
   };
 
   const closeKrComment = useCallback(() => setKrOpen(false), []);
@@ -582,13 +624,13 @@ export default function DrugInfoModal({
                   label="Доза"
                   value={dose}
                   options={doseOptions}
-                  onChange={(value) => onChangeField("dose", value)}
+                  onChange={(value) => changeField("dose", value)}
                 />
                 <CatalogComboField
                   label="Форма"
                   value={form}
                   options={formOptions}
-                  onChange={(value) => onChangeField("form", value)}
+                  onChange={(value) => changeField("form", value)}
                 />
               </div>
 
@@ -616,7 +658,7 @@ export default function DrugInfoModal({
                         }`}
                         aria-pressed={intake.relation === option.id}
                         onClick={() =>
-                          onIntakeChange({ ...intake, relation: option.id })
+                          changeIntake({ ...intake, relation: option.id })
                         }
                       >
                         {option.label}
@@ -650,7 +692,7 @@ export default function DrugInfoModal({
                       placeholder={schemeInputPlaceholder(chips.length)}
                       aria-label="Схема"
                       autoComplete="off"
-                      onChange={(event) => onChangeField("scheme", event.target.value)}
+                      onChange={(event) => changeField("scheme", event.target.value)}
                     />
                   </div>
                 </div>
@@ -666,7 +708,7 @@ export default function DrugInfoModal({
                           courseValue.trim() === preset ? styles.relActive : ""
                         }`}
                         aria-pressed={courseValue.trim() === preset}
-                        onClick={() => onChangeField("course", preset)}
+                        onClick={() => changeField("course", preset)}
                       >
                         {preset}
                       </button>
@@ -679,7 +721,7 @@ export default function DrugInfoModal({
                     placeholder="Свой курс"
                     aria-label="Курс"
                     autoComplete="off"
-                    onChange={(event) => onChangeField("course", event.target.value)}
+                    onChange={(event) => changeField("course", event.target.value)}
                   />
                 </div>
 
@@ -692,7 +734,7 @@ export default function DrugInfoModal({
                     value={comment}
                     placeholder="Комментарий к назначению..."
                     aria-label="Комментарий"
-                    onChange={(event) => onCommentChange(event.target.value)}
+                    onChange={(event) => changeComment(event.target.value)}
                   />
                 </label>
 
@@ -711,10 +753,10 @@ export default function DrugInfoModal({
               </div>
 
               <div className={styles.actions}>
-                <button type="button" className={styles.btn} onClick={onReset}>
+                <button type="button" className={styles.btn} onClick={handleReset}>
                   Сбросить
                 </button>
-                <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onClose}>
+                <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleConfirm}>
                   Готово
                 </button>
               </div>
@@ -765,7 +807,7 @@ export default function DrugInfoModal({
                     type="button"
                     className={styles.cardAction}
                     disabled={!hasOriginalRecommendation}
-                    onClick={onApplyOriginal}
+                    onClick={handleApplyOriginal}
                   >
                     Подставить в назначение
                   </button>

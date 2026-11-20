@@ -43,8 +43,17 @@ export type MiniCartAssignmentOps = {
    * Сам по себе не меняет checked — финальный выбор вызывает setItemChecked.
    */
   applyMedsPick: (itemId: string, pick: MiniCartMedsPick) => void;
-  /** D1/D2: текстовые поля назначения (dose/form через applyMedsSelection). */
-  setMedicationField: (itemId: string, field: MiniCartMedsField, value: string) => void;
+  /**
+   * D1/D2: текстовые поля назначения (dose/form через applyMedsSelection).
+   * `select` (по умолчанию true) — идемпотентный checked=true при фактическом изменении.
+   * Экран деталей препарата передаёт `{ select: false }` и выбирает на «Готово».
+   */
+  setMedicationField: (
+    itemId: string,
+    field: MiniCartMedsField,
+    value: string,
+    options?: { select?: boolean },
+  ) => void;
   /** D1: «выбрать всю обязательную диагностику». */
   selectAllRequiredDiagnostics?: () => void;
   /**

@@ -67,7 +67,8 @@ type MiniCartDrugDetailsScreenProps = {
    */
   initialFocus?: "comment" | null;
   onBack: () => void;
-  onDone: () => void;
+  /** «Готово»: `edited=true` при ручных правках назначения в этой сессии. */
+  onDone: (result?: { edited?: boolean }) => void;
   onToggleInclude: () => void;
   onChangeField: (field: MiniCartMedsField, value: string) => void;
   onCommentChange: (value: string) => void;
@@ -147,6 +148,8 @@ export default function MiniCartDrugDetailsScreen({
     null,
   );
   const commentFieldRef = useRef<HTMLTextAreaElement>(null);
+  /** Ручные правки врача в этой сессии экрана (не КР/сброс). */
+  const editedRef = useRef(false);
 
   const clearApplyOriginalFeedbackTimer = () => {
     if (applyOriginalTimerRef.current == null) return;
@@ -157,6 +160,7 @@ export default function MiniCartDrugDetailsScreen({
   useEffect(() => {
     clearApplyOriginalFeedbackTimer();
     setApplyOriginalFeedback(false);
+    editedRef.current = false;
   }, [item.id]);
 
   useEffect(
@@ -288,8 +292,33 @@ export default function MiniCartDrugDetailsScreen({
     }));
   };
 
+  const markEdited = () => {
+    editedRef.current = true;
+  };
+
+  const changeField = (field: MiniCartMedsField, value: string) => {
+    markEdited();
+    onChangeField(field, value);
+  };
+
+  const changeComment = (value: string) => {
+    markEdited();
+    onCommentChange(value);
+  };
+
+  const changeIntake = (next: MedicationIntake) => {
+    markEdited();
+    onIntakeChange(next);
+  };
+
+  const handleReset = () => {
+    editedRef.current = false;
+    onReset();
+  };
+
   const handleApplyOriginal = () => {
     if (!hasOriginalRecommendation || !editable) return;
+    editedRef.current = false;
     onApplyOriginal();
     setApplyOriginalFeedback(true);
     clearApplyOriginalFeedbackTimer();
@@ -299,9 +328,13 @@ export default function MiniCartDrugDetailsScreen({
     }, APPLY_ORIGINAL_FEEDBACK_MS);
   };
 
+  const handleConfirm = () => {
+    onDone({ edited: editedRef.current });
+  };
+
   const toggleIntake = (id: (typeof INTAKE_OPTIONS)[number]["id"]) => {
     if (!editable) return;
-    onIntakeChange({ ...intake, [id]: !intake[id] });
+    changeIntake({ ...intake, [id]: !intake[id] });
   };
 
   const removeChip = (id: SchemeChipId) => {
@@ -316,9 +349,9 @@ export default function MiniCartDrugDetailsScreen({
       },
       id,
     );
-    if (next.dose !== dose) onChangeField("dose", next.dose);
-    if (next.form !== form) onChangeField("form", next.form);
-    if (next.intake !== intake) onIntakeChange(next.intake);
+    if (next.dose !== dose) changeField("dose", next.dose);
+    if (next.form !== form) changeField("form", next.form);
+    if (next.intake !== intake) changeIntake(next.intake);
   };
 
   return (
@@ -423,14 +456,14 @@ export default function MiniCartDrugDetailsScreen({
               value={dose}
               options={doseOptions}
               disabled={!editable}
-              onChange={(value) => onChangeField("dose", value)}
+              onChange={(value) => changeField("dose", value)}
             />
             <MiniCartCatalogCombo
               label="Форма"
               value={form}
               options={formOptions}
               disabled={!editable}
-              onChange={(value) => onChangeField("form", value)}
+              onChange={(value) => changeField("form", value)}
             />
 
             <div className="preparaty__drug-field">
@@ -459,7 +492,7 @@ export default function MiniCartDrugDetailsScreen({
                     aria-pressed={intake.relation === option.id}
                     disabled={!editable}
                     onClick={() =>
-                      onIntakeChange({ ...intake, relation: option.id })
+                      changeIntake({ ...intake, relation: option.id })
                     }
                   >
                     {option.label}
@@ -500,7 +533,7 @@ export default function MiniCartDrugDetailsScreen({
                   aria-label="Схема"
                   autoComplete="off"
                   disabled={!editable}
-                  onChange={(event) => onChangeField("scheme", event.target.value)}
+                  onChange={(event) => changeField("scheme", event.target.value)}
                 />
               </div>
             </div>
@@ -517,7 +550,7 @@ export default function MiniCartDrugDetailsScreen({
                     }`}
                     aria-pressed={courseValue.trim() === preset}
                     disabled={!editable}
-                    onClick={() => onChangeField("course", preset)}
+                    onClick={() => changeField("course", preset)}
                   >
                     {preset}
                   </button>
@@ -531,7 +564,7 @@ export default function MiniCartDrugDetailsScreen({
                 aria-label="Курс"
                 autoComplete="off"
                 disabled={!editable}
-                onChange={(event) => onChangeField("course", event.target.value)}
+                onChange={(event) => changeField("course", event.target.value)}
               />
             </div>
 
@@ -545,7 +578,7 @@ export default function MiniCartDrugDetailsScreen({
                 placeholder="Комментарий к назначению..."
                 aria-label="Комментарий"
                 disabled={!editable}
-                onChange={(event) => onCommentChange(event.target.value)}
+                onChange={(event) => changeComment(event.target.value)}
               />
             </label>
 
@@ -572,7 +605,7 @@ export default function MiniCartDrugDetailsScreen({
                 <button
                   type="button"
                   className="preparaty__drug-btn"
-                  onClick={onReset}
+                  onClick={handleReset}
                 >
                   Сбросить
                 </button>
@@ -687,7 +720,7 @@ export default function MiniCartDrugDetailsScreen({
         <button
           type="button"
           className="preparaty__drug-done"
-          onClick={onDone}
+          onClick={handleConfirm}
         >
           Готово
         </button>

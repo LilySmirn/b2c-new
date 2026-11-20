@@ -269,38 +269,65 @@ export function useMiniCartUiState({
     );
   };
 
+  const selectItem = (itemId: string) => {
+    if (flags.isDirectoryBacked) {
+      assignmentOps?.setItemChecked?.(itemId, true);
+      return;
+    }
+    setDrugItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId ? { ...item, selected: true } : item,
+      ),
+    );
+  };
+
   const setMedicationField = (
     itemId: string,
     field: "dose" | "form" | "scheme" | "course",
     value: string,
+    options?: { select?: boolean },
   ) => {
+    const select = options?.select !== false;
     if (flags.isDirectoryBacked) {
       if (!flags.canEditFields) return;
-      assignmentOps?.setMedicationField(itemId, field, value);
+      assignmentOps?.setMedicationField(itemId, field, value, options);
       return;
     }
     setDrugItems((prev) =>
       prev.map((item) => {
         if (item.id !== itemId) return item;
         const details = item.medicationDetails;
-        if (field === "dose") return { ...item, selectedDose: value };
-        if (field === "form") return { ...item, selectedForm: value };
-        if (field === "scheme") {
-          return {
+        const previous =
+          field === "dose"
+            ? item.selectedDose || ""
+            : field === "form"
+              ? item.selectedForm || ""
+              : field === "scheme"
+                ? details?.schemeDraft || item.scheme || ""
+                : details?.courseDraft || item.course || "";
+        const changed = previous !== value;
+        let next = item;
+        if (field === "dose") next = { ...item, selectedDose: value };
+        else if (field === "form") next = { ...item, selectedForm: value };
+        else if (field === "scheme") {
+          next = {
             ...item,
             scheme: value,
             medicationDetails: details
               ? { ...details, schemeDraft: value }
               : details,
           };
+        } else {
+          next = {
+            ...item,
+            course: value,
+            medicationDetails: details
+              ? { ...details, courseDraft: value }
+              : details,
+          };
         }
-        return {
-          ...item,
-          course: value,
-          medicationDetails: details
-            ? { ...details, courseDraft: value }
-            : details,
-        };
+        if (select && changed) next = { ...next, selected: true };
+        return next;
       }),
     );
   };
@@ -731,6 +758,7 @@ export function useMiniCartUiState({
     updateComment,
     openComment,
     applyTrade,
+    selectItem,
     setMedicationField,
     setMedicationIntake,
     setMedicationInfoComment,
